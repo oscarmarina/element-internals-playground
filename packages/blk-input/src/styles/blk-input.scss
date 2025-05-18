@@ -1,0 +1,213 @@
+:host {
+  --_filled-color: var(--input-element-filled-color, #f9f9f9);
+  --_content-color: var(--input-element-content-color, #1d1b20);
+  --_outline-color: var(--input-element-outline-color, #79747e);
+  --_label-text-color: var(--input-element-label-text-color, #49454f);
+  --_disabled-content-opacity: var(--input-element-disabled-content-opacity, 0.38);
+  --_error-content-color: var(--input-element-error-content-color, #d83020);
+  --_error-outline-color: var(--input-element-error-outline-color, #d83020);
+  --_error-label-text-color: var(--input-element-error-label-text-color, #d83020);
+  --_hover-outline-color: var(--input-element-hover-outline-color, fieldtext);
+  --_focus-outline-color: var(--input-element-focus-outline-color, #007ac2);
+  --_focus-label-text-color: var(--input-element-focus--label-text-color, #007ac2);
+  --_error-message-text-color: var(--input-element-error-message-text-color, #d83020);
+  --_info-message-text-color: var(--input-element-info-message-text-color, #1d1b20);
+  --_content-animation: var(--input-element-content-animation, 125ms ease);
+  --_top-space: var(--input-element-top-space, 1.375em);
+  --_around-space: var(--input-element-around-space, 0.375em);
+  display: inline-flex;
+  box-sizing: border-box;
+  min-height: 1rem;
+}
+
+:host([hidden]),
+[hidden] {
+  display: none !important;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+.sr-only {
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+}
+
+:host(:disabled),
+:host(:disabled:hover),
+:host([inert]) {
+  .field-block {
+    opacity: var(--_disabled-content-opacity);
+  }
+
+  .field-flex {
+    opacity: var(--_disabled-content-opacity);
+    border-color: var(--_outline-color);
+  }
+}
+
+:host(:enabled[invalid]) {
+  .field-flex {
+    border-color: var(--_error-content-color);
+  }
+}
+
+:host(:hover),
+:host(:not(:focus-within):enabled[invalid]:hover) {
+  .field-flex {
+    border-color: var(--_hover-outline-color);
+  }
+}
+
+/* :focus-within instead of :focus because it works better at the :host level in Safari. */
+:host(:focus-within) {
+  .field-flex {
+    border-color: var(--_focus-outline-color);
+  }
+
+  label {
+    color: var(--_focus-label-text-color);
+  }
+}
+
+:host(:enabled[invalid]:focus-within) {
+  label {
+    color: var(--input-element-error-label-text-color);
+  }
+}
+
+.field-block,
+.field-flex,
+.field,
+.input-textarea {
+  min-height: inherit;
+  width: 100%;
+}
+
+.field-flex {
+  display: flex;
+  align-items: center;
+  color: var(--_content-color);
+  border: 2px solid var(--_outline-color);
+  border-radius: 4px;
+  transition: border-color, var(--_content-animation);
+}
+
+.field {
+  background-color: var(--_filled-color);
+  position: relative;
+}
+
+label {
+  cursor: text;
+  color: var(--_label-text-color);
+  transition:
+    transform var(--_content-animation),
+    top var(--_content-animation);
+  transform-origin: left top;
+  display: block;
+  position: absolute;
+  overflow: hidden;
+  max-width: 100%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  top: 50%;
+  width: 100%;
+  line-height: 1.15;
+  padding: 0 0.375rem;
+
+  @media (prefers-reduced-motion: reduce) {
+    label {
+      transition: none;
+    }
+  }
+}
+
+.mask {
+  display: none;
+}
+
+.mask:has(~ textarea) {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: calc(100% - 1rem);
+  height: var(--_top-space);
+  background-image: linear-gradient(to bottom, var(--_filled-color) 70%, transparent 100%);
+  pointer-events: none;
+}
+
+input,
+textarea {
+  border: none;
+  font: inherit;
+  line-height: 1;
+  background: none;
+  padding: var(--_around-space);
+  outline: none;
+  width: 100%;
+  height: 100%;
+  display: block;
+  caret-color: currentcolor;
+  color: currentcolor;
+  resize: vertical;
+
+  label ~ & {
+    padding: var(--_top-space) var(--_around-space) var(--_around-space);
+  }
+}
+
+/* autoprefixer: ignore next */
+.input-textarea::placeholder {
+  transition: opacity 125ms;
+}
+
+/* autoprefixer: ignore next */
+:host(:not(:focus-within)) label ~ .input-textarea::placeholder {
+  opacity: 0;
+}
+
+/* autoprefixer: ignore next */
+:host(:focus-within) label ~ .input-textarea::placeholder {
+  opacity: 1;
+}
+
+/* autoprefixer: ignore next */
+label:has(~ .input-textarea:placeholder-shown) {
+  transform: translateY(-50%);
+}
+
+/* autoprefixer: ignore next */
+:host(:focus-within) label,
+label:not(:has(~ .input-textarea:placeholder-shown)) {
+  transform: translateY(-100%) scale(0.82);
+  top: calc(0% + var(--_top-space));
+}
+
+.message-text {
+  font-size: 0.875rem;
+  text-indent: calc(0.875rem / 2);
+  margin-top: 0.5rem;
+
+  & > div + div {
+    margin-top: 0.25rem;
+  }
+}
+
+.info-message-text {
+  color: var(--_info-message-text-color);
+}
+
+.error-message-text {
+  color: var(--_error-message-text-color);
+}

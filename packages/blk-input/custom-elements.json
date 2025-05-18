@@ -1,0 +1,813 @@
+{
+  "schemaVersion": "1.0.0",
+  "readme": "",
+  "modules": [
+    {
+      "kind": "javascript-module",
+      "path": "src/BlkInput.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "![Lit](https://img.shields.io/badge/lit-3.0.0-blue.svg)\n\n## `<blk-input>`\nAn example element.",
+          "name": "BlkInput",
+          "members": [
+            {
+              "kind": "field",
+              "name": "__defaultInput",
+              "type": {
+                "text": "HTMLInputElement | HTMLTextAreaElement | undefined"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "__defaultValue",
+              "type": {
+                "text": "string"
+              },
+              "default": "''"
+            },
+            {
+              "kind": "field",
+              "name": "__fromReset",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false"
+            },
+            {
+              "kind": "field",
+              "name": "__internalIdref",
+              "type": {
+                "text": "string"
+              },
+              "default": "`${'uuid-'}${randomID()}`"
+            },
+            {
+              "kind": "field",
+              "name": "__hasInteracted",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false"
+            },
+            {
+              "kind": "field",
+              "name": "shadowRootOptions",
+              "type": {
+                "text": "ShadowRootInit"
+              },
+              "static": true,
+              "readonly": true,
+              "default": "{ ...LitElement.shadowRootOptions, delegatesFocus: true, }"
+            },
+            {
+              "kind": "field",
+              "name": "autocapitalize",
+              "type": {
+                "text": "string"
+              },
+              "default": "'off'",
+              "description": "Controls automatic capitalization of user input. Set to `\"off\"` or `\"none\"` to disable,\n`\"on\"` or `\"sentences\"` to capitalize sentences, `\"words\"` to capitalize each word,\nor `\"characters\"` to capitalize all characters.",
+              "attribute": "autocapitalize"
+            },
+            {
+              "kind": "field",
+              "name": "autocomplete",
+              "type": {
+                "text": "string | undefined"
+              },
+              "default": "'off'",
+              "description": "Indicates whether the browser should provide autocomplete suggestions for this input.\nUse `\"on\"` to enable, `\"off\"` to disable, or specific autocomplete tokens like `\"email\"`, `\"username\"`, etc.",
+              "attribute": "autocomplete"
+            },
+            {
+              "kind": "field",
+              "name": "autocorrect",
+              "type": {
+                "text": "string | undefined"
+              },
+              "default": "'off'",
+              "description": "Controls whether the browser should automatically correct spelling and grammar mistakes as the user types.\nSet to `\"on\"` (or `true`) to enable corrections, or `\"off\"` (or `false`) to disable.",
+              "attribute": "autocorrect"
+            },
+            {
+              "kind": "field",
+              "name": "autofocus",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "When set to `true`, the input will automatically receive focus when the page loads.\nNote: Only one element on a page should have autofocus enabled.",
+              "attribute": "autofocus"
+            },
+            {
+              "kind": "field",
+              "name": "disabled",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "When set to `true`, the input is disabled and cannot be interacted with by the user.\nThe input will not receive focus and its value will not be submitted with the form.",
+              "attribute": "disabled",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "enterKeyHint",
+              "type": {
+                "text": "'enter' | 'done' | 'go' | 'next' | 'previous' | 'search' | 'send' | ''"
+              },
+              "default": "''",
+              "description": "Specifies which action button to show on virtual keyboards.\nOptions: `\"enter\"`, `\"done\"`, `\"go\"`, `\"next\"`, `\"previous\"`, `\"search\"`, `\"send\"`.",
+              "attribute": "enterkeyhint"
+            },
+            {
+              "kind": "field",
+              "name": "inputMode",
+              "type": {
+                "text": "| 'none'\n    | 'text'\n    | 'tel'\n    | 'url'\n    | 'email'\n    | 'numeric'\n    | 'decimal'\n    | 'search'\n    | ''"
+              },
+              "default": "'text'",
+              "description": "Hints at the type of virtual keyboard to display on mobile devices.\nOptions: `\"none\"`, `\"text\"`, `\"tel\"`, `\"url\"`, `\"email\"`, `\"numeric\"`, `\"decimal\"`, `\"search\"`.",
+              "attribute": "inputmode"
+            },
+            {
+              "kind": "field",
+              "name": "max",
+              "type": {
+                "text": "string | number | undefined"
+              },
+              "description": "The maximum allowed value for number, range, date, and time inputs.\nFor number inputs, this should be a numeric value. For date/time inputs, use appropriate date formats.",
+              "attribute": "max"
+            },
+            {
+              "kind": "field",
+              "name": "maxLength",
+              "type": {
+                "text": "number | undefined"
+              },
+              "description": "The maximum number of characters allowed in text-based inputs.\nApplies to input types: `text`, `email`, `search`, `password`, `tel`, `url`.",
+              "attribute": "maxlength"
+            },
+            {
+              "kind": "field",
+              "name": "min",
+              "type": {
+                "text": "string | number | undefined"
+              },
+              "description": "The minimum allowed value for number, range, date, and time inputs.\nFor number inputs, this should be a numeric value. For date/time inputs, use appropriate date formats.",
+              "attribute": "min"
+            },
+            {
+              "kind": "field",
+              "name": "minLength",
+              "type": {
+                "text": "number | undefined"
+              },
+              "description": "The minimum number of characters required in text-based inputs.\nApplies to input types: `text`, `email`, `search`, `password`, `tel`, `url`.",
+              "attribute": "minlength"
+            },
+            {
+              "kind": "field",
+              "name": "multiple",
+              "type": {
+                "text": "boolean | undefined"
+              },
+              "description": "Allows multiple values to be entered. Currently only supported for email input type,\nwhere users can enter multiple email addresses separated by commas.",
+              "attribute": "multiple"
+            },
+            {
+              "kind": "field",
+              "name": "name",
+              "type": {
+                "text": "string | undefined"
+              },
+              "description": "The name of the input control. This value is submitted with the form data and\nshould be unique within the form to identify this specific input.",
+              "attribute": "name",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "label",
+              "type": {
+                "text": "string | undefined"
+              },
+              "description": "The text label displayed above or beside the input field.\nUsed for accessibility and to provide context about what the user should enter.",
+              "attribute": "label",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "pattern",
+              "type": {
+                "text": "string | undefined"
+              },
+              "description": "A regular expression pattern that the input value must match for validation.\nUse standard regex syntax, e.g., `\"[0-9]{3}-[0-9]{2}-[0-9]{4}\"` for SSN format.",
+              "attribute": "pattern"
+            },
+            {
+              "kind": "field",
+              "name": "placeholder",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "Placeholder text that appears in the input when it's empty.\nProvides a hint to the user about what type of information is expected.",
+              "attribute": "placeholder"
+            },
+            {
+              "kind": "field",
+              "name": "readOnly",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "When set to `true`, the input is read-only and cannot be modified by the user.\nThe input can still receive focus and its value will be submitted with the form.",
+              "attribute": "readonly",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "required",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "When set to `true`, the user must provide a value before the form can be submitted.\nThe input will show validation errors if left empty during form submission.",
+              "attribute": "required",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "rows",
+              "type": {
+                "text": "number"
+              },
+              "default": "3",
+              "description": "The number of rows to display for a `type=\"textarea\"` text field.\nDefaults to 3.",
+              "attribute": "rows"
+            },
+            {
+              "kind": "field",
+              "name": "cols",
+              "type": {
+                "text": "number"
+              },
+              "default": "20",
+              "description": "The number of cols to display for a `type=\"textarea\"` text field.\nDefaults to 20.",
+              "attribute": "cols"
+            },
+            {
+              "kind": "field",
+              "name": "spellcheck",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Controls whether the browser should check spelling and grammar in the input.\nSet to `true` to enable spell checking, or `false` to disable it.",
+              "attribute": "spellcheck"
+            },
+            {
+              "kind": "field",
+              "name": "step",
+              "type": {
+                "text": "string | undefined"
+              },
+              "description": "Defines the increment/decrement step for numeric inputs when using arrow buttons or arrow keys.\nSet to `\"any\"` to allow decimal values, or specify a positive number for the step size.",
+              "attribute": "step"
+            },
+            {
+              "kind": "field",
+              "name": "type",
+              "type": {
+                "text": "'email' | 'number' | 'password' | 'search' | 'tel' | 'text' | 'url' | 'textarea' | undefined"
+              },
+              "default": "'text'",
+              "description": "The type of input control to render. Determines the input behavior, validation, and appearance.\nCommon types: `\"text\"`, `\"email\"`, `\"password\"`, `\"number\"`, `\"tel\"`, `\"url\"`, `\"search\"`.",
+              "attribute": "type",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "value",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "The current value of the input. This is the text that the user has entered\nor that has been programmatically set. Changes to this property will update the input display.",
+              "attribute": "value"
+            },
+            {
+              "kind": "field",
+              "name": "infoMessageText",
+              "type": {
+                "text": "string | undefined"
+              },
+              "description": "Message to show below the field",
+              "attribute": "info-message-text"
+            },
+            {
+              "kind": "field",
+              "name": "errorMessageText",
+              "type": {
+                "text": "string | undefined"
+              },
+              "description": "Message to show below the field when it's invalid",
+              "attribute": "error-message-text"
+            },
+            {
+              "kind": "field",
+              "name": "invalid",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "attribute": "invalid",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "nativeValidationMessage",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "When true, `errorMessageText` is used for the internal validity check, but the visual error message is handled by the browser's native validation UI.",
+              "attribute": "native-validation-message"
+            },
+            {
+              "kind": "field",
+              "name": "count",
+              "description": "The current character count of the input value.\nThe minlength and maxlength constraints are only checked on user-provided input. They are not checked if a value is set programmatically, even when explicitly calling checkValidity() or reportValidity()",
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "nativeControl",
+              "description": "The native input/textarea control element.",
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "touched",
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Returns true if the user has interacted.\nInteraction is detected through typing, key presses, or losing focus.",
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "_messageTextEmpty",
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "_messageTextTpl",
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "_infoMessageTextTpl",
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "_errorMessageTextTpl",
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "_fieldTpl",
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "_labelTpl",
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "_inputOrTextareaTpl",
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "_textareaTpl",
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "_inputTpl",
+              "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "formDisabledCallback",
+              "parameters": [
+                {
+                  "name": "disabled",
+                  "type": {
+                    "text": "boolean"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "formResetCallback"
+            },
+            {
+              "kind": "method",
+              "name": "_markAsInteracted",
+              "privacy": "private",
+              "description": "Marks the input as having been interacted with by the user.\nThis is used internally to determine when to show validation messages."
+            },
+            {
+              "kind": "method",
+              "name": "_redispatchEvent",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "ev",
+                  "type": {
+                    "text": "Event | string"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_onBlur",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "ev",
+                  "type": {
+                    "text": "Event | string"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_onInput",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "{target}",
+                  "type": {
+                    "text": "Event"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_onKeydown",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "ev",
+                  "type": {
+                    "text": "KeyboardEvent"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_checkValidityAndSetValue",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "value",
+                  "default": "this.value"
+                },
+                {
+                  "name": "connectedCallback",
+                  "default": "false"
+                }
+              ]
+            }
+          ],
+          "attributes": [
+            {
+              "name": "autocapitalize",
+              "type": {
+                "text": "string"
+              },
+              "default": "'off'",
+              "description": "Controls automatic capitalization of user input. Set to `\"off\"` or `\"none\"` to disable,\n`\"on\"` or `\"sentences\"` to capitalize sentences, `\"words\"` to capitalize each word,\nor `\"characters\"` to capitalize all characters.",
+              "fieldName": "autocapitalize"
+            },
+            {
+              "name": "autocomplete",
+              "type": {
+                "text": "string | undefined"
+              },
+              "default": "'off'",
+              "description": "Indicates whether the browser should provide autocomplete suggestions for this input.\nUse `\"on\"` to enable, `\"off\"` to disable, or specific autocomplete tokens like `\"email\"`, `\"username\"`, etc.",
+              "fieldName": "autocomplete"
+            },
+            {
+              "name": "autocorrect",
+              "type": {
+                "text": "string | undefined"
+              },
+              "default": "'off'",
+              "description": "Controls whether the browser should automatically correct spelling and grammar mistakes as the user types.\nSet to `\"on\"` (or `true`) to enable corrections, or `\"off\"` (or `false`) to disable.",
+              "fieldName": "autocorrect"
+            },
+            {
+              "name": "autofocus",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "When set to `true`, the input will automatically receive focus when the page loads.\nNote: Only one element on a page should have autofocus enabled.",
+              "fieldName": "autofocus"
+            },
+            {
+              "name": "disabled",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "When set to `true`, the input is disabled and cannot be interacted with by the user.\nThe input will not receive focus and its value will not be submitted with the form.",
+              "fieldName": "disabled"
+            },
+            {
+              "name": "enterkeyhint",
+              "type": {
+                "text": "'enter' | 'done' | 'go' | 'next' | 'previous' | 'search' | 'send' | ''"
+              },
+              "default": "''",
+              "description": "Specifies which action button to show on virtual keyboards.\nOptions: `\"enter\"`, `\"done\"`, `\"go\"`, `\"next\"`, `\"previous\"`, `\"search\"`, `\"send\"`.",
+              "fieldName": "enterKeyHint"
+            },
+            {
+              "name": "inputmode",
+              "type": {
+                "text": "| 'none'\n    | 'text'\n    | 'tel'\n    | 'url'\n    | 'email'\n    | 'numeric'\n    | 'decimal'\n    | 'search'\n    | ''"
+              },
+              "default": "'text'",
+              "description": "Hints at the type of virtual keyboard to display on mobile devices.\nOptions: `\"none\"`, `\"text\"`, `\"tel\"`, `\"url\"`, `\"email\"`, `\"numeric\"`, `\"decimal\"`, `\"search\"`.",
+              "fieldName": "inputMode"
+            },
+            {
+              "name": "max",
+              "type": {
+                "text": "string | number | undefined"
+              },
+              "description": "The maximum allowed value for number, range, date, and time inputs.\nFor number inputs, this should be a numeric value. For date/time inputs, use appropriate date formats.",
+              "fieldName": "max"
+            },
+            {
+              "name": "maxlength",
+              "type": {
+                "text": "number | undefined"
+              },
+              "description": "The maximum number of characters allowed in text-based inputs.\nApplies to input types: `text`, `email`, `search`, `password`, `tel`, `url`.",
+              "fieldName": "maxLength"
+            },
+            {
+              "name": "min",
+              "type": {
+                "text": "string | number | undefined"
+              },
+              "description": "The minimum allowed value for number, range, date, and time inputs.\nFor number inputs, this should be a numeric value. For date/time inputs, use appropriate date formats.",
+              "fieldName": "min"
+            },
+            {
+              "name": "minlength",
+              "type": {
+                "text": "number | undefined"
+              },
+              "description": "The minimum number of characters required in text-based inputs.\nApplies to input types: `text`, `email`, `search`, `password`, `tel`, `url`.",
+              "fieldName": "minLength"
+            },
+            {
+              "name": "multiple",
+              "type": {
+                "text": "boolean | undefined"
+              },
+              "description": "Allows multiple values to be entered. Currently only supported for email input type,\nwhere users can enter multiple email addresses separated by commas.",
+              "fieldName": "multiple"
+            },
+            {
+              "name": "name",
+              "type": {
+                "text": "string | undefined"
+              },
+              "description": "The name of the input control. This value is submitted with the form data and\nshould be unique within the form to identify this specific input.",
+              "fieldName": "name"
+            },
+            {
+              "name": "label",
+              "type": {
+                "text": "string | undefined"
+              },
+              "description": "The text label displayed above or beside the input field.\nUsed for accessibility and to provide context about what the user should enter.",
+              "fieldName": "label"
+            },
+            {
+              "name": "pattern",
+              "type": {
+                "text": "string | undefined"
+              },
+              "description": "A regular expression pattern that the input value must match for validation.\nUse standard regex syntax, e.g., `\"[0-9]{3}-[0-9]{2}-[0-9]{4}\"` for SSN format.",
+              "fieldName": "pattern"
+            },
+            {
+              "name": "placeholder",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "Placeholder text that appears in the input when it's empty.\nProvides a hint to the user about what type of information is expected.",
+              "fieldName": "placeholder"
+            },
+            {
+              "name": "readonly",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "When set to `true`, the input is read-only and cannot be modified by the user.\nThe input can still receive focus and its value will be submitted with the form.",
+              "fieldName": "readOnly"
+            },
+            {
+              "name": "required",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "When set to `true`, the user must provide a value before the form can be submitted.\nThe input will show validation errors if left empty during form submission.",
+              "fieldName": "required"
+            },
+            {
+              "name": "rows",
+              "type": {
+                "text": "number"
+              },
+              "default": "3",
+              "description": "The number of rows to display for a `type=\"textarea\"` text field.\nDefaults to 3.",
+              "fieldName": "rows"
+            },
+            {
+              "name": "cols",
+              "type": {
+                "text": "number"
+              },
+              "default": "20",
+              "description": "The number of cols to display for a `type=\"textarea\"` text field.\nDefaults to 20.",
+              "fieldName": "cols"
+            },
+            {
+              "name": "spellcheck",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Controls whether the browser should check spelling and grammar in the input.\nSet to `true` to enable spell checking, or `false` to disable it.",
+              "fieldName": "spellcheck"
+            },
+            {
+              "name": "step",
+              "type": {
+                "text": "string | undefined"
+              },
+              "description": "Defines the increment/decrement step for numeric inputs when using arrow buttons or arrow keys.\nSet to `\"any\"` to allow decimal values, or specify a positive number for the step size.",
+              "fieldName": "step"
+            },
+            {
+              "name": "type",
+              "type": {
+                "text": "'email' | 'number' | 'password' | 'search' | 'tel' | 'text' | 'url' | 'textarea' | undefined"
+              },
+              "default": "'text'",
+              "description": "The type of input control to render. Determines the input behavior, validation, and appearance.\nCommon types: `\"text\"`, `\"email\"`, `\"password\"`, `\"number\"`, `\"tel\"`, `\"url\"`, `\"search\"`.",
+              "fieldName": "type"
+            },
+            {
+              "name": "value",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "The current value of the input. This is the text that the user has entered\nor that has been programmatically set. Changes to this property will update the input display.",
+              "fieldName": "value"
+            },
+            {
+              "name": "info-message-text",
+              "type": {
+                "text": "string | undefined"
+              },
+              "description": "Message to show below the field",
+              "fieldName": "infoMessageText"
+            },
+            {
+              "name": "error-message-text",
+              "type": {
+                "text": "string | undefined"
+              },
+              "description": "Message to show below the field when it's invalid",
+              "fieldName": "errorMessageText"
+            },
+            {
+              "name": "invalid",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "invalid"
+            },
+            {
+              "name": "native-validation-message",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "When true, `errorMessageText` is used for the internal validity check, but the visual error message is handled by the browser's native validation UI.",
+              "fieldName": "nativeValidationMessage"
+            }
+          ],
+          "mixins": [
+            {
+              "name": "BlkMixinFormAssociated",
+              "package": "@blockquote-playground/blk-mixin-element-internals"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "blk-input",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "BlkInput",
+          "declaration": {
+            "name": "BlkInput",
+            "module": "src/BlkInput.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/index.ts",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "BlkInput",
+          "declaration": {
+            "name": "BlkInput",
+            "module": "./BlkInput.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/define/blk-input.ts",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "blk-input",
+          "declaration": {
+            "name": "BlkInput",
+            "module": "/src/BlkInput.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/styles/blk-input-styles.css.ts",
+      "declarations": [
+        {
+          "kind": "variable",
+          "name": "styles",
+          "default": "css` :host { --_filled-color: var(--input-element-filled-color, #f9f9f9); --_content-color: var(--input-element-content-color, #1d1b20); --_outline-color: var(--input-element-outline-color, #79747e); --_label-text-color: var(--input-element-label-text-color, #49454f); --_disabled-content-opacity: var(--input-element-disabled-content-opacity, 0.38); --_error-content-color: var(--input-element-error-content-color, #d83020); --_error-outline-color: var(--input-element-error-outline-color, #d83020); --_error-label-text-color: var(--input-element-error-label-text-color, #d83020); --_hover-outline-color: var(--input-element-hover-outline-color, fieldtext); --_focus-outline-color: var(--input-element-focus-outline-color, #007ac2); --_focus-label-text-color: var(--input-element-focus--label-text-color, #007ac2); --_error-message-text-color: var(--input-element-error-message-text-color, #d83020); --_info-message-text-color: var(--input-element-info-message-text-color, #1d1b20); --_content-animation: var(--input-element-content-animation, 125ms ease); --_top-space: var(--input-element-top-space, 1.375em); --_around-space: var(--input-element-around-space, 0.375em); display: inline-flex; box-sizing: border-box; min-height: 1rem; } :host([hidden]), [hidden] { display: none !important; } *, *::before, *::after { box-sizing: inherit; } .sr-only { border: 0; clip: rect(0 0 0 0); height: 1px; margin: -1px; overflow: hidden; padding: 0; position: absolute; width: 1px; } :host(:disabled) .field-block, :host(:disabled:hover) .field-block, :host([inert]) .field-block { opacity: var(--_disabled-content-opacity); } :host(:disabled) .field-flex, :host(:disabled:hover) .field-flex, :host([inert]) .field-flex { opacity: var(--_disabled-content-opacity); border-color: var(--_outline-color); } :host(:enabled[invalid]) .field-flex { border-color: var(--_error-content-color); } :host(:hover) .field-flex, :host(:not(:focus-within):enabled[invalid]:hover) .field-flex { border-color: var(--_hover-outline-color); } /* :focus-within instead of :focus because it works better at the :host level in Safari. */ :host(:focus-within) .field-flex { border-color: var(--_focus-outline-color); } :host(:focus-within) label { color: var(--_focus-label-text-color); } :host(:enabled[invalid]:focus-within) label { color: var(--input-element-error-label-text-color); } .field-block, .field-flex, .field, .input-textarea { min-height: inherit; width: 100%; } .field-flex { display: flex; align-items: center; color: var(--_content-color); border: 2px solid var(--_outline-color); border-radius: 4px; transition: border-color, var(--_content-animation); } .field { background-color: var(--_filled-color); position: relative; } label { cursor: text; color: var(--_label-text-color); transition: transform var(--_content-animation), top var(--_content-animation); transform-origin: left top; display: block; position: absolute; overflow: hidden; max-width: 100%; text-overflow: ellipsis; white-space: nowrap; top: 50%; width: 100%; line-height: 1.15; padding: 0 0.375rem; } @media (prefers-reduced-motion: reduce) { label label { transition: none; } } .mask { display: none; } .mask:has(~ textarea) { display: block; position: absolute; top: 0; left: 0; width: calc(100% - 1rem); height: var(--_top-space); background-image: linear-gradient(to bottom, var(--_filled-color) 70%, transparent 100%); pointer-events: none; } input, textarea { border: none; font: inherit; line-height: 1; background: none; padding: var(--_around-space); outline: none; width: 100%; height: 100%; display: block; caret-color: currentcolor; color: currentcolor; resize: vertical; } label ~ input, label ~ textarea { padding: var(--_top-space) var(--_around-space) var(--_around-space); } /* autoprefixer: ignore next */ .input-textarea::placeholder { transition: opacity 125ms; } /* autoprefixer: ignore next */ :host(:not(:focus-within)) label ~ .input-textarea::placeholder { opacity: 0; } /* autoprefixer: ignore next */ :host(:focus-within) label ~ .input-textarea::placeholder { opacity: 1; } /* autoprefixer: ignore next */ label:has(~ .input-textarea:placeholder-shown) { transform: translateY(-50%); } /* autoprefixer: ignore next */ :host(:focus-within) label, label:not(:has(~ .input-textarea:placeholder-shown)) { transform: translateY(-100%) scale(0.82); top: calc(0% + var(--_top-space)); } .message-text { font-size: 0.875rem; text-indent: 0.4375rem; margin-top: 0.5rem; } .message-text > div + div { margin-top: 0.25rem; } .info-message-text { color: var(--_info-message-text-color); } .error-message-text { color: var(--_error-message-text-color); } `"
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "styles",
+          "declaration": {
+            "name": "styles",
+            "module": "src/styles/blk-input-styles.css.ts"
+          }
+        }
+      ]
+    }
+  ]
+}

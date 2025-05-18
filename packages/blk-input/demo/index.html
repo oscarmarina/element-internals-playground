@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Demo - blk-input</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="data:image/x-icon;base64,bl" />
+    <meta name="description" content="blk-input" />
+    <style>
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        font-family: sans-serif;
+        background-color: #f0f2f5;
+      }
+
+      main {
+        display: grid;
+        padding: 2rem;
+        grid-auto-rows: 1fr;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      }
+
+      section {
+        background-color: #fff;
+        padding: 2rem;
+        margin: 1rem;
+        border-radius: 16px;
+        box-shadow:
+          0 10px 15px -3px rgb(0, 0, 0, 0.1),
+          0 4px 6px -2px rgb(0, 0, 0, 0.05);
+      }
+
+      fieldset {
+        border: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      legend {
+        padding: 0 0.5rem;
+        font-weight: bold;
+      }
+
+      div {
+        margin: 1rem 0.5rem;
+      }
+
+      div:not(:has(button)) > * {
+        display: block;
+        width: 100%;
+      }
+
+      label {
+        margin-bottom: 0.5rem;
+        font-size: 0.9375rem;
+      }
+
+      textarea {
+        resize: vertical;
+      }
+
+      div:has(button) {
+        white-space: nowrap;
+      }
+
+      button {
+        display: inline-flex;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: #d1d1d1;
+        color: rgb(23, 23, 23);
+        border: none;
+        border-radius: 4px;
+        font: inherit;
+        cursor: pointer;
+        transition: transform 125ms ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px -1px rgb(0, 0, 0, 0.1);
+      }
+
+      .error {
+        color: #ef4444;
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+        display: none;
+      }
+
+      .error.visible {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section id="sec1">
+        <form id="form-sec1" novalidate>
+          <fieldset>
+            <legend>Sign Up</legend>
+            <div>
+              <blk-input
+                label="Name"
+                required
+                minlength="2"
+                error-message-text="Name must be at least 2 characters"
+                id="x1-sec1"
+                name="x1-sec1"
+                placeholder="Enter your name"
+              ></blk-input>
+            </div>
+            <div>
+              <blk-input
+                label="Textarea"
+                type="textarea"
+                id="tx1-sec1"
+                name="tx1-sec1"
+                placeholder="Enter ..."
+              ></blk-input>
+            </div>
+            <div>
+              <blk-input
+                label="Email"
+                type="email"
+                name="x2-sec1"
+                id="x2-sec1"
+                placeholder="Enter your email"
+                required
+                pattern="(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).*"
+                info-message-text="Uppercase - Number"
+                error-message-text="Please enter a valid email address"
+              ></blk-input>
+            </div>
+            <div>
+              <blk-input
+                type="password"
+                label="Password"
+                required
+                minlength="6"
+                placeholder="Create a password"
+                name="x3-sec1"
+                id="x3-sec1"
+                error-message-text="Password must be at least 6 characters"
+              ></blk-input>
+            </div>
+          </fieldset>
+          <div>
+            <button type="submit">Submit</button>
+            <button type="reset">Reset</button>
+          </div>
+        </form>
+      </section>
+      <section id="sec2">
+        <form id="form-sec2" novalidate>
+          <fieldset>
+            <legend>Sign Up</legend>
+            <div>
+              <label for="x1-sec2">Name</label>
+              <blk-input
+                required
+                minlength="2"
+                error-message-text="Name must be at least 2 characters"
+                id="x1-sec2"
+                name="x1-sec2"
+                placeholder="Enter your name"
+              ></blk-input>
+            </div>
+            <div>
+              <label for="tx1-sec2">Textarea</label>
+              <blk-input
+                type="textarea"
+                id="tx1-sec2"
+                name="tx1-sec2"
+                placeholder="Enter ..."
+              ></blk-input>
+            </div>
+            <div>
+              <label for="x2-sec2">Email</label>
+              <blk-input
+                type="email"
+                name="x2-sec2"
+                id="x2-sec2"
+                placeholder="Enter your email"
+                required
+                pattern="(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).*"
+                info-message-text="Uppercase - Number"
+                error-message-text="Please enter a valid email address"
+              ></blk-input>
+            </div>
+            <div>
+              <label for="x3-sec2">Password</label>
+              <blk-input
+                type="password"
+                required
+                minlength="6"
+                placeholder="Create a password"
+                name="x3-sec2"
+                id="x3-sec2"
+                error-message-text="Password must be at least 6 characters"
+              ></blk-input>
+            </div>
+          </fieldset>
+          <div>
+            <button type="submit">Submit</button>
+            <button type="reset">Reset</button>
+          </div>
+        </form>
+      </section>
+      <section id="sec3">
+        <form id="form-sec3" novalidate>
+          <fieldset>
+            <legend>Sign Up</legend>
+            <div>
+              <label for="native-x1-sec3">Name</label>
+              <input
+                required
+                minlength="2"
+                id="native-x1-sec3"
+                name="native-x1-sec3"
+                placeholder="Enter your name"
+              />
+              <div class="error" id="native-x1-sec3Error" role="alert">
+                Name must be at least 2 characters
+              </div>
+            </div>
+            <div>
+              <label for="native-tx1-sec3">Textarea</label>
+              <textarea
+                id="native-tx1-sec3"
+                name="native-tx1-sec3"
+                placeholder="Enter ..."
+              ></textarea>
+            </div>
+            <div>
+              <label for="native-x2-sec3">Email</label>
+              <input
+                type="email"
+                name="native-x2-sec3"
+                id="native-x2-sec3"
+                placeholder="Enter your email"
+                required
+                pattern="(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).*"
+              />
+              <div class="error" id="native-x2-sec3Error" role="alert">
+                Please enter a valid email address
+              </div>
+            </div>
+            <div>
+              <label for="native-x3-sec3">Password</label>
+              <input
+                type="password"
+                required
+                minlength="6"
+                placeholder="Create a password"
+                name="native-x3-sec3"
+                id="native-x3-sec3"
+              />
+              <div class="error" id="native-x3-sec3Error" role="alert">
+                Password must be at least 6 characters
+              </div>
+            </div>
+          </fieldset>
+          <div>
+            <button type="submit">Submit</button>
+            <button type="reset" id="form-sec3Reset">Reset</button>
+          </div>
+        </form>
+      </section>
+    </main>
+    <script type="module" src="./entry.js"></script>
+    <script>
+      const handleNativeInputValidation = (input) => {
+        const errorElement = document.getElementById(`${input.id}Error`);
+        if (!errorElement) return;
+
+        const handleValidation = () => {
+          const isValid = input.validity.valid;
+          input.classList.toggle('valid', isValid);
+          input.classList.toggle('invalid', !isValid);
+          errorElement.classList.toggle('visible', !isValid);
+        };
+
+        input.addEventListener('input', handleValidation);
+        input.addEventListener('invalid', () => {
+          handleValidation();
+        });
+      };
+
+      const handleFormSubmit = (form) => {
+        form.addEventListener('submit', (ev) => {
+          if (!form.checkValidity()) {
+            ev.preventDefault();
+            console.log(`Form ${form.id} is invalid`);
+
+            return;
+          }
+          const formData = new FormData(form);
+          for (const [key, value] of formData.entries()) {
+            console.log(`Submit from ${form.id}: `, `${key}: ${value}\n`);
+          }
+        });
+      };
+
+      document.querySelectorAll('form').forEach((form) => {
+        form.querySelectorAll('input').forEach((input) => handleNativeInputValidation(input));
+
+        form.querySelectorAll('blk-input').forEach((input) => {
+          input.addEventListener('invalid', (ev) => {
+            const {target} = ev;
+            target.invalid = !target.validity.valid;
+          });
+
+          input.addEventListener('validation', (ev) => {
+            const {target, valid /* validityResult */} = ev;
+            target.invalid = !valid;
+          });
+        });
+
+        form.addEventListener('reset', () => {
+          form.querySelectorAll('input').forEach((input) => {
+            input.classList.remove('valid', 'invalid');
+            const errorElement = document.getElementById(`${input.id}Error`);
+            if (errorElement) {
+              errorElement.classList.remove('visible');
+            }
+            console.log('reset:', input.validity);
+          });
+        });
+
+        handleFormSubmit(form);
+      });
+    </script>
+  </body>
+</html>
