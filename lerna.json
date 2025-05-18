@@ -1,0 +1,18 @@
+{
+  "version": "independent",
+  "npmClient": "npm",
+  "command": {
+    "version": {
+      "push": false,
+      "conventionalCommits": true,
+      "conventionalGraduate": true,
+      "message": "chore: publish",
+      "ignoreChanges": [
+        "**/demo/**",
+        "**/test/**",
+        "**/*.md"
+      ]
+    }
+  },
+  "$schema": "node_modules/lerna/schemas/lerna-schema.json"
+}
