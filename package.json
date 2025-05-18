@@ -1,0 +1,90 @@
+{
+  "name": "element-internals-playground",
+  "version": "1.0.0",
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "eslint": "eslint --fix 'packages/**/*.*'",
+    "format": "lerna run format --stream --concurrency 1",
+    "lint": "npm run eslint && npm run prettier && npm run stylelint",
+    "prepare": "husky",
+    "prettier": "prettier --write --ignore-path .prettierignore 'packages/**/*.{js,ts,css,scss,html,json}'",
+    "s": "lerna run start",
+    "stylelint": "stylelint -f verbose --ignore-path .prettierignore 'packages/**/*.{js,ts,css,scss,html}'"
+  },
+  "lint-staged": {
+    "**/*.{js,ts,html}": [
+      "npm run lint"
+    ],
+    "**/*.json": [
+      "npm run prettier"
+    ],
+    "**/*.{scss,css}": [
+      "npm run prettier",
+      "npm run stylelint"
+    ]
+  },
+  "prettier": {
+    "bracketSpacing": false,
+    "printWidth": 100,
+    "singleQuote": true,
+    "trailingComma": "es5",
+    "overrides": [
+      {
+        "files": "*.{scss,css}",
+        "options": {
+          "singleQuote": false
+        }
+      },
+      {
+        "files": "*.json",
+        "options": {
+          "parser": "json-stringify"
+        }
+      }
+    ]
+  },
+  "stylelint": {
+    "extends": "stylelint-config-standard-scss",
+    "allowEmptyInput": true,
+    "rules": {
+      "custom-property-pattern": null,
+      "no-duplicate-selectors": null,
+      "color-function-notation": null,
+      "alpha-value-notation": null,
+      "media-feature-name-no-unknown": null,
+      "comment-empty-line-before": null,
+      "declaration-empty-line-before": null,
+      "property-no-vendor-prefix": null,
+      "selector-attribute-quotes": null,
+      "value-no-vendor-prefix": null
+    },
+    "overrides": [
+      {
+        "files": [
+          "**/*.html"
+        ],
+        "customSyntax": "postcss-html"
+      },
+      {
+        "files": [
+          "**/*.{ts,js}"
+        ],
+        "customSyntax": "postcss-lit"
+      }
+    ]
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "commit-and-tag-version": "^12.5.1",
+    "eslint": "^9.30.1",
+    "globals": "^16.3.0",
+    "husky": "^9.1.7",
+    "lerna": "^8.2.3",
+    "lint-staged": "^16.1.2",
+    "prettier": "^3.6.2",
+    "stylelint": "^16.21.1"
+  }
+}
