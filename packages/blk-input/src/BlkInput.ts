@@ -88,6 +88,7 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
     type: String,
     converter: htmlAttributeStringConverter,
   })
+  // @ts-expect-error -- DOM lib types `autocorrect` as boolean, but the attribute is a string.
   autocorrect?: string = 'off';
 
   /**

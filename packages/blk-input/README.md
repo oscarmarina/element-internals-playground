@@ -118,9 +118,9 @@ An example element.
 | --------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- | ------ | -------------- |
 | `_markAsInteracted`         | private | Marks the input as having been interacted with by the user.&#xA;This is used internally to determine when to show validation messages. |                            |        |                |
 | `_redispatchEvent`          | private |                                                                                                                                        | `ev: Event \| string`      |        |                |
-| `_onBlur`                   | private |                                                                                                                                        | `ev: Event \| string`      |        |                |
-| `_onInput`                  | private |                                                                                                                                        | `{target}: Event`          |        |                |
 | `_onKeydown`                | private |                                                                                                                                        | `ev: KeyboardEvent`        |        |                |
+| `_onInput`                  | private |                                                                                                                                        | `{target}: Event`          |        |                |
+| `_onChange`                 | private |                                                                                                                                        | `ev: Event \| string`      |        |                |
 | `_checkValidityAndSetValue` | private |                                                                                                                                        | `value, connectedCallback` |        |                |
 
 </details>
