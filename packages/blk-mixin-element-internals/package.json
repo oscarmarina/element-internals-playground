@@ -20,6 +20,9 @@
     "./BlkMixinElementInternals.js": {
       "default": "./src/BlkMixinElementInternals.js"
     },
+    "./BlkMixinInternalsBase.js": {
+      "default": "./src/BlkMixinInternalsBase.js"
+    },
     "./BlkMixinFormAssociated.js": {
       "default": "./src/BlkMixinFormAssociated.js"
     },
