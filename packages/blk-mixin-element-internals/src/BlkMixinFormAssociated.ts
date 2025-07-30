@@ -1,5 +1,5 @@
 import {dedupeMixin} from '@open-wc/dedupe-mixin';
-import {BlkMixinElementInternals, internals} from './BlkMixinElementInternals.js';
+import {BlkMixinInternalsBase, internals} from './BlkMixinInternalsBase.js';
 
 export type FormValue = File | string | FormData | null;
 export type FormState = File | string | FormData | null;
@@ -34,7 +34,7 @@ export interface FormAssociatedConstructor {
 const FormAssociatedBase = <T extends CustomElementConstructor>(
   Base: T
 ): T & FormAssociatedConstructor =>
-  class FormAssociatedMixin extends BlkMixinElementInternals(Base) implements FormAssociated {
+  class FormAssociatedMixin extends BlkMixinInternalsBase(Base) implements FormAssociated {
     static formAssociated = true;
     /**
      * The form read-only property of the ElementInternals interface returns the HTMLFormElement associated with this element.
@@ -55,7 +55,7 @@ const FormAssociatedBase = <T extends CustomElementConstructor>(
       return (
         this.internals.ariaLabel ||
         Array.from(this.labels as NodeListOf<HTMLElement>).reduce(
-          (acc, label) => `${acc}${label.textContent ?? ''}`,
+          (acc, label) => `${acc}${label.textContent}`,
           ''
         )
       );
