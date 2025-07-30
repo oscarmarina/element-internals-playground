@@ -51,15 +51,10 @@ export default defineConfig({
           },
           context: {},
         },
-        {
-          browser: 'webkit',
-          launch: {},
-          context: {},
-        },
       ],
     },
     coverage: {
-      provider: 'istanbul',
+      provider: 'v8',
       reportsDirectory: 'test/coverage/',
       reporter: ['lcov', 'json', 'text-summary', 'html'],
       enabled: true,

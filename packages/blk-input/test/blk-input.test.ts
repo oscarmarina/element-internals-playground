@@ -1,9 +1,12 @@
-import {suite, assert, expect, vi, test} from 'vitest';
+import {suite, assert, expect, vi, test, chai} from 'vitest';
+import {fixture} from '@open-wc/testing-helpers';
+import {chaiA11yAxe} from 'chai-a11y-axe';
+import {getDiffableHTML} from '@open-wc/semantic-dom-diff/get-diffable-html.js';
 import {html} from 'lit';
-import {getDiffableHTML} from '@open-wc/semantic-dom-diff';
-import {assert as a11y, fixture} from '@open-wc/testing';
 import {BlkInput} from '../src/BlkInput.js';
 import '../src/define/blk-input.js';
+
+chai.use(chaiA11yAxe);
 
 const getElementState = (element: HTMLElement, matchesStr: string) => {
   return element?.matches(matchesStr) ?? false;
@@ -21,7 +24,7 @@ suite('BlkInput', () => {
         'SHADOW DOM'
       );
       expect(getDiffableHTML(el, {ignoreAttributes: ['id', 'for']})).toMatchSnapshot('LIGHT DOM');
-      await a11y.isAccessible(el);
+      await assert.isAccessible(el);
     });
 
     test('should render the label when set via external <label> with "for" attribute', async () => {
@@ -34,7 +37,7 @@ suite('BlkInput', () => {
         'SHADOW DOM'
       );
       expect(getDiffableHTML(el, {ignoreAttributes: ['id', 'for']})).toMatchSnapshot('LIGHT DOM');
-      await a11y.isAccessible(el);
+      await assert.isAccessible(el);
     });
   });
 
@@ -46,7 +49,7 @@ suite('BlkInput', () => {
         'SHADOW DOM'
       );
       expect(getDiffableHTML(el, {ignoreAttributes: ['id', 'for']})).toMatchSnapshot('LIGHT DOM');
-      await a11y.isAccessible(el);
+      await assert.isAccessible(el);
     });
 
     test('should render the label when set via external <label> with "for" attribute', async () => {
@@ -61,7 +64,7 @@ suite('BlkInput', () => {
         'SHADOW DOM'
       );
       expect(getDiffableHTML(el, {ignoreAttributes: ['id', 'for']})).toMatchSnapshot('LIGHT DOM');
-      await a11y.isAccessible(el);
+      await assert.isAccessible(el);
     });
   });
 
@@ -79,7 +82,7 @@ suite('BlkInput', () => {
         ></blk-input>`
       );
       elShadowRoot = el?.shadowRoot!.innerHTML;
-      await a11y.isAccessible(el);
+      await assert.isAccessible(el);
     });
 
     test('should be accessible with info and error messages', async () => {
@@ -97,17 +100,17 @@ suite('BlkInput', () => {
         ></blk-input>`
       );
       elShadowRoot = el?.shadowRoot!.innerHTML;
-      await a11y.isAccessible(el);
+      await assert.isAccessible(el);
     });
 
     test('should be accessible when disabled', async () => {
       el = await fixture(html`<blk-input disabled label="Test disabled"></blk-input>`);
-      await a11y.isAccessible(el);
+      await assert.isAccessible(el);
     });
 
     test('should be accessible when invalid', async () => {
       el = await fixture(html`<blk-input required invalid label="Test invalid"></blk-input>`);
-      await a11y.isAccessible(el);
+      await assert.isAccessible(el);
     });
 
     test('should be accessible with spellcheck and autocomplete', async () => {
@@ -120,12 +123,12 @@ suite('BlkInput', () => {
           label="Test Converters"
         ></blk-input>`
       );
-      await a11y.isAccessible(el);
+      await assert.isAccessible(el);
     });
 
     test('should be accessible when read-only', async () => {
       el = await fixture(html`<blk-input readonly value="122" label="Test read-only"></blk-input>`);
-      await a11y.isAccessible(el);
+      await assert.isAccessible(el);
     });
 
     test('should be accessible inside a disabled fieldset', async () => {
@@ -133,7 +136,7 @@ suite('BlkInput', () => {
         html`<fieldset disabled><blk-input label="Test Label"></blk-input></fieldset>`
       );
       el = root.querySelector('blk-input')!;
-      await a11y.isAccessible(el);
+      await assert.isAccessible(el);
     });
 
     test('should have proper ARIA attributes for invalid field', async () => {
@@ -144,14 +147,14 @@ suite('BlkInput', () => {
           error-message-text="Error occurred"
         ></blk-input>`
       );
-      await a11y.isAccessible(el);
+      await assert.isAccessible(el);
     });
 
     test('should have proper ARIA attributes for field with info message', async () => {
       el = await fixture(
         html`<blk-input label="Info Field" info-message-text="Helpful information"></blk-input>`
       );
-      await a11y.isAccessible(el);
+      await assert.isAccessible(el);
     });
   });
 
@@ -461,7 +464,7 @@ suite('BlkInput', () => {
         getDiffableHTML(el.shadowRoot!.innerHTML, {ignoreAttributes: ['id', 'for']})
       ).toMatchSnapshot('SHADOW DOM');
       expect(getDiffableHTML(el, {ignoreAttributes: ['id', 'for']})).toMatchSnapshot('LIGHT DOM');
-      await a11y.isAccessible(el);
+      await assert.isAccessible(el);
     });
     test('should handle spellcheck, autocomplete, and autocorrect attributes (set 2)', async () => {
       el = await fixture(
@@ -476,7 +479,7 @@ suite('BlkInput', () => {
         getDiffableHTML(el.shadowRoot!.innerHTML, {ignoreAttributes: ['id', 'for']})
       ).toMatchSnapshot('SHADOW DOM');
       expect(getDiffableHTML(el, {ignoreAttributes: ['id', 'for']})).toMatchSnapshot('LIGHT DOM');
-      await a11y.isAccessible(el);
+      await assert.isAccessible(el);
     });
     test('should handle spellcheck, autocomplete, and autocorrect attributes (set 3)', async () => {
       el = await fixture(
@@ -491,7 +494,7 @@ suite('BlkInput', () => {
         getDiffableHTML(el.shadowRoot!.innerHTML, {ignoreAttributes: ['id', 'for']})
       ).toMatchSnapshot('SHADOW DOM');
       expect(getDiffableHTML(el, {ignoreAttributes: ['id', 'for']})).toMatchSnapshot('LIGHT DOM');
-      await a11y.isAccessible(el);
+      await assert.isAccessible(el);
     });
     test('should handle spellcheck and autocapitalize attributes (set 4)', async () => {
       el = await fixture(
@@ -505,7 +508,7 @@ suite('BlkInput', () => {
         getDiffableHTML(el.shadowRoot!.innerHTML, {ignoreAttributes: ['id', 'for']})
       ).toMatchSnapshot('SHADOW DOM');
       expect(getDiffableHTML(el, {ignoreAttributes: ['id', 'for']})).toMatchSnapshot('LIGHT DOM');
-      await a11y.isAccessible(el);
+      await assert.isAccessible(el);
     });
 
     test('should return the correct character count', async () => {
