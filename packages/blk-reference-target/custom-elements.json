@@ -1,0 +1,101 @@
+{
+  "schemaVersion": "1.0.0",
+  "readme": "",
+  "modules": [
+    {
+      "kind": "javascript-module",
+      "path": "src/BlkReferenceTarget.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "![Lit](https://img.shields.io/badge/lit-3.0.0-blue.svg)\n\n## `<blk-reference-target>`\nhttps://blogs.igalia.com/alice/reference-target-having-your-encapsulation-and-eating-it-too/",
+          "name": "BlkReferenceTarget",
+          "slots": [
+            {
+              "description": "This element has a slot",
+              "name": ""
+            }
+          ],
+          "members": [
+            {
+              "kind": "field",
+              "name": "shadowRootOptions",
+              "type": {
+                "text": "object"
+              },
+              "static": true,
+              "default": "{ ...LitElement.shadowRootOptions, delegatesFocus: true, referenceTarget: 'inner-dialog', }"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "blk-reference-target",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "BlkReferenceTarget",
+          "declaration": {
+            "name": "BlkReferenceTarget",
+            "module": "src/BlkReferenceTarget.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/index.ts",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "BlkReferenceTarget",
+          "declaration": {
+            "name": "BlkReferenceTarget",
+            "module": "./BlkReferenceTarget.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/define/blk-reference-target.ts",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "blk-reference-target",
+          "declaration": {
+            "name": "BlkReferenceTarget",
+            "module": "/src/BlkReferenceTarget.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/styles/blk-reference-target-styles.css.ts",
+      "declarations": [
+        {
+          "kind": "variable",
+          "name": "styles",
+          "default": "css` :host { display: block; box-sizing: border-box; } :host([hidden]), [hidden] { display: none !important; } *, *::before, *::after { box-sizing: inherit; } button { display: list-item; margin-left: auto; } ::backdrop { background-image: linear-gradient(45deg, indianred, orange, dodgerblue, mediumseagreen); opacity: 0.75; } `"
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "styles",
+          "declaration": {
+            "name": "styles",
+            "module": "src/styles/blk-reference-target-styles.css.ts"
+          }
+        }
+      ]
+    }
+  ]
+}

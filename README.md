@@ -24,3 +24,4 @@ Explore the [ElementInternals API](https://developer.mozilla.org/docs/Web/API/El
 - [Form validation using JavaScript's Constraint Validation API (medium.com)](https://medium.com/stackanatomy/form-validation-using-javascripts-constraint-validation-api-fd4b70720288)
 - [MUI Joy UI Input](https://mui.com/joy-ui/react-input/)
 - [ElementInternalsType Explainer (Microsoft Edge)](https://github.com/MicrosoftEdge/MSEdgeExplainers/blob/main/ElementInternalsType/explainer.md)
+- [Reference Target (Igalia)](https://blogs.igalia.com/alice/reference-target-having-your-encapsulation-and-eating-it-too/)

@@ -1,0 +1,29 @@
+import {css} from 'lit';
+
+export const styles = css`
+  :host {
+    display: block;
+    box-sizing: border-box;
+  }
+
+  :host([hidden]),
+  [hidden] {
+    display: none !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: inherit;
+  }
+
+  button {
+    display: list-item;
+    margin-left: auto;
+  }
+
+  ::backdrop {
+    background-image: linear-gradient(45deg, indianred, orange, dodgerblue, mediumseagreen);
+    opacity: 0.75;
+  }
+`;

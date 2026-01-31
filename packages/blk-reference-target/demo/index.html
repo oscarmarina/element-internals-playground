@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Demo - blk-reference-target</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="data:," />
+    <meta name="description" content="blk-reference-target" />
+    <style>
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        font-family: sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <button commandfor="settings-dialog" command="show-modal">Open dialog</button>
+    <blk-reference-target id="settings-dialog">
+      <p>This modal dialog has a groovy backdrop!</p>
+    </blk-reference-target>
+    <script type="module" src="./entry.js"></script>
+  </body>
+</html>
