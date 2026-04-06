@@ -19,6 +19,7 @@ export const styles = css`
 
   button {
     display: list-item;
+    list-style: none;
     margin-left: auto;
   }
 

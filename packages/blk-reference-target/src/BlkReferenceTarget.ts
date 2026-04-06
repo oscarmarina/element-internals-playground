@@ -21,7 +21,7 @@ export class BlkReferenceTarget extends LitElement {
     return html`
       <dialog id="inner-dialog">
         <button id="close" aria-label="close" commandfor="inner-dialog" command="request-close">
-          X
+          <span aria-hidden="true">X</span>
         </button>
         <slot></slot>
       </dialog>
