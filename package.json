@@ -74,24 +74,24 @@
     ]
   },
   "devDependencies": {
-    "@commitlint/cli": "^20.4.0",
-    "commit-and-tag-version": "^12.6.1",
-    "eslint": "^9.39.2",
+    "@commitlint/cli": "^20.5.0",
+    "commit-and-tag-version": "^12.7.1",
+    "eslint": "^10.2.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-html": "^8.1.4",
     "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-lit": "^2.1.1",
+    "eslint-plugin-lit": "^2.2.1",
     "eslint-plugin-lit-a11y": "^5.1.1",
-    "eslint-plugin-wc": "^3.0.2",
-    "globals": "^17.2.0",
+    "eslint-plugin-wc": "^3.1.0",
+    "globals": "^17.4.0",
     "husky": "^9.1.7",
-    "lerna": "^9.0.3",
-    "lint-staged": "^16.2.7",
-    "@html-eslint/eslint-plugin": "^0.54.2",
-    "@html-eslint/parser": "^0.54.0",
+    "lerna": "^9.0.7",
+    "lint-staged": "^16.4.0",
+    "@html-eslint/eslint-plugin": "^0.59.0",
+    "@html-eslint/parser": "^0.59.0",
     "prettier": "^3.8.1",
-    "@typescript-eslint/parser": "^8.54.0",
-    "typescript-eslint": "^8.54.0",
-    "stylelint": "^17.1.0"
+    "@typescript-eslint/parser": "^8.58.0",
+    "typescript-eslint": "^8.58.0",
+    "stylelint": "^17.6.0"
   }
 }

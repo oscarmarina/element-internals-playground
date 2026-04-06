@@ -1,4 +1,3 @@
-/* eslint-disable import/no-extraneous-dependencies */
 import {LitElement, html, css} from 'lit';
 import {BlkMixinElementInternals} from '../src/BlkMixinElementInternals.js';
 
