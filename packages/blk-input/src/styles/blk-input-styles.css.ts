@@ -24,7 +24,7 @@ export const styles = css`
     --_label-line-height: 1;
     display: inline-flex;
     box-sizing: border-box;
-    min-block-size: 1.5rem;
+    min-block-size: 2.75rem;
   }
 
   :host([hidden]),
@@ -110,7 +110,9 @@ export const styles = css`
   label {
     cursor: text;
     color: var(--_label-text-color);
-    transition: transform var(--_content-animation), inset-block-start var(--_content-animation);
+    transition:
+      transform var(--_content-animation),
+      inset-block-start var(--_content-animation);
     transform-origin: 0 0;
     display: block;
     position: absolute;
@@ -220,7 +222,7 @@ export const styles = css`
     color: var(--_error-message-text-color);
   }
 
-  .error-message-text:not([data-show]) {
+  .error-message-text[empty] {
     display: none;
   }
 `;

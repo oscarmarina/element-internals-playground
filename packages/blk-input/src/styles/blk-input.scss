@@ -22,7 +22,7 @@
 
   display: inline-flex;
   box-sizing: border-box;
-  min-block-size: 1.5rem;
+  min-block-size: 2.75rem;
 }
 
 :host([hidden]),
@@ -226,7 +226,7 @@ label:not(:has(~ .input-textarea:placeholder-shown)) {
 .error-message-text {
   color: var(--_error-message-text-color);
 
-  &:not([data-show]) {
+  &[empty] {
     display: none;
   }
 }

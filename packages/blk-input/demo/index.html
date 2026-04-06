@@ -86,6 +86,21 @@
         box-shadow: 0 4px 6px -1px rgb(0, 0, 0, 0.1);
       }
 
+      .sr-only {
+        position: absolute;
+        inline-size: 1px;
+        block-size: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+
+      .hint {
+        font-size: 0.75rem;
+        margin-block-start: 0.25rem;
+        color: #333;
+      }
+
       .error {
         color: #ef4444;
         font-size: 0.75rem;
@@ -128,6 +143,7 @@
               <blk-input
                 label="Email"
                 type="email"
+                autocomplete="username"
                 name="x2-sec1"
                 id="x2-sec1"
                 placeholder="Enter your email"
@@ -141,6 +157,7 @@
               <blk-input
                 type="password"
                 label="Password"
+                autocomplete="new-password"
                 required
                 minlength="6"
                 placeholder="Create a password"
@@ -184,6 +201,7 @@
               <label for="x2-sec2">Email</label>
               <blk-input
                 type="email"
+                autocomplete="username"
                 name="x2-sec2"
                 id="x2-sec2"
                 placeholder="Enter your email"
@@ -202,6 +220,7 @@
                 placeholder="Create a password"
                 name="x3-sec2"
                 id="x3-sec2"
+                autocomplete="new-password"
                 error-message-text="Password must be at least 6 characters"
               ></blk-input>
             </div>
@@ -224,6 +243,7 @@
                 id="native-x1-sec3"
                 name="native-x1-sec3"
                 placeholder="Enter your name"
+                aria-describedby="native-x1-sec3Error"
               />
               <div class="error" id="native-x1-sec3Error" role="alert">
                 Name must be at least 2 characters
@@ -244,9 +264,12 @@
                 name="native-x2-sec3"
                 id="native-x2-sec3"
                 placeholder="Enter your email"
+                autocomplete="username"
                 required
                 pattern="(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).*"
+                aria-describedby="native-x2-sec3Hint native-x2-sec3Error"
               />
+              <div id="native-x2-sec3Hint" class="hint">Uppercase - Number</div>
               <div class="error" id="native-x2-sec3Error" role="alert">
                 Please enter a valid email address
               </div>
@@ -257,9 +280,11 @@
                 type="password"
                 required
                 minlength="6"
+                autocomplete="new-password"
                 placeholder="Create a password"
                 name="native-x3-sec3"
                 id="native-x3-sec3"
+                aria-describedby="native-x3-sec3Error"
               />
               <div class="error" id="native-x3-sec3Error" role="alert">
                 Password must be at least 6 characters
@@ -281,28 +306,23 @@
 
         const handleValidation = () => {
           const isValid = input.validity.valid;
-          input.classList.toggle('valid', isValid);
-          input.classList.toggle('invalid', !isValid);
+          input.setAttribute('aria-invalid', String(!isValid));
           errorElement.classList.toggle('visible', !isValid);
         };
 
         input.addEventListener('input', handleValidation);
-        input.addEventListener('invalid', () => {
-          handleValidation();
-        });
+        input.addEventListener('invalid', handleValidation);
       };
 
       const handleFormSubmit = (form) => {
         form.addEventListener('submit', (ev) => {
           if (!form.checkValidity()) {
             ev.preventDefault();
-            console.log(`Form ${form.id} is invalid`);
-
             return;
           }
           const formData = new FormData(form);
           for (const [key, value] of formData.entries()) {
-            console.log(`Submit from ${form.id}: `, `${key}: ${value}\n`);
+            console.log(`${key}: ${value}`);
           }
         });
       };
@@ -310,26 +330,11 @@
       document.querySelectorAll('form').forEach((form) => {
         form.querySelectorAll('input').forEach((input) => handleNativeInputValidation(input));
 
-        form.querySelectorAll('blk-input').forEach((input) => {
-          input.addEventListener('invalid', (ev) => {
-            const {target} = ev;
-           // target.invalid = !target.validity.valid;
-          });
-
-          input.addEventListener('validation', (ev) => {
-            const {target, valid /* validityResult */} = ev;
-           // target.invalid = !valid;
-          });
-        });
-
         form.addEventListener('reset', () => {
           form.querySelectorAll('input').forEach((input) => {
-            input.classList.remove('valid', 'invalid');
+            input.removeAttribute('aria-invalid');
             const errorElement = document.getElementById(`${input.id}Error`);
-            if (errorElement) {
-              errorElement.classList.remove('visible');
-            }
-            console.log('reset:', input.validity);
+            if (errorElement) errorElement.classList.remove('visible');
           });
         });
 

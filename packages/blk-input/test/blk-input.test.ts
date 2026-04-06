@@ -411,6 +411,44 @@ suite('BlkInput', () => {
       await el.updateComplete;
       assert.equal(el.value, 'Initial value');
     });
+
+    test('should preserve the current value when name changes', async () => {
+      const form = (await fixture(
+        html`<form><blk-input name="firstName" value="BarFoo"></blk-input></form>`
+      )) as HTMLFormElement;
+
+      el = form.querySelector('blk-input')!;
+      el.name = 'customerName';
+      await el.updateComplete;
+
+      const formData = new FormData(form);
+
+      assert.equal(formData.get('customerName'), 'BarFoo');
+      assert.isFalse(formData.has('firstName'));
+    });
+
+    test('should validate the first input after reset is pressed before interaction', async () => {
+      const form = (await fixture(
+        html`<form>
+          <blk-input pattern="[0-9]+" error-message-text="Only numbers are allowed"></blk-input>
+        </form>`
+      )) as HTMLFormElement;
+
+      el = form.querySelector('blk-input')!;
+
+      form.reset();
+      await el.updateComplete;
+
+      const input = el.nativeControl as HTMLInputElement;
+      input.value = 'abc';
+      input.dispatchEvent(new InputEvent('input', {bubbles: true, composed: true}));
+      await el.updateComplete;
+
+      assert.isTrue(el.invalid);
+      assert.isFalse(el.validity.valid);
+      assert.isTrue(el.validity.patternMismatch);
+    });
+
     test('should not submit the form when special keys are pressed', async () => {
       const form = (await fixture(
         html`<form id="form" novalidate>
