@@ -52,6 +52,7 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
   __fromReset = false;
   __internalIdref = '';
   __hasInteracted = false;
+  __firstUpdateComplete = false;
 
   static override styles = [styles];
 
@@ -326,23 +327,48 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
     this.__internalIdref = `${'uuid-'}${randomID()}`;
   }
 
-  override async connectedCallback() {
+  override connectedCallback() {
     super.connectedCallback?.();
-    await this.updateComplete;
-
     this.internals.role = 'none';
     this.__defaultValue = this.value;
-    this._checkValidityAndSetValue(this.value, true);
   }
 
-  override willUpdate(props: PropertyValues<this>) {
-    super.willUpdate(props);
+  override firstUpdated(_props: PropertyValues<this>) {
+    super.firstUpdated(_props);
+    const input = this.__defaultInput;
+    if (input) {
+      this.setFormValue(this.value);
+      this.setValidity(input.validity, this.errorMessageText ?? input.validationMessage, input);
+    }
+  }
+
+  override updated(props: PropertyValues<this>) {
+    super.updated(props);
+
+    if (!this.__firstUpdateComplete) {
+      this.__firstUpdateComplete = true;
+      return;
+    }
+
+    const input = this.__defaultInput;
+    if (!input) {
+      return;
+    }
 
     if (props.has('value') || props.has('errorMessageText')) {
-      this._checkValidityAndSetValue(this.value);
+      const isReset = this.__fromReset;
+      this.__fromReset = false;
+      this.setFormValue(this.value);
+      this.setValidity(input.validity, this.errorMessageText ?? input.validationMessage, input);
+      if (!isReset) {
+        this.invalid = !this.validity.valid;
+        this.dispatchEvent(new BlkFormValidationEvent(this.validity));
+      }
     }
+
     if (props.has('name')) {
-      this._checkValidityAndSetValue(this.__defaultValue);
+      this.setFormValue(this.__defaultValue);
+      this.setValidity(input.validity, this.errorMessageText ?? input.validationMessage, input);
     }
   }
 
@@ -531,29 +557,12 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
   private _onInput({target}: Event) {
     const newValue = (target as HTMLInputElement).value;
     this.value = newValue;
+    this._markAsInteracted();
   }
 
   private _onChange(ev: Event | string) {
     this._markAsInteracted();
     redispatchEvent(this, ev);
-  }
-
-  private async _checkValidityAndSetValue(value = this.value, connectedCallback = false) {
-    const input = this.__defaultInput;
-    if (!input) {
-      return;
-    }
-
-    await this.updateComplete;
-    this.setFormValue(value);
-    this.setValidity(input.validity, this.errorMessageText ?? input.validationMessage, input);
-
-    if (connectedCallback || this.__fromReset) {
-      this.__fromReset = false;
-      return;
-    }
-    const event = new BlkFormValidationEvent(this.validity);
-    this.dispatchEvent(event);
   }
 }
 

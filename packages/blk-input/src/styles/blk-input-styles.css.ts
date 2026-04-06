@@ -24,7 +24,7 @@ export const styles = css`
     --_label-line-height: 1;
     display: inline-flex;
     box-sizing: border-box;
-    min-block-size: 1rem;
+    min-block-size: 1.5rem;
   }
 
   :host([hidden]),
@@ -57,7 +57,6 @@ export const styles = css`
   :host(:disabled) .field-flex,
   :host(:disabled:hover) .field-flex,
   :host([inert]) .field-flex {
-    opacity: var(--_disabled-content-opacity);
     border-color: var(--_outline-color);
   }
 
@@ -97,7 +96,7 @@ export const styles = css`
     color: var(--_content-color);
     border: 2px solid var(--_outline-color);
     border-radius: 4px;
-    transition: border-color, var(--_content-animation);
+    transition: border-color var(--_content-animation);
   }
 
   .field {
@@ -111,9 +110,7 @@ export const styles = css`
   label {
     cursor: text;
     color: var(--_label-text-color);
-    transition:
-      transform var(--_content-animation),
-      inset-block-start var(--_content-animation);
+    transition: transform var(--_content-animation), inset-block-start var(--_content-animation);
     transform-origin: 0 0;
     display: block;
     position: absolute;
@@ -126,6 +123,17 @@ export const styles = css`
     line-height: var(--_label-line-height);
     padding-block: 0;
     padding-inline: 0.375rem;
+  }
+
+  @media (forced-colors: active) {
+    .field-flex {
+      border-color: ButtonText;
+    }
+
+    .error-message-text {
+      forced-color-adjust: none;
+      color: Mark;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {

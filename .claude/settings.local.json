@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:web.dev)",
+      "WebFetch(domain:html.spec.whatwg.org)",
+      "WebFetch(domain:lion.js.org)",
+      "WebFetch(domain:react-spectrum.adobe.com)",
+      "WebFetch(domain:drafts.csswg.org)",
+      "WebFetch(domain:opensource.adobe.com)",
+      "WebFetch(domain:pawelgrzybek.com)",
+      "WebFetch(domain:funwithforms.com)",
+      "WebFetch(domain:material-web.dev)",
+      "WebFetch(domain:mounir.lamouri.fr)",
+      "WebFetch(domain:www.w3.org)",
+      "WebFetch(domain:www.smashingmagazine.com)",
+      "WebFetch(domain:caniuse.com)"
+    ]
+  }
+}

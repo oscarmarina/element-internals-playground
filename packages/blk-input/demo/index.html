@@ -313,12 +313,12 @@
         form.querySelectorAll('blk-input').forEach((input) => {
           input.addEventListener('invalid', (ev) => {
             const {target} = ev;
-            target.invalid = !target.validity.valid;
+           // target.invalid = !target.validity.valid;
           });
 
           input.addEventListener('validation', (ev) => {
             const {target, valid /* validityResult */} = ev;
-            target.invalid = !valid;
+           // target.invalid = !valid;
           });
         });
 
