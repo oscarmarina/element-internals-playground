@@ -225,4 +225,8 @@ label:not(:has(~ .input-textarea:placeholder-shown)) {
 
 .error-message-text {
   color: var(--_error-message-text-color);
+
+  &:not([data-show]) {
+    display: none;
+  }
 }

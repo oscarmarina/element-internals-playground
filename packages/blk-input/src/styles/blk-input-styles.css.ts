@@ -219,4 +219,8 @@ export const styles = css`
   .error-message-text {
     color: var(--_error-message-text-color);
   }
+
+  .error-message-text:not([data-show]) {
+    display: none;
+  }
 `;
