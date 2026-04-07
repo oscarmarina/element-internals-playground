@@ -375,16 +375,14 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
     if (props.has('value') || props.has('errorMessageText')) {
       const isReset = this.__fromReset;
       this.__fromReset = false;
-      this.setFormValue(this.value);
-      this.setValidity(input.validity, this.errorMessageText ?? input.validationMessage, input);
+      this._syncFormState(input, this.value);
       if (!isReset) {
         this.dispatchEvent(new BlkFormValidationEvent(this.validity));
       }
     }
 
     if (props.has('name')) {
-      this.setFormValue(this.__defaultValue);
-      this.setValidity(input.validity, this.errorMessageText ?? input.validationMessage, input);
+      this._syncFormState(input, this.value);
     }
   }
 
@@ -458,6 +456,7 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
           : nothing}"
         aria-required="${this.required ? 'true' : nothing}"
         autocomplete="${this.autocomplete ?? nothing}"
+        autocorrect="${this.autocorrect ?? nothing}"
         name="${this.name || nothing}"
         ?disabled="${this.disabled}"
         .maxLength="${this.maxLength || nothing}"
@@ -544,6 +543,18 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
     this.invalid = false;
     this.__fromReset = resetRequiresValueUpdate;
     this.__hasInteracted = false;
+  }
+
+  private _syncFormState(
+    input: HTMLInputElement | HTMLTextAreaElement,
+    formValue: string = this.value
+  ) {
+    if (!input) {
+      return;
+    }
+
+    this.setFormValue(formValue);
+    this.setValidity(input.validity, this.errorMessageText ?? input.validationMessage, input);
   }
 
   /**

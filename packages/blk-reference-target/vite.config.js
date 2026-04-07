@@ -2,6 +2,7 @@ import {defineConfig} from 'vite';
 import {playwright} from '@vitest/browser-playwright';
 import {globSync} from 'tinyglobby';
 import copy from 'rollup-plugin-copy';
+// @ts-ignore
 import totalBundlesize from '@blockquote/rollup-plugin-total-bundlesize';
 
 const OUT_DIR = 'dev';
@@ -28,8 +29,10 @@ const entries = Object.fromEntries(
 
 // https://vitejs.dev/config/
 // https://vite-rollup-plugins.patak.dev/
+// https://github.com/vitest-dev/vitest/commit/78b62ffe#diff-d3e264f3679867e205ed7eeb7622aa3b62bb0c4b1a4aa5a5983cb3aa118fcf3c
 
-export default defineConfig({
+// @ts-ignore
+export default defineConfig(({command}) => ({
   test: {
     onConsoleLog(log, type) {
       if (type === 'stderr' && log.includes('in dev mode')) {
@@ -37,6 +40,7 @@ export default defineConfig({
       }
     },
     include: ['test/**/*.{test,spec}.?(c|m)[jt]s?(x)'],
+    forceRerunTriggers: ['**/src/**/*.scss*'],
     browser: {
       enabled: true,
       headless: true,
@@ -47,6 +51,7 @@ export default defineConfig({
           browser: 'chromium',
           provider: playwright({
             launchOptions: {
+              // @ts-ignore
               devtools: true,
               args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu'],
             },
@@ -60,7 +65,7 @@ export default defineConfig({
     coverage: {
       provider: 'istanbul',
       reportsDirectory: 'test/coverage/',
-      reporter: ['lcov', 'json', 'text-summary', 'html'],
+      reporter: ['lcov', 'json', 'text-summary'],
       enabled: true,
       thresholds: {
         statements: 80,
@@ -68,7 +73,7 @@ export default defineConfig({
         functions: 80,
         lines: 80,
       },
-      include: ['**/src/**/*'],
+      include: ['**/src/**/*.{js,ts}'],
       exclude: ['**/src/**/index.*', '**/src/styles/'],
     },
   },
@@ -77,16 +82,19 @@ export default defineConfig({
     exclude: ['lit', 'lit-html'],
   },
   build: {
-    target: ['chrome71'],
     outDir: OUT_DIR,
-    rollupOptions: {
+    rolldownOptions: {
       preserveEntrySignatures: 'exports-only',
+      transform: {
+        target: ['chrome71'],
+      },
       input: entries,
       output: {
         dir: OUT_DIR,
         entryFileNames: '[name].js',
         format: 'es',
       },
+      treeshake: true,
     },
   },
-});
+}));

@@ -219,8 +219,10 @@ suite('BlkInput', () => {
       assert.equal(el.errorMessageText, 'New error message');
     });
 
-    test('should be invalid if required and empty', async () => {
+    test('should have valueMissing but not show invalid state before user interaction', async () => {
       el = await fixture(html`<blk-input required></blk-input>`);
+      assert.isFalse(el.invalid);
+      assert.isFalse(el.touched);
       assert.isFalse(el.validity.valid);
       assert.isTrue(el.validity.valueMissing);
     });
@@ -306,22 +308,22 @@ suite('BlkInput', () => {
   suite('State', () => {
     test('should be disabled when the disabled attribute is set', async () => {
       el = await fixture(html`<blk-input disabled label="Test disabled"></blk-input>`);
-      assert.isTrue(getElementState(el, ':disabled'));
+      assert.isTrue(getElementState(el as unknown as HTMLElement, ':disabled'));
     });
     test('should be invalid when the invalid attribute is set', async () => {
       el = await fixture(html`<blk-input required invalid label="Test invalid"></blk-input>`);
-      assert.isTrue(getElementState(el, ':invalid'));
+      assert.isTrue(getElementState(el as unknown as HTMLElement, ':invalid'));
     });
     test('should be readonly when the readonly attribute is set', async () => {
       el = await fixture(html`<blk-input readonly value="122" label="Test read-only"></blk-input>`);
-      assert.isTrue(getElementState(el, ':read-only'));
+      assert.isTrue(getElementState(el as unknown as HTMLElement, ':read-only'));
     });
     test('should be inert when inside a disabled fieldset', async () => {
       const root = await fixture(
         html`<fieldset disabled><blk-input label="Test Label"></blk-input></fieldset>`
       );
       el = root.querySelector('blk-input')!;
-      assert.isTrue(getElementState(el, '[inert]'));
+      assert.isTrue(getElementState(el as unknown as HTMLElement, '[inert]'));
     });
   });
 
@@ -447,6 +449,30 @@ suite('BlkInput', () => {
       assert.isTrue(el.invalid);
       assert.isFalse(el.validity.valid);
       assert.isTrue(el.validity.patternMismatch);
+    });
+
+    test('should mark invalid on form submit and clear on reset', async () => {
+      const form = (await fixture(
+        html`<form>
+          <blk-input required label="Required Field"></blk-input>
+          <button type="submit">Submit</button>
+        </form>`
+      )) as HTMLFormElement;
+      el = form.querySelector('blk-input')!;
+
+      assert.isFalse(el.invalid);
+
+      form.dispatchEvent(new Event('submit', {bubbles: true, cancelable: true}));
+      el.dispatchEvent(new Event('invalid', {bubbles: false, cancelable: true}));
+      await el.updateComplete;
+
+      assert.isTrue(el.invalid);
+
+      form.reset();
+      await el.updateComplete;
+
+      assert.isFalse(el.invalid);
+      assert.isFalse(el.touched);
     });
 
     test('should not submit the form when special keys are pressed', async () => {
@@ -582,8 +608,8 @@ suite('BlkInput', () => {
     test('should focus the control element when read-only and focus is called', async () => {
       el = await fixture(html`<blk-input readonly value="122" label="Test read-only"></blk-input>`);
       el.focus();
-      assert.isTrue(getElementState(el, ':focus'));
-      assert.isTrue(getElementState(el, ':focus-within'));
+      assert.isTrue(getElementState(el as unknown as HTMLElement, ':focus'));
+      assert.isTrue(getElementState(el as unknown as HTMLElement, ':focus-within'));
     });
   });
 

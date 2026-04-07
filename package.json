@@ -6,9 +6,13 @@
     "packages/*"
   ],
   "scripts": {
+    "clean": "rm package-lock.json && lerna clean",
+    "clean:packages": "lerna exec -- rm -rf ./node_modules && npm run clean:packages:dev && npm run clean:packages:coverage",
+    "clean:packages:coverage": "lerna exec -- rm -rf ./test/coverage",
+    "clean:packages:dev": "lerna exec -- rm -rf ./dev && lerna exec -- rm -rf ./package-lock.json",
     "eslint": "eslint --fix 'packages/**/*.*'",
     "format": "lerna run format --stream --concurrency 1",
-    "test": "lerna run test --stream --concurrency 1",
+    "test": "lerna run test --stream --concurrency 1 -- --run",
     "prepare": "husky"
   },
   "lint-staged": {
