@@ -342,9 +342,13 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
     if (!this.__firstUpdateComplete) {
       return;
     }
+
     if ((props.has('value') || props.has('errorMessageText')) && !this.__fromReset) {
       const input = this.__defaultInput;
       if (input) {
+        if (props.has('value') && input.value !== this.value) {
+          input.value = this.value;
+        }
         this.invalid = !input.validity.valid;
       }
     }
@@ -354,8 +358,7 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
     super.firstUpdated(_props);
     const input = this.__defaultInput;
     if (input) {
-      this.setFormValue(this.value);
-      this.setValidity(input.validity, this.errorMessageText ?? input.validationMessage, input);
+      this._syncFormState(input, this.value);
     }
   }
 
@@ -414,8 +417,7 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
             role="alert"
             id="error-message-text"
             aria-live="polite"
-            ?empty="${!(this.invalid && Boolean(this.errorMessageText))}"
-          >
+            ?empty="${!(this.invalid && Boolean(this.errorMessageText))}">
             ${this.invalid && this.errorMessageText ? this.errorMessageText : nothing}
           </div>`
         : nothing}
@@ -475,8 +477,7 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
         @blur="${this._redispatchEvent}"
         @keydown="${this._onKeydown}"
         @select="${this._redispatchEvent}"
-        ${ref((textarea) => (this.__defaultInput = textarea as HTMLTextAreaElement))}
-      ></textarea>
+        ${ref((textarea) => (this.__defaultInput = textarea as HTMLTextAreaElement))}></textarea>
     `;
   }
 
@@ -522,8 +523,7 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
         @blur="${this._redispatchEvent}"
         @keydown="${this._onKeydown}"
         @select="${this._redispatchEvent}"
-        ${ref((input) => (this.__defaultInput = input as HTMLInputElement))}
-      />
+        ${ref((input) => (this.__defaultInput = input as HTMLInputElement))} />
     `;
   }
 

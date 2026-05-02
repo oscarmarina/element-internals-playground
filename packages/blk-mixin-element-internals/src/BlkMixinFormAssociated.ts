@@ -54,10 +54,10 @@ const FormAssociatedBase = <T extends CustomElementConstructor>(
     get labelText(): string {
       return (
         this.internals.ariaLabel ||
-        Array.from(this.labels as NodeListOf<HTMLElement>).reduce(
-          (acc, label) => `${acc}${label.textContent}`,
-          ''
-        )
+        Array.from(this.labels as NodeListOf<HTMLElement>)
+          .map((label) => label.textContent?.trim())
+          .filter(Boolean)
+          .join(' ')
       );
     }
 
