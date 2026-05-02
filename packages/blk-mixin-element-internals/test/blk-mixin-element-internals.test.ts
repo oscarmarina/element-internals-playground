@@ -102,12 +102,24 @@ suite('BlkMixinFormAssociated (real form association and validation)', () => {
 
     const root2 = await fixture(
       html`<form id="f2">
-        <label for="lbl-el2">Fancy label</label>
+        <label for="lbl-el2"> Fancy label </label>
+        <label for="lbl-el2"> </label>
+        <label for="lbl-el2"> Second part </label>
         <form-associated-label id="lbl-el2"></form-associated-label>
       </form>`
     );
     const el2 = root2.querySelector(tag)! as InstanceType<typeof FormAssociatedEl>;
-    assert.include(el2.labelText, 'Fancy label');
+    assert.equal(el2.labelText, 'Fancy label Second part');
+
+    const root3 = await fixture(
+      html`<form id="f3">
+        <label for="lbl-el3">Ignored label</label>
+        <form-associated-label id="lbl-el3"></form-associated-label>
+      </form>`
+    );
+    const el3 = root3.querySelector(tag)! as InstanceType<typeof FormAssociatedEl>;
+    el3.internals.ariaLabel = 'Custom Aria Label';
+    assert.equal(el3.labelText, 'Custom Aria Label');
   });
 
   test('should expose the role property from ElementInternals', async () => {

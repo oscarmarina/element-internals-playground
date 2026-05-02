@@ -43,6 +43,9 @@ const importFilesConfig = [importPlugin.recommended, importPlugin.typescript].ma
   languageOptions: {
     ...conf.languageOptions,
     parser: tsParser,
+    parserOptions: {
+      tsconfigRootDir: import.meta.dirname,
+    },
   },
 }));
 
@@ -146,6 +149,7 @@ const tsFilesConfig = [...tseslint.strict, ...tseslint.stylistic].map((conf) => 
             `*.conf.${fileTypes}`,
           ],
         },
+        tsconfigRootDir: import.meta.dirname,
       },
     },
   }),
@@ -154,7 +158,7 @@ const tsFilesConfig = [...tseslint.strict, ...tseslint.stylistic].map((conf) => 
 const tsFilesRules = {
   files: ['**/*.ts'],
   rules: {
-    '@typescript-eslint/no-floating-promises': 'off',
+    '@typescript-eslint/no-floating-promises': 'error',
     '@typescript-eslint/ban-types': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
@@ -188,14 +192,8 @@ const htmlFilesRules = {
   files: ['**/*.html'],
   rules: {
     '@html-eslint/indent': 'off',
-    '@html-eslint/use-baseline': [
-      'error',
-      {
-        available: 'newly',
-      },
-    ],
     '@html-eslint/require-closing-tags': 'off',
-    '@html-eslint/no-extra-spacing-attrs': 'off',
+    '@html-eslint/no-extra-spacing-tags': 'off',
     '@html-eslint/attrs-newline': 'off',
   },
 };

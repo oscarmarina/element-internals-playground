@@ -78,8 +78,7 @@ suite('BlkInput', () => {
           id="x1-sec1"
           required
           placeholder="Enter your name"
-          native-validation-message
-        ></blk-input>`
+          native-validation-message></blk-input>`
       );
       elShadowRoot = el?.shadowRoot!.innerHTML;
       await assert.isAccessible(el);
@@ -96,8 +95,7 @@ suite('BlkInput', () => {
           required
           pattern="(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).*"
           info-message-text="Uppercase - Number - Special character"
-          error-message-text="Please enter a valid email address"
-        ></blk-input>`
+          error-message-text="Please enter a valid email address"></blk-input>`
       );
       elShadowRoot = el?.shadowRoot!.innerHTML;
       await assert.isAccessible(el);
@@ -120,8 +118,7 @@ suite('BlkInput', () => {
           autocomplete="on"
           autocorrect="on"
           autocapitalize="sentences"
-          label="Test Converters"
-        ></blk-input>`
+          label="Test Converters"></blk-input>`
       );
       await assert.isAccessible(el);
     });
@@ -144,8 +141,7 @@ suite('BlkInput', () => {
         html`<blk-input
           invalid
           label="Invalid Field"
-          error-message-text="Error occurred"
-        ></blk-input>`
+          error-message-text="Error occurred"></blk-input>`
       );
       await assert.isAccessible(el);
     });
@@ -168,8 +164,7 @@ suite('BlkInput', () => {
           id="x1-sec1"
           required
           placeholder="Enter your name"
-          native-validation-message
-        ></blk-input>`
+          native-validation-message></blk-input>`
       );
       elShadowRoot = el?.shadowRoot!.innerHTML;
       expect(getDiffableHTML(elShadowRoot, {ignoreAttributes: ['id', 'for']})).toMatchSnapshot(
@@ -189,8 +184,7 @@ suite('BlkInput', () => {
           required
           pattern="(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).*"
           info-message-text="Uppercase - Number - Special character"
-          error-message-text="Please enter a valid email address"
-        ></blk-input>`
+          error-message-text="Please enter a valid email address"></blk-input>`
       );
       elShadowRoot = el?.shadowRoot!.innerHTML;
       expect(getDiffableHTML(elShadowRoot, {ignoreAttributes: ['id', 'for']})).toMatchSnapshot(
@@ -210,8 +204,7 @@ suite('BlkInput', () => {
           required
           pattern="(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).*"
           info-message-text="Uppercase - Number - Special character"
-          error-message-text="Please enter a valid email address"
-        ></blk-input>`
+          error-message-text="Please enter a valid email address"></blk-input>`
       );
       assert.equal(el.errorMessageText, 'Please enter a valid email address');
       el.errorMessageText = 'New error message';
@@ -272,8 +265,7 @@ suite('BlkInput', () => {
           rows=""
           cols=""
           placeholder="Enter your name"
-          native-validation-message
-        ></blk-input>`
+          native-validation-message></blk-input>`
       );
       elShadowRoot = el?.shadowRoot!.innerHTML;
       expect(getDiffableHTML(elShadowRoot, {ignoreAttributes: ['id', 'for']})).toMatchSnapshot(
@@ -294,8 +286,7 @@ suite('BlkInput', () => {
           invalid
           pattern="(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).*"
           info-message-text="Info message"
-          error-message-text="Error message"
-        ></blk-input>`
+          error-message-text="Error message"></blk-input>`
       );
       elShadowRoot = el?.shadowRoot!.innerHTML;
       expect(getDiffableHTML(elShadowRoot, {ignoreAttributes: ['id', 'for']})).toMatchSnapshot(
@@ -521,8 +512,7 @@ suite('BlkInput', () => {
           autocomplete="on"
           autocorrect="on"
           autocapitalize="sentences"
-          label="Test Converters"
-        ></blk-input>`
+          label="Test Converters"></blk-input>`
       );
       expect(
         getDiffableHTML(el.shadowRoot!.innerHTML, {ignoreAttributes: ['id', 'for']})
@@ -536,8 +526,7 @@ suite('BlkInput', () => {
           spellcheck=""
           autocomplete="true"
           autocorrect="true"
-          label="Test Converters 2"
-        ></blk-input>`
+          label="Test Converters 2"></blk-input>`
       );
       expect(
         getDiffableHTML(el.shadowRoot!.innerHTML, {ignoreAttributes: ['id', 'for']})
@@ -551,8 +540,7 @@ suite('BlkInput', () => {
           spellcheck="false"
           autocomplete="off"
           autocorrect="none"
-          label="Test Converters 3"
-        ></blk-input>`
+          label="Test Converters 3"></blk-input>`
       );
       expect(
         getDiffableHTML(el.shadowRoot!.innerHTML, {ignoreAttributes: ['id', 'for']})
@@ -565,8 +553,7 @@ suite('BlkInput', () => {
         html`<blk-input
           spellcheck="false"
           autocapitalize="words"
-          label="Test Converters 4"
-        ></blk-input>`
+          label="Test Converters 4"></blk-input>`
       );
       expect(
         getDiffableHTML(el.shadowRoot!.innerHTML, {ignoreAttributes: ['id', 'for']})
