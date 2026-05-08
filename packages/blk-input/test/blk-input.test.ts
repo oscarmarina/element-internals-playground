@@ -589,6 +589,65 @@ suite('BlkInput', () => {
       const calledWithValidation = spyEvent.mock.lastCall?.[0].type === 'input';
       assert.isTrue(calledWithValidation);
     });
+
+    test('should redispatch compositionstart from the host', async () => {
+      el = await fixture(html`<blk-input label="Test Label"></blk-input>`);
+      const hostSpy = vi.fn();
+      el.addEventListener('compositionstart', hostSpy);
+      el.nativeControl?.dispatchEvent(
+        new CompositionEvent('compositionstart', {bubbles: true, composed: true})
+      );
+      expect(hostSpy).toHaveBeenCalledTimes(1);
+    });
+
+    test('should redispatch compositionend from the host', async () => {
+      el = await fixture(html`<blk-input label="Test Label"></blk-input>`);
+      const hostSpy = vi.fn();
+      el.addEventListener('compositionend', hostSpy);
+      el.nativeControl?.dispatchEvent(
+        new CompositionEvent('compositionend', {bubbles: true, composed: true, data: '日本語'})
+      );
+      expect(hostSpy).toHaveBeenCalledTimes(1);
+      expect((hostSpy.mock.lastCall?.[0] as CompositionEvent).data).toBe('日本語');
+    });
+
+    test('should mark as touched after compositionend followed by input', async () => {
+      el = await fixture(html`<blk-input label="Test Label"></blk-input>`);
+      assert.isFalse(el.touched);
+
+      el.nativeControl?.dispatchEvent(
+        new CompositionEvent('compositionstart', {bubbles: true, composed: true})
+      );
+      await el.updateComplete;
+      assert.isFalse(el.touched);
+
+      el.nativeControl?.dispatchEvent(
+        new CompositionEvent('compositionend', {bubbles: true, composed: true, data: '字'})
+      );
+      el.nativeControl?.dispatchEvent(
+        new InputEvent('input', {bubbles: true, composed: true, data: '字'})
+      );
+      await el.updateComplete;
+      assert.isTrue(el.touched);
+    });
+
+    test('should redispatch compositionstart and compositionend from textarea', async () => {
+      el = await fixture(html`<blk-input type="textarea" label="Test Label"></blk-input>`);
+      const startSpy = vi.fn();
+      const endSpy = vi.fn();
+      el.addEventListener('compositionstart', startSpy);
+      el.addEventListener('compositionend', endSpy);
+
+      el.nativeControl?.dispatchEvent(
+        new CompositionEvent('compositionstart', {bubbles: true, composed: true})
+      );
+      el.nativeControl?.dispatchEvent(
+        new CompositionEvent('compositionend', {bubbles: true, composed: true, data: '漢字'})
+      );
+
+      expect(startSpy).toHaveBeenCalledTimes(1);
+      expect(endSpy).toHaveBeenCalledTimes(1);
+    });
   });
 
   suite('Focus', () => {
@@ -597,6 +656,30 @@ suite('BlkInput', () => {
       el.focus();
       assert.isTrue(getElementState(el as unknown as HTMLElement, ':focus'));
       assert.isTrue(getElementState(el as unknown as HTMLElement, ':focus-within'));
+    });
+  });
+
+  suite('Datalist', () => {
+    test('should forward list attribute to the native input', async () => {
+      const root = await fixture(html`
+        <div>
+          <blk-input label="Browser" list="browsers"></blk-input>
+          <datalist id="browsers">
+            <option value="Firefox"></option>
+            <option value="Chrome"></option>
+            <option value="Safari"></option>
+          </datalist>
+        </div>
+      `);
+      el = root.querySelector('blk-input')!;
+      assert.equal(el.nativeControl?.getAttribute('list'), 'browsers');
+    });
+
+    test('should not set list attribute on textarea', async () => {
+      el = await fixture(
+        html`<blk-input type="textarea" label="Textarea" list="suggestions"></blk-input>`
+      );
+      assert.isNull(el.nativeControl?.getAttribute('list'));
     });
   });
 

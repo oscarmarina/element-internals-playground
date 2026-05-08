@@ -188,6 +188,14 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
   label?: string;
 
   /**
+   * The `id` of a `<datalist>` element that provides predefined suggestions for the input.
+   * Only applies to `input` types that support it (text, email, search, url, tel, number, etc.).
+   * Does not apply to `type="textarea"` or `type="password"`.
+   */
+  @property({type: String})
+  list?: string;
+
+  /**
    * A regular expression pattern that the input value must match for validation.
    * Use standard regex syntax, e.g., `"[0-9]{3}-[0-9]{2}-[0-9]{4}"` for SSN format.
    */
@@ -507,6 +515,7 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
         .minLength="${this.minLength || nothing}"
         .multiple="${this.multiple || nothing}"
         name="${this.name ?? nothing}"
+        list="${this.list || nothing}"
         .pattern="${this.pattern || nothing}"
         .placeholder="${this.placeholder === '' ? ' ' : this.placeholder}"
         .readOnly="${this.readOnly}"
