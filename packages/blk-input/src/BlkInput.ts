@@ -336,6 +336,14 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
     return !this.infoMessageText && (this.nativeValidationMessage || !this.errorMessageText);
   }
 
+  get _hasVisibleErrorMessage() {
+    return Boolean(this.invalid && this.errorMessageText?.trim() && !this.nativeValidationMessage);
+  }
+
+  get _describedBy() {
+    return this.infoMessageText ? 'info-message-text' : nothing;
+  }
+
   constructor() {
     super();
     this.__internalIdref = `${'uuid-'}${randomID()}`;
@@ -349,14 +357,10 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
   }
 
   override update(props: PropertyValues<this>) {
-    if (
-      this.__firstUpdateComplete &&
-      (props.has('value') || props.has('errorMessageText')) &&
-      !this.__fromReset
-    ) {
+    if (this.__firstUpdateComplete && props.has('value') && !this.__fromReset) {
       const input = this.__defaultInput;
       if (input) {
-        if (props.has('value') && input.value !== this.value) {
+        if (input.value !== this.value) {
           input.value = this.value;
         }
         this.invalid = !input.validity.valid;
@@ -386,17 +390,13 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
       return;
     }
 
-    if (props.has('value') || props.has('errorMessageText')) {
+    if (this._shouldSyncFormState(props)) {
       const isReset = this.__fromReset;
       this.__fromReset = false;
       this._syncFormState(input, this.value);
       if (!isReset) {
         this.dispatchEvent(new BlkFormValidationEvent(this.validity));
       }
-    }
-
-    if (props.has('name')) {
-      this._syncFormState(input, this.value);
     }
   }
 
@@ -427,8 +427,8 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
             class="error-message-text"
             role="alert"
             id="error-message-text"
-            ?empty="${!(this.invalid && this.errorMessageText?.trim())}">
-            ${this.invalid && this.errorMessageText ? this.errorMessageText : nothing}
+            ?empty="${!this._hasVisibleErrorMessage}">
+            ${this._hasVisibleErrorMessage ? this.errorMessageText : nothing}
           </div>`
         : nothing}
     `;
@@ -462,10 +462,8 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
         aria-label="${this.labelText || nothing}"
         id="${this.label ? this.__internalIdref : nothing}"
         aria-invalid="${this.invalid ? 'true' : nothing}"
-        aria-describedby="${this.infoMessageText ? 'info-message-text' : nothing}"
-        aria-errormessage="${this.invalid && this.errorMessageText
-          ? 'error-message-text'
-          : nothing}"
+        aria-describedby="${this._describedBy}"
+        aria-errormessage="${this._hasVisibleErrorMessage ? 'error-message-text' : nothing}"
         aria-required="${this.required ? 'true' : nothing}"
         autocomplete="${this.autocomplete ?? nothing}"
         autocorrect="${this.autocorrect ?? nothing}"
@@ -498,10 +496,8 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
         aria-label="${this.labelText || nothing}"
         id="${this.label ? this.__internalIdref : nothing}"
         aria-invalid="${this.invalid ? 'true' : nothing}"
-        aria-describedby="${this.infoMessageText ? 'info-message-text' : nothing}"
-        aria-errormessage="${this.invalid && this.errorMessageText
-          ? 'error-message-text'
-          : nothing}"
+        aria-describedby="${this._describedBy}"
+        aria-errormessage="${this._hasVisibleErrorMessage ? 'error-message-text' : nothing}"
         aria-required="${this.required ? 'true' : nothing}"
         .defaultValue="${this.__defaultValue}"
         ?disabled="${this.disabled || this.__fieldsetDisabled}"
@@ -569,7 +565,31 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
     }
 
     this.setFormValue(formValue);
+
+    if (input.validity.valid) {
+      this.setValidity(input.validity);
+      return;
+    }
+
     this.setValidity(input.validity, this.errorMessageText ?? input.validationMessage, input);
+  }
+
+  private _shouldSyncFormState(props: PropertyValues<this>) {
+    const keys = [
+      'value',
+      'name',
+      'errorMessageText',
+      'pattern',
+      'type',
+      'required',
+      'min',
+      'max',
+      'minLength',
+      'maxLength',
+      'multiple',
+    ] as const satisfies readonly (keyof BlkInput)[];
+
+    return keys.some((prop) => props.has(prop));
   }
 
   /**

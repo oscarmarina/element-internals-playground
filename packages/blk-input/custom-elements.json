@@ -390,6 +390,16 @@
             },
             {
               "kind": "field",
+              "name": "_hasVisibleErrorMessage",
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "_describedBy",
+              "readonly": true
+            },
+            {
+              "kind": "field",
               "name": "_messageTextTpl",
               "readonly": true
             },
@@ -472,6 +482,19 @@
                   "default": "this.value",
                   "type": {
                     "text": "string"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_shouldSyncFormState",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "props",
+                  "type": {
+                    "text": "PropertyValues<this>"
                   }
                 }
               ]

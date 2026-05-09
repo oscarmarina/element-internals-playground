@@ -661,6 +661,74 @@ suite('BlkInput', () => {
     });
   });
 
+  suite('Dynamic constraint resync', () => {
+    test('should resync validity when required is toggled dynamically', async () => {
+      el = await fixture(html`<blk-input value=""></blk-input>`);
+      assert.isTrue(el.validity.valid);
+
+      el.required = true;
+      await el.updateComplete;
+
+      assert.isFalse(el.validity.valid);
+      assert.isTrue(el.validity.valueMissing);
+    });
+
+    test('should resync validity when pattern changes dynamically', async () => {
+      el = await fixture(html`<blk-input value="abc123"></blk-input>`);
+      assert.isTrue(el.validity.valid);
+
+      el.pattern = '[0-9]+';
+      await el.updateComplete;
+
+      assert.isFalse(el.validity.valid);
+      assert.isTrue(el.validity.patternMismatch);
+    });
+
+    test('should resync validity when min changes dynamically', async () => {
+      el = await fixture(html`<blk-input type="number" value="3"></blk-input>`);
+      assert.isTrue(el.validity.valid);
+
+      el.min = 5;
+      await el.updateComplete;
+
+      assert.isFalse(el.validity.valid);
+      assert.isTrue(el.validity.rangeUnderflow);
+    });
+
+    test('should resync validity when max changes dynamically', async () => {
+      el = await fixture(html`<blk-input type="number" value="20"></blk-input>`);
+      assert.isTrue(el.validity.valid);
+
+      el.max = 10;
+      await el.updateComplete;
+
+      assert.isFalse(el.validity.valid);
+      assert.isTrue(el.validity.rangeOverflow);
+    });
+
+    test('should resync validity when type changes dynamically', async () => {
+      el = await fixture(html`<blk-input type="text" value="not-an-email"></blk-input>`);
+      assert.isTrue(el.validity.valid);
+
+      el.type = 'email';
+      await el.updateComplete;
+
+      assert.isFalse(el.validity.valid);
+      assert.isTrue(el.validity.typeMismatch);
+    });
+
+    test('should clear validity when required is toggled off after being invalid', async () => {
+      el = await fixture(html`<blk-input required value=""></blk-input>`);
+      assert.isFalse(el.validity.valid);
+      assert.isTrue(el.validity.valueMissing);
+
+      el.required = false;
+      await el.updateComplete;
+
+      assert.isTrue(el.validity.valid);
+    });
+  });
+
   suite('Form State Restore', () => {
     test('should restore value when formStateRestoreCallback is invoked with a string', async () => {
       el = await fixture(html`<blk-input label="Restore" name="restore"></blk-input>`);
