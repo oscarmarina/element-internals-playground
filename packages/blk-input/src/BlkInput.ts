@@ -1,6 +1,6 @@
 import {html, LitElement, nothing, type PropertyValues} from 'lit';
 import {redispatchEvent, randomID} from '@blockquote/frontend-utilities';
-import {property} from 'lit/decorators.js';
+import {property, state} from 'lit/decorators.js';
 import {live} from 'lit/directives/live.js';
 import {ref} from 'lit/directives/ref.js';
 import {
@@ -53,6 +53,9 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
   __internalIdref = '';
   __hasInteracted = false;
   __firstUpdateComplete = false;
+
+  @state()
+  private __fieldsetDisabled = false;
 
   static override styles = [styles];
 
@@ -345,13 +348,12 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
     this.__defaultValue = this.value;
   }
 
-  override willUpdate(props: PropertyValues<this>) {
-    super.willUpdate(props);
-    if (!this.__firstUpdateComplete) {
-      return;
-    }
-
-    if ((props.has('value') || props.has('errorMessageText')) && !this.__fromReset) {
+  override update(props: PropertyValues<this>) {
+    if (
+      this.__firstUpdateComplete &&
+      (props.has('value') || props.has('errorMessageText')) &&
+      !this.__fromReset
+    ) {
       const input = this.__defaultInput;
       if (input) {
         if (props.has('value') && input.value !== this.value) {
@@ -360,6 +362,7 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
         this.invalid = !input.validity.valid;
       }
     }
+    super.update(props);
   }
 
   override firstUpdated(_props: PropertyValues<this>) {
@@ -424,7 +427,6 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
             class="error-message-text"
             role="alert"
             id="error-message-text"
-            aria-live="polite"
             ?empty="${!(this.invalid && Boolean(this.errorMessageText))}">
             ${this.invalid && this.errorMessageText ? this.errorMessageText : nothing}
           </div>`
@@ -468,7 +470,7 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
         autocomplete="${this.autocomplete ?? nothing}"
         autocorrect="${this.autocorrect ?? nothing}"
         name="${this.name || nothing}"
-        ?disabled="${this.disabled}"
+        ?disabled="${this.disabled || this.__fieldsetDisabled}"
         .maxLength="${this.maxLength || nothing}"
         .minLength="${this.minLength || nothing}"
         .placeholder="${this.placeholder === '' ? ' ' : this.placeholder}"
@@ -502,7 +504,7 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
           : nothing}"
         aria-required="${this.required ? 'true' : nothing}"
         .defaultValue="${this.__defaultValue}"
-        .disabled="${this.disabled}"
+        .disabled="${this.disabled || this.__fieldsetDisabled}"
         autocapitalize="${this.autocapitalize || nothing}"
         autocomplete="${this.autocomplete ?? nothing}"
         autocorrect="${this.autocorrect ?? nothing}"
@@ -513,7 +515,7 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
         .min="${this.min || nothing}"
         .maxLength="${this.maxLength || nothing}"
         .minLength="${this.minLength || nothing}"
-        .multiple="${this.multiple || nothing}"
+        ?multiple="${this.multiple}"
         name="${this.name ?? nothing}"
         list="${this.list || nothing}"
         .pattern="${this.pattern || nothing}"
@@ -538,10 +540,8 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
 
   formDisabledCallback(disabled: boolean) {
     // Toggling the fieldset's `disabled` property will cause this callback to run.
-    // This won't happen if the component itself is already disabled, hence the use of `inert`.
     if (!this.disabled) {
-      this.toggleAttribute('inert', disabled);
-      this.__defaultInput?.toggleAttribute('disabled', disabled);
+      this.__fieldsetDisabled = disabled;
     }
   }
 

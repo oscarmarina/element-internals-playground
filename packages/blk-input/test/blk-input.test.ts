@@ -309,13 +309,6 @@ suite('BlkInput', () => {
       el = await fixture(html`<blk-input readonly value="122" label="Test read-only"></blk-input>`);
       assert.isTrue(getElementState(el as unknown as HTMLElement, ':read-only'));
     });
-    test('should be inert when inside a disabled fieldset', async () => {
-      const root = await fixture(
-        html`<fieldset disabled><blk-input label="Test Label"></blk-input></fieldset>`
-      );
-      el = root.querySelector('blk-input')!;
-      assert.isTrue(getElementState(el as unknown as HTMLElement, '[inert]'));
-    });
   });
 
   suite('User Interaction (Touched)', () => {

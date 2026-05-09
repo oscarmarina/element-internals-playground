@@ -47,8 +47,7 @@
 }
 
 :host(:disabled),
-:host(:disabled:hover),
-:host([inert]) {
+:host(:disabled:hover) {
   .field-block {
     opacity: var(--_disabled-content-opacity);
   }

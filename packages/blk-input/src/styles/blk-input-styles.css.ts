@@ -49,14 +49,12 @@ export const styles = css`
   }
 
   :host(:disabled) .field-block,
-  :host(:disabled:hover) .field-block,
-  :host([inert]) .field-block {
+  :host(:disabled:hover) .field-block {
     opacity: var(--_disabled-content-opacity);
   }
 
   :host(:disabled) .field-flex,
-  :host(:disabled:hover) .field-flex,
-  :host([inert]) .field-flex {
+  :host(:disabled:hover) .field-flex {
     border-color: var(--_outline-color);
   }
 
