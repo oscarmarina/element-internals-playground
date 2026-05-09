@@ -652,6 +652,47 @@ suite('BlkInput', () => {
     });
   });
 
+  suite('Constraint attribute resets', () => {
+    test('should keep maxlength="0" (falsy but valid) on the native input', async () => {
+      el = await fixture(html`<blk-input></blk-input>`);
+      el.maxLength = 0;
+      await el.updateComplete;
+      assert.equal(el.nativeControl?.getAttribute('maxlength'), '0');
+    });
+  });
+
+  suite('Form State Restore', () => {
+    test('should restore value when formStateRestoreCallback is invoked with a string', async () => {
+      el = await fixture(html`<blk-input label="Restore" name="restore"></blk-input>`);
+      assert.equal(el.value, '');
+
+      el.formStateRestoreCallback('restored value', 'restore');
+      await el.updateComplete;
+
+      assert.equal(el.value, 'restored value');
+      assert.equal(el.nativeControl?.value, 'restored value');
+    });
+
+    test('should restore value on autocomplete mode', async () => {
+      el = await fixture(html`<blk-input label="AC" name="ac"></blk-input>`);
+      el.formStateRestoreCallback('autofilled', 'autocomplete');
+      await el.updateComplete;
+      assert.equal(el.value, 'autofilled');
+    });
+
+    test('should ignore non-string state payloads (File / FormData / null)', async () => {
+      el = await fixture(html`<blk-input value="initial"></blk-input>`);
+
+      el.formStateRestoreCallback(null, 'restore');
+      await el.updateComplete;
+      assert.equal(el.value, 'initial');
+
+      el.formStateRestoreCallback(new FormData(), 'restore');
+      await el.updateComplete;
+      assert.equal(el.value, 'initial');
+    });
+  });
+
   suite('Datalist', () => {
     test('should forward list attribute to the native input', async () => {
       const root = await fixture(html`

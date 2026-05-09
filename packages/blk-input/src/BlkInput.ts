@@ -427,7 +427,7 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
             class="error-message-text"
             role="alert"
             id="error-message-text"
-            ?empty="${!(this.invalid && Boolean(this.errorMessageText))}">
+            ?empty="${!(this.invalid && this.errorMessageText?.trim())}">
             ${this.invalid && this.errorMessageText ? this.errorMessageText : nothing}
           </div>`
         : nothing}
@@ -471,8 +471,8 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
         autocorrect="${this.autocorrect ?? nothing}"
         name="${this.name || nothing}"
         ?disabled="${this.disabled || this.__fieldsetDisabled}"
-        .maxLength="${this.maxLength || nothing}"
-        .minLength="${this.minLength || nothing}"
+        maxlength="${this.maxLength ?? nothing}"
+        minlength="${this.minLength ?? nothing}"
         .placeholder="${this.placeholder === '' ? ' ' : this.placeholder}"
         ?readonly="${this.readOnly}"
         ?required="${this.required}"
@@ -504,27 +504,27 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
           : nothing}"
         aria-required="${this.required ? 'true' : nothing}"
         .defaultValue="${this.__defaultValue}"
-        .disabled="${this.disabled || this.__fieldsetDisabled}"
+        ?disabled="${this.disabled || this.__fieldsetDisabled}"
         autocapitalize="${this.autocapitalize || nothing}"
         autocomplete="${this.autocomplete ?? nothing}"
         autocorrect="${this.autocorrect ?? nothing}"
-        .autofocus="${this.autofocus}"
-        .enterKeyHint="${this.enterKeyHint || nothing}"
-        .inputMode="${this.inputMode || nothing}"
-        .max="${this.max || nothing}"
-        .min="${this.min || nothing}"
-        .maxLength="${this.maxLength || nothing}"
-        .minLength="${this.minLength || nothing}"
+        ?autofocus="${this.autofocus}"
+        enterkeyhint="${this.enterKeyHint || nothing}"
+        inputmode="${this.inputMode || nothing}"
+        max="${this.max ?? nothing}"
+        min="${this.min ?? nothing}"
+        maxlength="${this.maxLength ?? nothing}"
+        minlength="${this.minLength ?? nothing}"
         ?multiple="${this.multiple}"
         name="${this.name ?? nothing}"
         list="${this.list || nothing}"
-        .pattern="${this.pattern || nothing}"
+        pattern="${this.pattern || nothing}"
         .placeholder="${this.placeholder === '' ? ' ' : this.placeholder}"
-        .readOnly="${this.readOnly}"
-        .required="${this.required}"
+        ?readonly="${this.readOnly}"
+        ?required="${this.required}"
         spellcheck="${this.spellcheck}"
-        .step="${this.step || nothing}"
-        .type="${this.type}"
+        step="${this.step || nothing}"
+        type="${this.type ?? nothing}"
         .value="${live(this.value)}"
         @change="${this._onChange}"
         @compositionstart="${this._redispatchEvent}"
@@ -552,6 +552,12 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
     this.invalid = false;
     this.__fromReset = resetRequiresValueUpdate;
     this.__hasInteracted = false;
+  }
+
+  formStateRestoreCallback(state: File | string | FormData | null) {
+    if (typeof state === 'string') {
+      this.value = state;
+    }
   }
 
   private _syncFormState(

@@ -446,6 +446,18 @@
             },
             {
               "kind": "method",
+              "name": "formStateRestoreCallback",
+              "parameters": [
+                {
+                  "name": "state",
+                  "type": {
+                    "text": "File | string | FormData | null"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
               "name": "_syncFormState",
               "privacy": "private",
               "parameters": [

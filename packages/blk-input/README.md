@@ -74,10 +74,11 @@ An example element.
 
 ##### Methods
 
-| Name                   | Privacy | Description | Parameters          | Return | Inherited From |
-| ---------------------- | ------- | ----------- | ------------------- | ------ | -------------- |
-| `formDisabledCallback` |         |             | `disabled: boolean` |        |                |
-| `formResetCallback`    |         |             |                     |        |                |
+| Name                       | Privacy | Description | Parameters                                  | Return | Inherited From |
+| -------------------------- | ------- | ----------- | ------------------------------------------- | ------ | -------------- |
+| `formDisabledCallback`     |         |             | `disabled: boolean`                         |        |                |
+| `formResetCallback`        |         |             |                                             |        |                |
+| `formStateRestoreCallback` |         |             | `state: File \| string \| FormData \| null` |        |                |
 
 ##### Events
 
