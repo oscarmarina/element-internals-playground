@@ -1,0 +1,147 @@
+{
+  "schemaVersion": "1.0.0",
+  "readme": "",
+  "modules": [
+    {
+      "kind": "javascript-module",
+      "path": "src/BlkTanstackPlayground.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "",
+          "name": "BlkTanstackPlayground",
+          "members": [
+            {
+              "kind": "field",
+              "name": "#form",
+              "privacy": "private",
+              "readonly": true,
+              "default": "new TanStackFormController(this, { defaultValues: { username: '', email: '', }, onSubmit: async ({value}) => { console.log('Form Submitted:', value); alert(JSON.stringify(value, null, 2)); }, })"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "blk-tanstack-playground",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "BlkTanstackPlayground",
+          "declaration": {
+            "name": "BlkTanstackPlayground",
+            "module": "src/BlkTanstackPlayground.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/index.ts",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "BlkTanstackPlayground",
+          "declaration": {
+            "name": "BlkTanstackPlayground",
+            "module": "./BlkTanstackPlayground.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "BlkFormField",
+          "declaration": {
+            "name": "BlkFormField",
+            "module": "./components/BlkFormField.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/components/BlkFormField.ts",
+      "declarations": [
+        {
+          "kind": "function",
+          "name": "BlkFormField",
+          "parameters": [
+            {
+              "name": "field",
+              "type": {
+                "text": "any"
+              }
+            },
+            {
+              "name": "label",
+              "type": {
+                "text": "string"
+              }
+            },
+            {
+              "name": "type",
+              "default": "'text'"
+            },
+            {
+              "name": "minLength",
+              "optional": true,
+              "type": {
+                "text": "number"
+              }
+            }
+          ],
+          "description": "A DX helper to render a TanStack Form Field as a <blk-input> element.\n\nUsage inside a TanStackFormController.field() render callback:\n  this.#form.field({ name: 'email', validators: {...} }, (field) => BlkFormField(field, 'Email'))"
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "BlkFormField",
+          "declaration": {
+            "name": "BlkFormField",
+            "module": "src/components/BlkFormField.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/define/blk-tanstack-playground.ts",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "blk-tanstack-playground",
+          "declaration": {
+            "name": "BlkTanstackPlayground",
+            "module": "/src/BlkTanstackPlayground.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/styles/blk-tanstack-playground-styles.css.ts",
+      "declarations": [
+        {
+          "kind": "variable",
+          "name": "styles",
+          "default": "css` :host { display: block; font-family: system-ui, -apple-system, sans-serif; color: #333; } .playground-container { max-width: 600px; margin: 0 auto; padding: 2rem; background: #fff; border-radius: 8px; box-shadow: 0 4px 6px rgb(0, 0, 0, 0.1); } h2 { margin-top: 0; color: #111; } form { display: flex; flex-direction: column; gap: 1.5rem; } .form-field { display: flex; flex-direction: column; } .form-actions { display: flex; gap: 1rem; margin-top: 1rem; } button { padding: 0.75rem 1.5rem; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; transition: background-color 0.2s; } .btn-submit { background-color: #007ac2; color: white; } .btn-submit:hover:not(:disabled) { background-color: #005a92; } .btn-submit:disabled { background-color: #ccc; cursor: not-allowed; } .btn-reset { background-color: #f0f0f0; color: #333; } .btn-reset:hover { background-color: #e0e0e0; } .form-state { margin-top: 3rem; padding: 1rem; background-color: #f8f9fa; border-radius: 4px; border: 1px solid #ddd; } .form-state h3 { margin-top: 0; font-size: 1rem; color: #666; } pre { margin: 0; font-size: 0.875rem; overflow-x: auto; } `"
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "styles",
+          "declaration": {
+            "name": "styles",
+            "module": "src/styles/blk-tanstack-playground-styles.css.ts"
+          }
+        }
+      ]
+    }
+  ]
+}

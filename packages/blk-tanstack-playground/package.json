@@ -1,0 +1,56 @@
+{
+  "name": "@blockquote-playground/blk-tanstack-playground",
+  "version": "1.0.0",
+  "description": "Playground for testing TanStack form with blk-input",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./dist/index.js"
+    },
+    "./package.json": {
+      "default": "./package.json"
+    },
+    "./BlkTanstackPlayground.js": {
+      "default": "./dist/BlkTanstackPlayground.js"
+    },
+    "./blk-tanstack-playground.js": {
+      "default": "./dist/define/blk-tanstack-playground.js"
+    },
+    "./index.js": {
+      "default": "./dist/index.js"
+    }
+  },
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "files": [
+    "/src/",
+    "/dist/"
+  ],
+  "scripts": {
+    "analyze": "cem analyze --litelement --globs \"src/**/*.{js,ts}\" \"index.js\"",
+    "build": "npm run dev:vite && npm run build:lib && npm run build:tsc",
+    "build:lib": "vite build --config vite.lib.config.js",
+    "build:tsc": "tsc",
+    "dev:vite": "vite build",
+    "format": "npm run format:eslint && npm run format:prettier && npm run format:stylelint",
+    "format:eslint": "eslint . --fix",
+    "format:prettier": "prettier \"**/*.{js,ts,css,scss,html,json}\" --write --ignore-path .prettierignore",
+    "format:stylelint": "stylelint \"{demo,src}/**/*.{js,ts,css,scss,html}\" --fix --ignore-path .prettierignore",
+    "postinstall": "npm run sort:package",
+    "prepare": "husky",
+    "preview:vite": "vite preview",
+    "sass:watch": "sass-style-template -j ts",
+    "sort:package": "npx sort-package-json",
+    "start": "concurrently -k -r \"npm:vite\" \"npm:sass:watch\"",
+    "vite": "vite"
+  },
+  "dependencies": {
+    "@blockquote-playground/blk-input": "^1.0.0-rc.1",
+    "@tanstack/lit-form": "^1.24.0",
+    "lit": "^3.3.2"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "customElements": "custom-elements.json"
+}

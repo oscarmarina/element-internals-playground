@@ -1,0 +1,95 @@
+import {css} from 'lit';
+
+export const styles = css`
+  :host {
+    display: block;
+    font-family:
+      system-ui,
+      -apple-system,
+      sans-serif;
+    color: #333;
+  }
+
+  .playground-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgb(0, 0, 0, 0.1);
+  }
+
+  h2 {
+    margin-top: 0;
+    color: #111;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .form-field {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  button {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .btn-submit {
+    background-color: #007ac2;
+    color: white;
+  }
+
+  .btn-submit:hover:not(:disabled) {
+    background-color: #005a92;
+  }
+
+  .btn-submit:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+
+  .btn-reset {
+    background-color: #f0f0f0;
+    color: #333;
+  }
+
+  .btn-reset:hover {
+    background-color: #e0e0e0;
+  }
+
+  .form-state {
+    margin-top: 3rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+  }
+
+  .form-state h3 {
+    margin-top: 0;
+    font-size: 1rem;
+    color: #666;
+  }
+
+  pre {
+    margin: 0;
+    font-size: 0.875rem;
+    overflow-x: auto;
+  }
+`;
