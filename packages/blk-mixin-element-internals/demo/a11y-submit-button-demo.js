@@ -65,7 +65,7 @@ class A11ySubmitButton extends BlkMixinInternalsBase(HTMLElement) {
 
   static observedAttributes = ['name', 'value', 'formmethod'];
 
-  // Instance-level override: keep a behavior reference without a static factory.
+  // Override createBehaviors() to retain a reference for later attribute sync.
   createBehaviors() {
     if (SubmitButtonBehaviorCtor) {
       this._submitBehavior = new SubmitButtonBehaviorCtor();
@@ -297,7 +297,7 @@ class A11ySubmitButtonDemo extends LitElement {
     advancedForm.addEventListener('submit', (event) => {
       const submitEvent = /** @type {SubmitEvent} */ (event);
       event.preventDefault();
-      const data = Object.fromEntries(new FormData(advancedForm).entries());
+      const data = Object.fromEntries(new FormData(advancedForm));
 
       // FormData(form, submitter) only accepts native buttons — add custom submitter data manually
       const sub = submitEvent.submitter;

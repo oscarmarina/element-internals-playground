@@ -53,7 +53,7 @@ const FormAssociatedBase = <T extends CustomElementConstructor>(
     /** A best-attempt based on observed behaviour in FireFox 115 on fedora 38 */
     get labelText(): string {
       return (
-        this.internals.ariaLabel ||
+        this[internals].ariaLabel ||
         Array.from(this.labels as NodeListOf<HTMLElement>)
           .map((label) => label.textContent?.trim())
           .filter(Boolean)
