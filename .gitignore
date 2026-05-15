@@ -12,7 +12,7 @@
 **/npm-debug.log
 **/*-debug.log
 **/yarn-error.log
-**/.npmrc
+!**/.npmrc
 
 ## testing
 **/coverage
@@ -21,6 +21,7 @@
 **/screenshots
 
 ## build
+**/.claude
 **/_site
 **/dist
 **/dev
