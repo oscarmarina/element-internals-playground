@@ -3,9 +3,13 @@
   "version": "1.0.0-rc.1",
   "description": "Webcomponent blk-reference-target following open-wc recommendations",
   "keywords": [
-    "lit",
-    "web-component",
-    "lit-element"
+    "web-components",
+    "custom-elements",
+    "reference-target",
+    "aria",
+    "accessibility",
+    "a11y",
+    "lit"
   ],
   "license": "MIT",
   "author": "blk-reference-target",

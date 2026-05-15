@@ -3,9 +3,16 @@
   "version": "1.0.0-rc.1",
   "description": "Webcomponent blk-mixin-element-internals following open-wc recommendations",
   "keywords": [
-    "lit",
-    "web-component",
-    "lit-element"
+    "web-components",
+    "custom-elements",
+    "element-internals",
+    "form-associated",
+    "mixin",
+    "constraint-validation",
+    "platform-behaviors",
+    "accessibility",
+    "a11y",
+    "lit"
   ],
   "license": "MIT",
   "author": "blk-mixin-element-internals",

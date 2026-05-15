@@ -3,9 +3,15 @@
   "version": "1.0.0-rc.1",
   "description": "Webcomponent blk-input following open-wc recommendations",
   "keywords": [
-    "lit",
-    "web-component",
-    "lit-element"
+    "web-components",
+    "custom-elements",
+    "input",
+    "form-associated",
+    "element-internals",
+    "constraint-validation",
+    "accessibility",
+    "a11y",
+    "lit"
   ],
   "license": "MIT",
   "author": "blk-input",

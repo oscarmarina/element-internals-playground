@@ -26,3 +26,4 @@ Explore the [ElementInternals API](https://developer.mozilla.org/docs/Web/API/El
 - [ElementInternalsType Explainer (Microsoft Edge)](https://github.com/MicrosoftEdge/MSEdgeExplainers/blob/main/ElementInternalsType/explainer.md)
 - [Reference Target (Igalia)](https://blogs.igalia.com/alice/reference-target-having-your-encapsulation-and-eating-it-too/)
 - [Reference Target Demo (Microsoft Edge)](https://microsoftedge.github.io/Demos/reference-target/)
+- [Platform-provided behaviors for custom elements (Microsoft Edge)](https://microsoftedge.github.io/Demos/platform-provided-behaviors-for-custom-elements/)

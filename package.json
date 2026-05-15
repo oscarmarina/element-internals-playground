@@ -2,6 +2,15 @@
   "name": "element-internals-playground",
   "version": "1.0.0",
   "type": "module",
+  "keywords": [
+    "web-components",
+    "custom-elements",
+    "element-internals",
+    "form-associated",
+    "lit",
+    "mixin",
+    "a11y"
+  ],
   "workspaces": [
     "packages/*"
   ],
