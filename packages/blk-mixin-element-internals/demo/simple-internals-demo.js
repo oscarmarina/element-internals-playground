@@ -31,7 +31,7 @@ export class SimpleInternalsDemo extends BlkMixinElementInternals(LitElement) {
       color: var(--color-text-primary);
       background-color: var(--color-background);
       border: 0.0625rem solid var(--color-border);
-      max-inline-size: 31.25rem;
+      max-inline-size: 60rem;
       margin-block: 2rem;
       margin-inline: auto;
     }

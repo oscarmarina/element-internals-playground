@@ -27,6 +27,39 @@ suite('BlkMixinInternalsBase (real)', () => {
     assert.notStrictEqual(elemInternals, undefined);
   });
 
+  test('supports behavior factories and ignores nullish values automatically', async () => {
+    class InternalsWithBehaviorEl extends BlkMixinInternalsBase(HTMLElement) {
+      static override internalsBehaviors = [() => ({kind: 'submit-behavior'}), () => undefined];
+    }
+
+    defineTestElement(InternalsWithBehaviorEl, 'internals-base-behavior');
+    const el = await fixture<InternalsWithBehaviorEl>(
+      html`<internals-base-behavior></internals-base-behavior>`
+    );
+
+    assert.ok(el[internals]);
+  });
+
+  test('createBehaviors() override retains behavior references on the instance', async () => {
+    class InternalsOverrideEl extends BlkMixinInternalsBase(HTMLElement) {
+      _behavior: unknown;
+
+      override createBehaviors() {
+        this._behavior = {kind: 'submit-behavior'};
+        return [this._behavior];
+      }
+    }
+
+    defineTestElement(InternalsOverrideEl, 'internals-base-override');
+    const el = await fixture<InternalsOverrideEl>(
+      html`<internals-base-override></internals-base-override>`
+    );
+
+    assert.ok(el[internals]);
+    assert.ok(el._behavior);
+    assert.equal((el._behavior as {kind: string}).kind, 'submit-behavior');
+  });
+
   test('ElementInternals is unique per element instance', async () => {
     class InternalsBaseEl extends BlkMixinInternalsBase(HTMLElement) {}
     defineTestElement(InternalsBaseEl, 'internals-base-unique');
