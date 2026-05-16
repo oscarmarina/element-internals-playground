@@ -46,8 +46,8 @@
   },
   "dependencies": {
     "@blockquote-playground/blk-input": "^1.0.0-rc.1",
-    "@tanstack/lit-form": "^1.24.0",
-    "lit": "^3.3.2"
+    "@tanstack/lit-form": "^1.24.1",
+    "lit": "^3.3.3"
   },
   "publishConfig": {
     "access": "public"
