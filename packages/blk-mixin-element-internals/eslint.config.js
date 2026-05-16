@@ -57,6 +57,7 @@ const importFilesRules = {
       'error',
       {
         devDependencies: [
+          `**/demo/**/*.${fileTypes}`,
           `**/test/**/*.${fileTypes}`,
           `**/*.config.${fileTypes}`,
           `**/*.conf.${fileTypes}`,

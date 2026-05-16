@@ -1,6 +1,7 @@
 import {LitElement, html, css} from 'lit';
 import {BlkMixinInternalsBase} from '../src/BlkMixinInternalsBase.js';
-
+import {BlkMixinFormAssociated} from '../src/BlkMixinFormAssociated.js';
+import '@blockquote-playground/blk-input/blk-input.js';
 /**
  * @typedef {{
  *   name: string;
@@ -14,19 +15,13 @@ const SubmitButtonBehaviorCtor =
     .HTMLSubmitButtonBehavior;
 const supportsSubmitBehavior = typeof SubmitButtonBehaviorCtor !== 'undefined';
 
-class SimpleSubmitButton extends BlkMixinInternalsBase(HTMLElement) {
-  static formAssociated = true;
-
+class SimpleSubmitButton extends BlkMixinFormAssociated(HTMLElement) {
   static internalsBehaviors = SubmitButtonBehaviorCtor
     ? [() => new SubmitButtonBehaviorCtor()]
     : undefined;
 
   connectedCallback() {
-    if (!this.textContent?.trim()) {
-      this.textContent = 'Submit form';
-    }
-
-    if (!this.hasAttribute('tabindex')) {
+    if (!supportsSubmitBehavior && !this.hasAttribute('tabindex')) {
       this.tabIndex = 0;
     }
 
@@ -74,11 +69,7 @@ class A11ySubmitButton extends BlkMixinInternalsBase(HTMLElement) {
   }
 
   connectedCallback() {
-    if (!this.textContent?.trim()) {
-      this.textContent = 'Submit form';
-    }
-
-    if (!this.hasAttribute('tabindex')) {
+    if (!supportsSubmitBehavior && !this.hasAttribute('tabindex')) {
       this.tabIndex = 0;
     }
 
@@ -281,12 +272,14 @@ class A11ySubmitButtonDemo extends LitElement {
     simpleForm.addEventListener('submit', (event) => {
       const submitEvent = /** @type {SubmitEvent} */ (event);
       event.preventDefault();
-      const data = Object.fromEntries(new FormData(simpleForm).entries());
-
+      const data = Object.fromEntries(new FormData(simpleForm));
+      // FormData(form, submitter) only accepts native buttons — add custom submitter data manually
+      const sub = submitEvent.submitter;
+      const submitter = sub?.localName ?? 'unknown';
       this._simpleSubmitLog = JSON.stringify(
         {
           supportsSubmitBehavior,
-          submitter: submitEvent.submitter?.localName ?? 'unknown',
+          submitter,
           data,
         },
         null,
@@ -298,7 +291,6 @@ class A11ySubmitButtonDemo extends LitElement {
       const submitEvent = /** @type {SubmitEvent} */ (event);
       event.preventDefault();
       const data = Object.fromEntries(new FormData(advancedForm));
-
       // FormData(form, submitter) only accepts native buttons — add custom submitter data manually
       const sub = submitEvent.submitter;
       const subName = sub?.getAttribute('name');
@@ -339,11 +331,9 @@ class A11ySubmitButtonDemo extends LitElement {
           <h3>Simple case: static internalsBehaviors</h3>
           <p>This button uses a static factory and does not keep a behavior reference.</p>
           <form data-demo="simple">
-            <label>
-              Name
-              <input name="name" placeholder="Type and submit" required />
-            </label>
+            <blk-input label="name" name="name" placeholder="Type and submit" required></blk-input>
             <simple-submit-button>Submit</simple-submit-button>
+            <button hidden>Native submit</button>
           </form>
           <p>Latest simple submit:</p>
           <pre>${this._simpleSubmitLog}</pre>
