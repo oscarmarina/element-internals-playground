@@ -152,6 +152,27 @@ suite('BlkInput', () => {
       );
       await assert.isAccessible(el);
     });
+
+    test('should not show invalid state visually while typing to empty a field, but should show on blur', async () => {
+      el = await fixture(html`<blk-input required value="valid-initial"></blk-input>`);
+      assert.isFalse(el.invalid);
+
+      // User types backspace, clearing the input
+      const input = el.nativeControl as HTMLInputElement;
+      input.value = '';
+      input.dispatchEvent(new InputEvent('input', {bubbles: true, composed: true}));
+      await el.updateComplete;
+
+      // Error should NOT be visible yet
+      assert.isFalse(el.invalid);
+
+      // User blurs the field
+      input.dispatchEvent(new Event('blur', {bubbles: true}));
+      await el.updateComplete;
+
+      // Error should be visible now!
+      assert.isTrue(el.invalid);
+    });
   });
 
   suite('Validation and Messages', () => {
@@ -428,6 +449,7 @@ suite('BlkInput', () => {
       const input = el.nativeControl as HTMLInputElement;
       input.value = 'abc';
       input.dispatchEvent(new InputEvent('input', {bubbles: true, composed: true}));
+      input.dispatchEvent(new Event('blur', {bubbles: true}));
       await el.updateComplete;
 
       assert.isTrue(el.invalid);
@@ -734,7 +756,7 @@ suite('BlkInput', () => {
       el = await fixture(html`<blk-input label="Restore" name="restore"></blk-input>`);
       assert.equal(el.value, '');
 
-      el.formStateRestoreCallback('restored value', 'restore');
+      el.formStateRestoreCallback('restored value');
       await el.updateComplete;
 
       assert.equal(el.value, 'restored value');
@@ -743,7 +765,7 @@ suite('BlkInput', () => {
 
     test('should restore value on autocomplete mode', async () => {
       el = await fixture(html`<blk-input label="AC" name="ac"></blk-input>`);
-      el.formStateRestoreCallback('autofilled', 'autocomplete');
+      el.formStateRestoreCallback('autofilled');
       await el.updateComplete;
       assert.equal(el.value, 'autofilled');
     });
@@ -751,11 +773,11 @@ suite('BlkInput', () => {
     test('should ignore non-string state payloads (File / FormData / null)', async () => {
       el = await fixture(html`<blk-input value="initial"></blk-input>`);
 
-      el.formStateRestoreCallback(null, 'restore');
+      el.formStateRestoreCallback(null);
       await el.updateComplete;
       assert.equal(el.value, 'initial');
 
-      el.formStateRestoreCallback(new FormData(), 'restore');
+      el.formStateRestoreCallback(new FormData());
       await el.updateComplete;
       assert.equal(el.value, 'initial');
     });

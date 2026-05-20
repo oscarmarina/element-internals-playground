@@ -363,7 +363,9 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
         if (input.value !== this.value) {
           input.value = this.value;
         }
-        this.invalid = !input.validity.valid;
+        if (input.validity.valid) {
+          this.invalid = false;
+        }
       }
     }
     super.update(props);
@@ -482,7 +484,7 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
         @compositionend="${this._redispatchEvent}"
         @input="${this._onInput}"
         @focus="${this._redispatchEvent}"
-        @blur="${this._redispatchEvent}"
+        @blur="${this._onBlur}"
         @keydown="${this._onKeydown}"
         @select="${this._redispatchEvent}"
         ${ref((textarea) => (this.__defaultInput = textarea as HTMLTextAreaElement))}></textarea>
@@ -527,7 +529,7 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
         @compositionend="${this._redispatchEvent}"
         @input="${this._onInput}"
         @focus="${this._redispatchEvent}"
-        @blur="${this._redispatchEvent}"
+        @blur="${this._onBlur}"
         @keydown="${this._onKeydown}"
         @select="${this._redispatchEvent}"
         ${ref((input) => (this.__defaultInput = input as HTMLInputElement))} />
@@ -629,12 +631,22 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
     this._markAsInteracted();
   }
 
+  private _onBlur(ev: Event) {
+    this._markAsInteracted();
+    const input = this.__defaultInput;
+    if (input) {
+      this.invalid = !input.validity.valid;
+    }
+    this._redispatchEvent(ev);
+  }
+
   private _onChange(ev: Event | string) {
     this._markAsInteracted();
     redispatchEvent(this, ev);
   }
 
   private _onInvalid() {
+    this.__hasInteracted = true;
     this.invalid = true;
   }
 }
