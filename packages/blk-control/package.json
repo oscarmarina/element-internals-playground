@@ -1,18 +1,14 @@
 {
-  "name": "@blockquote-playground/blk-reference-target",
+  "name": "@blockquote-playground/blk-control",
   "version": "1.0.0-rc.1",
-  "description": "Webcomponent blk-reference-target following open-wc recommendations",
+  "description": "Webcomponent blk-control following open-wc recommendations",
   "keywords": [
-    "web-components",
-    "custom-elements",
-    "reference-target",
-    "aria",
-    "accessibility",
-    "a11y",
-    "lit"
+    "lit",
+    "web-component",
+    "lit-element"
   ],
   "license": "MIT",
-  "author": "blk-reference-target",
+  "author": "blk-control",
   "type": "module",
   "exports": {
     ".": {
@@ -21,17 +17,17 @@
     "./package.json": {
       "default": "./package.json"
     },
-    "./BlkReferenceTarget.js": {
-      "default": "./dist/BlkReferenceTarget.js"
+    "./BlkControl.js": {
+      "default": "./dist/BlkControl.js"
     },
-    "./blk-reference-target.js": {
-      "default": "./dist/define/blk-reference-target.js"
+    "./blk-control.js": {
+      "default": "./dist/define/blk-control.js"
     },
     "./index.js": {
       "default": "./dist/index.js"
     },
-    "./blk-reference-target-styles.css.js": {
-      "default": "./dist/styles/blk-reference-target-styles.css.js"
+    "./blk-control-styles.css.js": {
+      "default": "./dist/styles/blk-control-styles.css.js"
     }
   },
   "main": "dist/index.js",
@@ -73,7 +69,6 @@
     ]
   },
   "prettier": {
-    "bracketSameLine": true,
     "bracketSpacing": false,
     "printWidth": 100,
     "singleQuote": true,
@@ -124,7 +119,8 @@
     ]
   },
   "dependencies": {
-    "lit": "^3.3.3"
+    "@blockquote-playground/blk-mixin-element-internals": "^1.0.0-rc.1",
+    "lit": "^3.3.2"
   },
   "devDependencies": {
     "@blockquote/cem-to-markdown-readme": "^1.0.0",

@@ -1,0 +1,792 @@
+{
+  "schemaVersion": "1.0.0",
+  "readme": "",
+  "modules": [
+    {
+      "kind": "javascript-module",
+      "path": "src/BlkControl.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "![Lit](https://img.shields.io/badge/lit-3.0.0-blue.svg)\n\n## `<blk-control>`\n\nA custom element that wraps a native **checkbox** (default) or **radio**\n(`type` attribute) rendered in the light DOM.\n\n### Architecture\nThe native `<input>` lives in the light DOM so that:\n- same-name radios discover each other and form a native radio group\n  (impossible across shadow-root boundaries), and\n- the browser owns form participation, validation, reset, and state restore.\n\nThe custom element does **not** participate in the form via ElementInternals.\nIt keeps `attachInternals()` only to expose custom states (`:state(checked)`,\n`:state(indeterminate)`), proxies the constraint-validation API to the native\ninput as the single source of truth, and dispatches BlkFormValidationEvent.\n\n### Type: `checkbox`\n- Supports `indeterminate` state (`:state(indeterminate)`).\n\n### Type: `radio`\n- Same-name radios in the same form/tree form a native group.\n- `required` validity is group-level (valid when any member is checked),\n  provided natively by the browser.",
+          "name": "BlkControl",
+          "members": [
+            {
+              "kind": "field",
+              "name": "__defaultInput",
+              "type": {
+                "text": "HTMLInputElement | undefined"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "__root",
+              "type": {
+                "text": "Document | ShadowRoot | undefined"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "__fromReset",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false"
+            },
+            {
+              "kind": "field",
+              "name": "__firstUpdateComplete",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false"
+            },
+            {
+              "kind": "field",
+              "name": "type",
+              "type": {
+                "text": "BlkControlVariant"
+              },
+              "default": "'checkbox'",
+              "description": "`\"checkbox\"` (default) or `\"radio\"`. Controls the native input type.",
+              "attribute": "type",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "name",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "Form field name. For radios this also defines the group scope.",
+              "attribute": "name",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "value",
+              "type": {
+                "text": "string"
+              },
+              "default": "'on'",
+              "description": "Value submitted when this control is checked. Defaults to `\"on\"`.",
+              "attribute": "value"
+            },
+            {
+              "kind": "field",
+              "name": "checked",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Whether this control is currently selected/checked.",
+              "attribute": "checked"
+            },
+            {
+              "kind": "field",
+              "name": "disabled",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Whether the control is disabled.",
+              "attribute": "disabled",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "required",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "When `true`, the form cannot be submitted unless this control is checked.",
+              "attribute": "required",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "indeterminate",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "(checkbox only) Puts the control into a `mixed` state.\nSetting `checked=true` clears indeterminate.",
+              "attribute": "indeterminate"
+            },
+            {
+              "kind": "field",
+              "name": "label",
+              "type": {
+                "text": "string | undefined"
+              },
+              "description": "The text label displayed above or beside the input field.\nUsed for accessibility and to provide context about what the user should enter.",
+              "attribute": "label",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "idlabel",
+              "type": {
+                "text": "string | undefined"
+              },
+              "attribute": "id-label",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "labelPosition",
+              "type": {
+                "text": "BlkControlLabelPosition"
+              },
+              "default": "'end'",
+              "description": "Position of the label text relative to the control: `\"end\"` (default — text\nafter the input) or `\"start\"` (text before the input). Purely visual: it is\napplied via CSS (the slotted `<label>` is reversed), so DOM order — and thus\naccessibility/label association — is unchanged.",
+              "attribute": "label-position",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "invalid",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "When true, the control is currently invalid based on the validation rules.",
+              "attribute": "invalid",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "__fieldsetDisabled",
+              "type": {
+                "text": "boolean"
+              },
+              "privacy": "private",
+              "default": "false",
+              "description": "Reactive mirror of \"disabled via an ancestor `<fieldset disabled>`\", kept in\nsync by formDisabledCallback. The native input is already disabled by\nthe fieldset natively; this flag exists so the host can reflect the state."
+            },
+            {
+              "kind": "field",
+              "name": "__hasInteracted",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false"
+            },
+            {
+              "kind": "field",
+              "name": "touched",
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Returns true if the user has interacted with the control.",
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "validity",
+              "type": {
+                "text": "ValidityState"
+              },
+              "description": "The ValidityState of the native control. The native input is the single\nsource of truth for validation in this architecture.",
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "validationMessage",
+              "type": {
+                "text": "string"
+              },
+              "description": "The native control's validation message.",
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "willValidate",
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Whether the native control is a candidate for constraint validation.",
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "nativeControl",
+              "description": "The native control/input element backing this control.",
+              "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "checkValidity",
+              "return": {
+                "type": {
+                  "text": "boolean"
+                }
+              },
+              "description": "Checks the native control's constraints without surfacing UI."
+            },
+            {
+              "kind": "method",
+              "name": "reportValidity",
+              "return": {
+                "type": {
+                  "text": "boolean"
+                }
+              },
+              "description": "Checks the native control's constraints and surfaces native validation UI."
+            },
+            {
+              "kind": "method",
+              "name": "formDisabledCallback",
+              "parameters": [
+                {
+                  "name": "disabled",
+                  "type": {
+                    "text": "boolean"
+                  }
+                }
+              ],
+              "description": "Invoked by the browser (FACE) when this element's disabled state changes due\nto an ancestor `<fieldset disabled>` being toggled — the only native \"push\"\nfor that change. We never call `setFormValue`/`setValidity`, so the host\nstays out of submission; this is FACE used purely for lifecycle callbacks."
+            },
+            {
+              "kind": "method",
+              "name": "_litHtmlRender"
+            },
+            {
+              "kind": "field",
+              "name": "_inputTpl",
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "_labelTpl",
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "_lightDomTpl",
+              "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "_shouldSyncFormState",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "props",
+                  "type": {
+                    "text": "PropertyValues<this>"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_syncStates",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "_syncFromNative",
+              "privacy": "private",
+              "description": "Mirror the native input's live state back onto the host.\nDriven by the root `change`/`reset` listeners; setting `checked` triggers\n`updated()`, which syncs custom states and dispatches the validation event.\nThe native `change` itself bubbles through the light-DOM child, so consumers\nstill receive a `change` event on the host without manual re-dispatch."
+            },
+            {
+              "kind": "field",
+              "name": "_onChange",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "_onRootReset",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "_onInvalid",
+              "privacy": "private",
+              "description": "Fired by the browser when the native control fails constraint validation\n(e.g. on form submission). This does not change a reactive property, so we\nrefresh custom states here. Per the locked contract it does NOT emit a\n`validation` event (mirrors BlkInput, which only flips its invalid state)."
+            },
+            {
+              "kind": "method",
+              "name": "_onFocus",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "_onBlur",
+              "privacy": "private"
+            }
+          ],
+          "events": [
+            {
+              "type": {
+                "text": "BlkFormValidationEvent"
+              }
+            },
+            {
+              "description": "The native `change` from the light-DOM `<input>`, which bubbles through the host (not re-dispatched). Its `target` is therefore the inner `<input>`, not the host — intentional, to keep native radio-group propagation intact.",
+              "name": "change"
+            },
+            {
+              "description": "{@link BlkFormValidationEvent}, carrying the native input's current `ValidityState`. **Contract (aligned with BlkInput):** fires *only* when a validity-affecting property changes (`required`, `checked`, `name`, `type`). It does **not** fire on the initial render, on form reset, nor on the native `invalid` event (submit-time) — those paths only refresh custom states. ### Custom states (for styling) Exposed through `ElementInternals.states` because host pseudo-classes (`:checked`, `:invalid`, `:disabled`) are unavailable on a non–form-associated element. Match with the `:state()` selector on the host: - `:state(checked)`       — control is checked - `:state(indeterminate)` — (checkbox) mixed state - `:state(invalid)`       — native input currently fails constraint validation - `:state(disabled)`      — disabled directly or via an ancestor `<fieldset disabled>`",
+              "name": "validation"
+            }
+          ],
+          "attributes": [
+            {
+              "description": "`\"checkbox\"` (default) or `\"radio\"`. Controls the native input type.",
+              "name": "type",
+              "type": {
+                "text": "BlkControlVariant"
+              },
+              "default": "'checkbox'",
+              "fieldName": "type"
+            },
+            {
+              "description": "Form field name. For radios this also defines the group scope.",
+              "name": "name",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "fieldName": "name"
+            },
+            {
+              "description": "Value submitted when this control is checked. Defaults to `\"on\"`.",
+              "name": "value",
+              "type": {
+                "text": "string"
+              },
+              "default": "'on'",
+              "fieldName": "value"
+            },
+            {
+              "description": "Whether this control is currently selected/checked.",
+              "name": "checked",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "checked"
+            },
+            {
+              "description": "Whether the control is disabled.",
+              "name": "disabled",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "disabled"
+            },
+            {
+              "description": "When `true`, the form cannot be submitted unless this control is checked.",
+              "name": "required",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "required"
+            },
+            {
+              "description": "(checkbox only) Puts the control into a `mixed` state.\nSetting `checked=true` clears indeterminate.",
+              "name": "indeterminate",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "indeterminate"
+            },
+            {
+              "description": "The text label displayed above or beside the input field.\nUsed for accessibility and to provide context about what the user should enter.",
+              "name": "label",
+              "type": {
+                "text": "string | undefined"
+              },
+              "fieldName": "label"
+            },
+            {
+              "description": "Position of the label text relative to the control: `\"end\"` (default — text\nafter the input) or `\"start\"` (text before the input). Purely visual: it is\napplied via CSS (the slotted `<label>` is reversed), so DOM order — and thus\naccessibility/label association — is unchanged.",
+              "name": "label-position",
+              "type": {
+                "text": "BlkControlLabelPosition"
+              },
+              "default": "'end'",
+              "fieldName": "labelPosition"
+            },
+            {
+              "name": "id-label",
+              "type": {
+                "text": "string | undefined"
+              },
+              "fieldName": "idlabel"
+            },
+            {
+              "name": "invalid",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "When true, the control is currently invalid based on the validation rules.",
+              "fieldName": "invalid"
+            }
+          ],
+          "mixins": [
+            {
+              "name": "BlkMixinFormAssociated",
+              "package": "@blockquote-playground/blk-mixin-element-internals"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "blk-control",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "BlkControl",
+          "declaration": {
+            "name": "BlkControl",
+            "module": "src/BlkControl.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/BlkControlSSR.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "![Lit](https://img.shields.io/badge/lit-3.0.0-blue.svg)\n\n## `<blk-control-ssr>`\n\nSSR-friendly, **declarative** sibling of `<blk-control>`.\n\n`<blk-control>` renders its own `<input>` imperatively into the light DOM, which is not\nSSR-safe. This variant instead **does not create the control**: the author (or the\nserver) provides a native `<input type=\"checkbox|radio\">` and a `<label>` as slotted\nlight-DOM children, and the component *enhances* them.\n\n### Why JS still mirrors state (and why it isn't pure `:has()` CSS)\nThe visual indicator lives in the shadow DOM, while `:checked`/`:disabled`/… live on the\nlight-DOM `<input>`. The only CSS bridge would be `:host(:has(input:checked))`, but\n`:has()` inside `:host()` is **not honoured as a style selector** in current engines\n(it matches in `element.matches()` yet the rule is dropped). So this component mirrors\nthe native input's state into `ElementInternals.states` and styles with\n`:host(:state(...))` + `::slotted()` — both well supported. The invalid state is gated by\na \"touched\" flag (set on input/blur/invalid/change), matching `<blk-control>` and working\nunder the `novalidate` + manual `checkValidity()` flow where `:user-invalid` is unreliable.\n\nThe native `<input>` keeps full ownership of submission, validation, reset, state\nrestore, radio-group discovery, disabled-by-`<fieldset>` and a11y semantics. The host is\nform-associated **only** for the `formDisabledCallback` lifecycle hook — it never calls\n`setFormValue`/`setValidity`, so it adds nothing to the form's data (no double submit).\n\n### Canonical markup\n`<input>` and `<label>` are **separate, direct slotted children** (so `::slotted(input)`\n/ `::slotted(label)` can reach them), associated natively with `for`/`id`:\n\n```html\n<blk-control-ssr>\n  <input slot=\"embedded\" id=\"terms\" type=\"checkbox\" name=\"terms\" value=\"yes\" required />\n  <label slot=\"embedded\" for=\"terms\">I accept the terms</label>\n</blk-control-ssr>\n```",
+          "name": "BlkControlSSR",
+          "members": [
+            {
+              "kind": "field",
+              "name": "__defaultInput",
+              "type": {
+                "text": "HTMLInputElement | null"
+              },
+              "default": "null",
+              "description": "The native control backing this element (acquired from the slot)."
+            },
+            {
+              "kind": "field",
+              "name": "__root",
+              "type": {
+                "text": "Document | ShadowRoot | undefined"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "__hasInteracted",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "\"Touched\" gate so errors show only after interaction / a submit attempt."
+            },
+            {
+              "kind": "field",
+              "name": "_inputEvents",
+              "privacy": "private",
+              "static": true,
+              "readonly": true,
+              "default": "['focus', 'blur', 'invalid']",
+              "type": {
+                "text": "['focus', 'blur', 'invalid']"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "labelPosition",
+              "type": {
+                "text": "BlkControlSSRLabelPosition"
+              },
+              "default": "'end'",
+              "description": "Visual placement of the label relative to the control: `\"end\"` (default) or\n`\"start\"`. CSS-only — DOM order (and label association) is unchanged.",
+              "attribute": "label-position",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "nativeControl",
+              "type": {
+                "text": "HTMLInputElement | null"
+              },
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "validity",
+              "type": {
+                "text": "ValidityState"
+              },
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "validationMessage",
+              "type": {
+                "text": "string"
+              },
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "willValidate",
+              "type": {
+                "text": "boolean"
+              },
+              "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "checkValidity",
+              "return": {
+                "type": {
+                  "text": "boolean"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "reportValidity",
+              "return": {
+                "type": {
+                  "text": "boolean"
+                }
+              }
+            },
+            {
+              "kind": "field",
+              "name": "checked",
+              "type": {
+                "text": "boolean"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "indeterminate",
+              "type": {
+                "text": "boolean"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "value",
+              "type": {
+                "text": "string"
+              },
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "name",
+              "type": {
+                "text": "string"
+              },
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "type",
+              "type": {
+                "text": "string"
+              },
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "required",
+              "type": {
+                "text": "boolean"
+              },
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "disabled",
+              "type": {
+                "text": "boolean"
+              },
+              "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "formDisabledCallback",
+              "description": "Fired by the browser when an ancestor `<fieldset disabled>` toggles."
+            },
+            {
+              "kind": "field",
+              "name": "_onSlotChange",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "_adoptInput",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "input",
+                  "type": {
+                    "text": "HTMLInputElement | null"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_detachInput",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "_onInputEvent",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "_onRootChange",
+              "privacy": "private"
+            },
+            {
+              "kind": "field",
+              "name": "_onRootReset",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "_syncStates",
+              "privacy": "private",
+              "description": "Mirror the native input's live state into custom states for shadow-DOM styling.\n`invalid` is sourced from the native `:user-invalid`, so the \"touched\" behaviour\n(only flag after interaction/submit) comes from the platform."
+            }
+          ],
+          "events": [
+            {
+              "description": "{@link BlkFormValidationEvent} on the native input's `change` (for radios, also on the sibling the browser deselects) and on a programmatic `checked` change. Not on initial render, reset, or the native `invalid` event.",
+              "name": "validation"
+            }
+          ],
+          "attributes": [
+            {
+              "description": "Visual placement of the label relative to the control: `\"end\"` (default) or\n`\"start\"`. CSS-only — DOM order (and label association) is unchanged.",
+              "name": "label-position",
+              "type": {
+                "text": "BlkControlSSRLabelPosition"
+              },
+              "default": "'end'",
+              "fieldName": "labelPosition"
+            }
+          ],
+          "cssStates": [
+            {
+              "name": "checked"
+            },
+            {
+              "name": "indeterminate"
+            },
+            {
+              "description": "invalid AND touched (after interaction / submit attempt)",
+              "name": "invalid"
+            },
+            {
+              "description": "own attribute or an ancestor `<fieldset disabled>`",
+              "name": "disabled"
+            },
+            {
+              "description": "keyboard focus (`:focus-visible`)",
+              "name": "focus"
+            }
+          ],
+          "mixins": [
+            {
+              "name": "BlkMixinFormAssociated",
+              "package": "@blockquote-playground/blk-mixin-element-internals"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "blk-control-ssr",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "BlkControlSSR",
+          "declaration": {
+            "name": "BlkControlSSR",
+            "module": "src/BlkControlSSR.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/index.ts",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "BlkControl",
+          "declaration": {
+            "name": "BlkControl",
+            "module": "./BlkControl.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/define/blk-control.ts",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "blk-control",
+          "declaration": {
+            "name": "BlkControl",
+            "module": "/src/BlkControl.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "blk-control-ssr",
+          "declaration": {
+            "name": "BlkControlSSR",
+            "module": "/src/BlkControlSSR.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/styles/blk-control-styles.css.ts",
+      "declarations": [
+        {
+          "kind": "variable",
+          "name": "styles",
+          "default": "css` :host { --_control-size: var(--control-element-size, 1rem); --_control-color: var(--control-element-color, #1a73e8); --_control-border-color: var(--control-element-border-color, #757575); --_control-disabled-opacity: var(--control-element-disabled-opacity, 0.38); --_control-gap: var(--control-element-gap, calc(1rem + 4px)); --_control-error-color: var(--control-element-error-color, #d83020); --_control-hover-border-color: var(--control-element-hover-border-color, fieldtext); --_control-focus-outline-color: var(--control-element-focus-outline-color, #007ac2); --_control-animation: var( --control-element-animation, 125ms cubic-bezier(0.45, 0.05, 0.55, 0.95) ); box-sizing: border-box; display: inline-flex; align-items: center; vertical-align: middle; line-height: 1; cursor: pointer; } :host([hidden]), [hidden] { display: none !important; } *, *::before, *::after { box-sizing: inherit; } :host(:state(disabled)) { opacity: var(--_control-disabled-opacity); cursor: not-allowed; } :host(:state(disabled)) i { border-color: var(--_control-border-color); background-color: #e0e0e0; } :host(:state(disabled)) ::slotted(label) { cursor: not-allowed; color: var(--_control-border-color); } :host(:state(invalid):not(:state(disabled))) i { border-color: var(--_control-error-color); } :host(:state(invalid):not(:state(disabled))) ::slotted(label) { color: var(--_control-error-color); } :host(:hover:not(:state(disabled))) i { border-color: var(--_control-hover-border-color); } :host(:not(:state(focus)):state(invalid):not(:state(disabled)):hover) i { border-color: var(--_control-hover-border-color); } :host(:state(focus):not(:state(disabled))) i { border-color: var(--_control-focus-outline-color); outline: 2px solid var(--_control-focus-outline-color); outline-offset: 2px; } :host(:state(focus):state(invalid):not(:state(disabled))) i { border-color: var(--_control-error-color); outline-color: var(--_control-error-color); } .mark { display: flex; align-items: center; position: relative; } .mark i { display: flex; flex-direction: column; position: absolute; pointer-events: none; block-size: var(--_control-size); inline-size: var(--_control-size); border: 2px solid var(--_control-border-color); background-color: transparent; transition: border-color var(--_control-animation), background-color var(--_control-animation); } .mark i::after { content: \"\"; display: block; block-size: 50%; inline-size: 50%; background-color: var(--_control-color); border-radius: inherit; opacity: 0; transition: opacity var(--_control-animation); margin: auto; } :host([type=radio]) i { border-radius: 50%; } :host([type=checkbox]) i { border-radius: 2px; } :host(:state(checked):not(:state(disabled))) i { border-color: var(--_control-color); } :host(:state(checked):not(:state(disabled))) i::after { opacity: 1; } :host(:state(indeterminate):not(:state(disabled))) i::after { opacity: 1; block-size: 2px; inline-size: calc(var(--_control-size) * 0.6); border-radius: 0; } ::slotted(label[slot=embedded]) { display: flex; align-items: center; min-block-size: 1.5rem; padding-inline-start: var(--_control-gap); cursor: pointer; } :host([label-position=start]) .mark i { right: 0; } :host([label-position=start]) ::slotted(label[slot=embedded]) { padding-inline: 0 var(--_control-gap); } /* Forced colors / Windows High Contrast: author colors are ignored, so redraw the indicator with CSS system color keywords to keep it visible and stateful. */ @media (forced-colors: active) { .mark i { border-color: CanvasText; } :host(:state(checked)) i { border-color: CanvasText; } :host(:state(checked)) i::after, :host(:state(indeterminate)) i::after { background-color: CanvasText; } :host(:state(focus)) i { border-color: Highlight; outline-color: Highlight; } :host(:state(disabled)) { opacity: 1; } :host(:state(disabled)) i, :host(:state(disabled)) i::after { border-color: GrayText; background-color: GrayText; } :host(:state(disabled)) ::slotted(label) { color: GrayText; } } `"
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "styles",
+          "declaration": {
+            "name": "styles",
+            "module": "src/styles/blk-control-styles.css.ts"
+          }
+        }
+      ]
+    }
+  ]
+}

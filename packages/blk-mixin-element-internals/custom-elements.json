@@ -92,7 +92,7 @@
               "name": "createBehaviors",
               "return": {
                 "type": {
-                  "text": "readonly InternalsBehavior[] | undefined"
+                  "text": "readonly unknown[] | undefined"
                 }
               },
               "inheritedFrom": {
@@ -103,6 +103,7 @@
             {
               "kind": "method",
               "name": "attachInternalsWithBehaviors",
+              "privacy": "protected",
               "return": {
                 "type": {
                   "text": "ElementInternals"
@@ -350,7 +351,7 @@
               "name": "createBehaviors",
               "return": {
                 "type": {
-                  "text": "readonly InternalsBehavior[] | undefined"
+                  "text": "readonly unknown[] | undefined"
                 }
               },
               "inheritedFrom": {
@@ -361,6 +362,7 @@
             {
               "kind": "method",
               "name": "attachInternalsWithBehaviors",
+              "privacy": "protected",
               "return": {
                 "type": {
                   "text": "ElementInternals"
@@ -443,13 +445,14 @@
               "name": "createBehaviors",
               "return": {
                 "type": {
-                  "text": "readonly InternalsBehavior[] | undefined"
+                  "text": "readonly unknown[] | undefined"
                 }
               }
             },
             {
               "kind": "method",
               "name": "attachInternalsWithBehaviors",
+              "privacy": "protected",
               "return": {
                 "type": {
                   "text": "ElementInternals"
@@ -510,6 +513,22 @@
         },
         {
           "kind": "js",
+          "name": "ElementInternalsHost",
+          "declaration": {
+            "name": "ElementInternalsHost",
+            "module": "./BlkMixinElementInternals.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "ElementInternalsHostConstructor",
+          "declaration": {
+            "name": "ElementInternalsHostConstructor",
+            "module": "./BlkMixinElementInternals.js"
+          }
+        },
+        {
+          "kind": "js",
           "name": "BlkMixinInternalsBase",
           "declaration": {
             "name": "BlkMixinInternalsBase",
@@ -529,6 +548,22 @@
           "name": "BehaviorCreator",
           "declaration": {
             "name": "BehaviorCreator",
+            "module": "./BlkMixinInternalsBase.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "InternalsBaseHost",
+          "declaration": {
+            "name": "InternalsBaseHost",
+            "module": "./BlkMixinInternalsBase.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "InternalsBaseConstructor",
+          "declaration": {
+            "name": "InternalsBaseConstructor",
             "module": "./BlkMixinInternalsBase.js"
           }
         },

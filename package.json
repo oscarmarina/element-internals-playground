@@ -88,7 +88,7 @@
     ]
   },
   "overrides": {
-    "axios": "^1.16.1",
+    "axios": "^1.17.0",
     "nx": {
       "brace-expansion": "^5.0.6"
     },
@@ -96,10 +96,10 @@
     "yaml": "^2.9.0"
   },
   "devDependencies": {
-    "@commitlint/cli": "^21.0.1",
+    "@commitlint/cli": "^21.0.2",
     "commit-and-tag-version": "^12.7.3",
     "@eslint/js": "^10.0.1",
-    "eslint": "^10.4.0",
+    "eslint": "^10.4.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-html": "^8.1.4",
     "eslint-plugin-import": "^2.32.0",
@@ -109,13 +109,13 @@
     "globals": "^17.6.0",
     "husky": "^9.1.7",
     "lerna": "^9.0.7",
-    "lint-staged": "^17.0.5",
-    "@html-eslint/eslint-plugin": "^0.60.0",
-    "@html-eslint/parser": "^0.60.0",
+    "lint-staged": "^17.0.7",
+    "@html-eslint/eslint-plugin": "^0.61.0",
+    "@html-eslint/parser": "^0.61.0",
     "prettier": "^3.8.3",
-    "@typescript-eslint/parser": "^8.59.3",
-    "typescript-eslint": "^8.59.3",
-    "stylelint": "^17.11.1"
+    "@typescript-eslint/parser": "^8.60.1",
+    "typescript-eslint": "^8.60.1",
+    "stylelint": "^17.13.0"
   },
   "stackblitz": {
     "startCommand": "npm --prefix packages/blk-input start"

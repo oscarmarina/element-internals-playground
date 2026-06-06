@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Demo - blk-control-ssr (declarative)</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="data:," />
+    <style>
+      html,
+      body {
+        block-size: 100%;
+        margin: 0;
+        font-family: sans-serif;
+        background-color: #f0f2f5;
+      }
+
+      main {
+        display: grid;
+        padding: 2rem;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      }
+
+      section {
+        background: #fff;
+        padding: 2rem;
+        margin: 1rem;
+        border-radius: 16px;
+        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+      }
+
+      fieldset {
+        border: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      legend {
+        font-weight: bold;
+      }
+
+      .field {
+        margin-block: 1rem;
+      }
+
+      .group-label {
+        display: block;
+        font-weight: 600;
+        margin-block-end: 0.25rem;
+      }
+
+      .radio-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+
+      button {
+        padding: 0.6rem 1.2rem;
+        border: 0;
+        border-radius: 4px;
+        background: #d1d1d1;
+        font: inherit;
+        cursor: pointer;
+      }
+      /* error UI driven by the native :user-invalid, surfaced through the host */
+      .error {
+        color: #d83020;
+        font-size: 0.75rem;
+        margin-block-start: 0.25rem;
+        display: none;
+      }
+
+      blk-control-ssr:state(invalid) + .error {
+        display: block;
+      }
+
+      .radio-group:has(blk-control-ssr:state(invalid)) + .error {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section>
+        <form id="form" novalidate>
+          <fieldset>
+            <legend>Sign Up — blk-control-ssr (declarative)</legend>
+
+            <div class="field">
+              <blk-control-ssr>
+                <input
+                  slot="embedded"
+                  id="terms"
+                  type="checkbox"
+                  name="terms"
+                  value="yes"
+                  required
+                />
+                <label slot="embedded" for="terms">I accept the terms</label>
+              </blk-control-ssr>
+              <div class="error" role="alert">You must accept the terms.</div>
+            </div>
+
+            <div class="field">
+              <span id="contact-label" class="group-label">Preferred contact method</span>
+              <div class="radio-group" role="radiogroup" aria-labelledby="contact-label">
+                <blk-control-ssr>
+                  <input
+                    slot="embedded"
+                    id="c-email"
+                    type="radio"
+                    name="contact"
+                    value="email"
+                    required
+                  />
+                  <label slot="embedded" for="c-email">Email</label>
+                </blk-control-ssr>
+                <blk-control-ssr>
+                  <input
+                    slot="embedded"
+                    id="c-phone"
+                    type="radio"
+                    name="contact"
+                    value="phone"
+                    required
+                  />
+                  <label slot="embedded" for="c-phone">Phone</label>
+                </blk-control-ssr>
+                <blk-control-ssr>
+                  <input
+                    slot="embedded"
+                    id="c-sms"
+                    type="radio"
+                    name="contact"
+                    value="sms"
+                    required
+                  />
+                  <label slot="embedded" for="c-sms">SMS</label>
+                </blk-control-ssr>
+              </div>
+              <div class="error" role="alert">Please choose a contact method.</div>
+            </div>
+
+            <div class="field">
+              <blk-control-ssr>
+                <input slot="embedded" id="news" type="checkbox" name="news" value="on" />
+                <label slot="embedded" for="news">Subscribe to the newsletter</label>
+              </blk-control-ssr>
+            </div>
+          </fieldset>
+
+          <div class="field">
+            <button type="submit">Submit</button>
+            <button type="reset">Reset</button>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <script type="module">
+      import '../src/define/blk-control.js';
+
+      const form = document.getElementById('form');
+      form.addEventListener('submit', (ev) => {
+        if (!form.checkValidity()) {
+          ev.preventDefault();
+          return;
+        }
+        ev.preventDefault();
+        console.log('submit:', Object.fromEntries(new FormData(form)));
+      });
+      form.addEventListener('validation', (e) =>
+        console.log(`validation [${e.target.name}=${e.target.value}] valid=${e.valid}`)
+      );
+    </script>
+  </body>
+</html>

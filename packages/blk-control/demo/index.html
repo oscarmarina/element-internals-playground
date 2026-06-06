@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Demo - blk-control</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="data:," />
+    <meta name="description" content="blk-control" />
+    <style>
+      html,
+      body {
+        block-size: 100%;
+        margin: 0;
+        font-family: sans-serif;
+        background-color: #f0f2f5;
+      }
+
+      main {
+        display: grid;
+        padding: 2rem;
+        grid-auto-rows: 1fr;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      }
+
+      section {
+        background-color: #fff;
+        padding: 2rem;
+        margin: 1rem;
+        border-radius: 16px;
+        box-shadow:
+          0 10px 15px -3px rgb(0, 0, 0, 0.1),
+          0 4px 6px -2px rgb(0, 0, 0, 0.05);
+      }
+
+      fieldset {
+        border: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      legend {
+        padding-inline: 0;
+        font-weight: bold;
+      }
+
+      .field {
+        margin-block: 1rem;
+        margin-inline: 0.5rem;
+      }
+
+      .group-label {
+        display: block;
+        font-size: 0.9375rem;
+        font-weight: 600;
+        margin-block-end: 0.25rem;
+      }
+
+      .radio-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+
+      .actions {
+        margin-block: 1rem;
+        margin-inline: 0.5rem;
+        white-space: nowrap;
+      }
+
+      button {
+        display: inline-flex;
+        gap: 0.5rem;
+        padding-block: 0.75rem;
+        padding-inline: 1.5rem;
+        background: #d1d1d1;
+        color: rgb(23, 23, 23);
+        border: none;
+        border-radius: 4px;
+        font: inherit;
+        cursor: pointer;
+      }
+
+      .hint {
+        font-size: 0.75rem;
+        margin-block-start: 0.25rem;
+        color: #333;
+      }
+
+      /* ── blk-control error display ──
+         No `error-message-text` like blk-input: the error is shown purely from the
+         component's own `:state(invalid)` custom state (touched-gated, so it appears
+         only after a submit attempt / interaction, and clears automatically on reset). */
+      .error {
+        color: #d83020;
+        font-size: 0.75rem;
+        margin-block-start: 0.25rem;
+        display: none;
+      }
+
+      /* single checkbox: error is the adjacent sibling of the control */
+      blk-control:state(invalid) + .error {
+        display: block;
+      }
+
+      /* radio group: show one error if ANY member is invalid */
+      .radio-group:has(blk-control:state(invalid)) + .error {
+        display: block;
+      }
+
+      /* native comparison section */
+      .error-native {
+        color: #d83020;
+        font-size: 0.75rem;
+        margin-block-start: 0.25rem;
+        display: none;
+      }
+
+      .error-native.visible {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <!-- ── blk-control: required checkbox + required radio group ── -->
+      <section id="sec1">
+        <form id="form-sec1" novalidate>
+          <fieldset>
+            <legend>Sign Up</legend>
+
+            <!-- required single checkbox -->
+            <div class="field">
+              <blk-control
+                name="terms"
+                value="yes"
+                required
+                label="I accept the terms"
+              ></blk-control>
+              <div class="error" role="alert">You must accept the terms to continue.</div>
+            </div>
+
+            <!-- required radio group -->
+            <div class="field">
+              <span id="contact-label" class="group-label">Preferred contact method</span>
+              <div class="radio-group" role="radiogroup" aria-labelledby="contact-label">
+                <blk-control
+                  type="radio"
+                  name="contact"
+                  value="email"
+                  required
+                  label="Email"
+                ></blk-control>
+                <blk-control
+                  type="radio"
+                  name="contact"
+                  value="phone"
+                  required
+                  label="Phone"
+                ></blk-control>
+                <blk-control
+                  type="radio"
+                  name="contact"
+                  value="sms"
+                  required
+                  label="SMS"
+                ></blk-control>
+              </div>
+              <div class="error" role="alert">Please choose a contact method.</div>
+            </div>
+
+            <div class="field">
+              <blk-control name="news" label="Subscribe to the newsletter"></blk-control>
+              <div class="hint">Optional.</div>
+            </div>
+          </fieldset>
+
+          <div class="actions">
+            <button type="submit">Submit</button>
+            <button type="reset">Reset</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- ── Native equivalent for comparison ── -->
+      <section id="sec-native">
+        <form id="form-native" novalidate>
+          <fieldset>
+            <legend>Sign Up (native)</legend>
+
+            <div class="field">
+              <label>
+                <input type="checkbox" name="terms" value="yes" required id="n-terms" />
+                I accept the terms
+              </label>
+              <div class="error-native" id="n-termsError" role="alert">
+                You must accept the terms to continue.
+              </div>
+            </div>
+
+            <div class="field">
+              <span class="group-label" id="n-contact-label">Preferred contact method</span>
+              <div class="radio-group" role="radiogroup" aria-labelledby="n-contact-label">
+                <label>
+                  <input type="radio" name="n-contact" value="email" required />
+                  Email
+                </label>
+                <label>
+                  <input type="radio" name="n-contact" value="phone" required />
+                  Phone
+                </label>
+                <label>
+                  <input type="radio" name="n-contact" value="sms" required />
+                  SMS
+                </label>
+              </div>
+              <div class="error-native" id="n-contactError" role="alert">
+                Please choose a contact method.
+              </div>
+            </div>
+
+            <div class="field">
+              <blk-control name="news" label="Subscribe to the newsletter"></blk-control>
+              <div class="hint">Optional.</div>
+            </div>
+          </fieldset>
+
+          <div class="actions">
+            <button type="submit">Submit</button>
+            <button type="reset">Reset</button>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <script type="module" src="./entry.js"></script>
+    <script>
+      // on INVALID → preventDefault + return (errors stay visible, no reload);
+      // on VALID → native submit (GET) proceeds, and we log the entries first.
+      const handleFormSubmit = (form) => {
+        form.addEventListener('submit', (ev) => {
+          if (!form.checkValidity()) {
+            ev.preventDefault();
+            return;
+          }
+          const formData = new FormData(form);
+          for (const [key, value] of formData.entries()) {
+            console.log(`${key}: ${value}`);
+          }
+        });
+      };
+
+      // ── blk-control form ──
+      // For blk-control, errors are shown by its own `:state(invalid)` + CSS (the
+      // native `invalid` events fired by checkValidity() flip that state).
+      const blkForm = document.getElementById('form-sec1');
+      handleFormSubmit(blkForm);
+
+      // Optional: observe the library's own validation event. It bubbles, so a single
+      // listener on the form catches every blk-control. The data lives on the event
+      // itself (`e.valid` / `e.validityResult`) — BlkFormValidationEvent extends Event,
+      // not CustomEvent, so there is no `e.detail`.
+      blkForm.addEventListener('validation', (e) => {
+        const el = e.target;
+        console.log(`validation [${el.name}=${el.value}] valid=${e.valid}`);
+      });
+
+      // ── native form (manual error toggling, same pattern as blk-input demo) ──
+      const nativeForm = document.getElementById('form-native');
+      const toggle = (input, errorId) => {
+        const err = document.getElementById(errorId);
+        const update = () => err.classList.toggle('visible', !input.validity.valid);
+        input.addEventListener('invalid', update);
+        input.addEventListener('change', update);
+      };
+      toggle(document.getElementById('n-terms'), 'n-termsError');
+      nativeForm
+        .querySelectorAll('input[name="n-contact"]')
+        .forEach((r) => toggle(r, 'n-contactError'));
+
+      handleFormSubmit(nativeForm);
+      nativeForm.addEventListener('reset', () => {
+        nativeForm.querySelectorAll('.error-native').forEach((e) => e.classList.remove('visible'));
+      });
+    </script>
+  </body>
+</html>

@@ -238,10 +238,19 @@ form.addEventListener('submit', (e) => {
 
 ##### Methods
 
-| Name                           | Privacy | Description | Parameters | Return                                      | Inherited From        |
-| ------------------------------ | ------- | ----------- | ---------- | ------------------------------------------- | --------------------- |
-| `createBehaviors`              |         |             |            | `readonly InternalsBehavior[] \| undefined` | BlkMixinInternalsBase |
-| `attachInternalsWithBehaviors` |         |             |            | `ElementInternals`                          | BlkMixinInternalsBase |
+| Name              | Privacy | Description | Parameters | Return                            | Inherited From        |
+| ----------------- | ------- | ----------- | ---------- | --------------------------------- | --------------------- |
+| `createBehaviors` |         |             |            | `readonly unknown[] \| undefined` | BlkMixinInternalsBase |
+
+<details><summary>Private API</summary>
+
+##### Methods
+
+| Name                           | Privacy   | Description | Parameters | Return             | Inherited From        |
+| ------------------------------ | --------- | ----------- | ---------- | ------------------ | --------------------- |
+| `attachInternalsWithBehaviors` | protected |             |            | `ElementInternals` | BlkMixinInternalsBase |
+
+</details>
 
 <hr/>
 
@@ -296,16 +305,25 @@ form.addEventListener('submit', (e) => {
 
 ##### Methods
 
-| Name                           | Privacy | Description                                                                                                                                       | Parameters                                                      | Return                                      | Inherited From        |
-| ------------------------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------- | --------------------- |
-| `checkValidity`                |         | The checkValidity() method of the ElementInternals interface checks if the element meets any constraint validation rules applied to it.           |                                                                 |                                             |                       |
-| `reportValidity`               |         | The reportValidity() method of the ElementInternals interface checks if the element meets any constraint validation rules applied to it.          |                                                                 |                                             |                       |
-| `setFormValue`                 |         | The setFormValue() method of the ElementInternals interface sets the element's submission value and state, communicating these to the user agent. | `value: FormValue, state: FormState`                            |                                             |                       |
-| `setValidity`                  |         | The setValidity() method of the ElementInternals interface sets the validity of the element.                                                      | `validity: ValidityState, message: string, anchor: HTMLElement` |                                             |                       |
-| `requestSubmit`                |         |                                                                                                                                                   | `submitter: HTMLElement \| null`                                |                                             |                       |
-| `reset`                        |         |                                                                                                                                                   |                                                                 |                                             |                       |
-| `createBehaviors`              |         |                                                                                                                                                   |                                                                 | `readonly InternalsBehavior[] \| undefined` | BlkMixinInternalsBase |
-| `attachInternalsWithBehaviors` |         |                                                                                                                                                   |                                                                 | `ElementInternals`                          | BlkMixinInternalsBase |
+| Name              | Privacy | Description                                                                                                                                       | Parameters                                                      | Return                            | Inherited From        |
+| ----------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- | --------------------------------- | --------------------- |
+| `checkValidity`   |         | The checkValidity() method of the ElementInternals interface checks if the element meets any constraint validation rules applied to it.           |                                                                 |                                   |                       |
+| `reportValidity`  |         | The reportValidity() method of the ElementInternals interface checks if the element meets any constraint validation rules applied to it.          |                                                                 |                                   |                       |
+| `setFormValue`    |         | The setFormValue() method of the ElementInternals interface sets the element's submission value and state, communicating these to the user agent. | `value: FormValue, state: FormState`                            |                                   |                       |
+| `setValidity`     |         | The setValidity() method of the ElementInternals interface sets the validity of the element.                                                      | `validity: ValidityState, message: string, anchor: HTMLElement` |                                   |                       |
+| `requestSubmit`   |         |                                                                                                                                                   | `submitter: HTMLElement \| null`                                |                                   |                       |
+| `reset`           |         |                                                                                                                                                   |                                                                 |                                   |                       |
+| `createBehaviors` |         |                                                                                                                                                   |                                                                 | `readonly unknown[] \| undefined` | BlkMixinInternalsBase |
+
+<details><summary>Private API</summary>
+
+##### Methods
+
+| Name                           | Privacy   | Description | Parameters | Return             | Inherited From        |
+| ------------------------------ | --------- | ----------- | ---------- | ------------------ | --------------------- |
+| `attachInternalsWithBehaviors` | protected |             |            | `ElementInternals` | BlkMixinInternalsBase |
+
+</details>
 
 <hr/>
 
@@ -346,10 +364,19 @@ form.addEventListener('submit', (e) => {
 
 ##### Methods
 
-| Name                           | Privacy | Description | Parameters | Return                                      | Inherited From |
-| ------------------------------ | ------- | ----------- | ---------- | ------------------------------------------- | -------------- |
-| `createBehaviors`              |         |             |            | `readonly InternalsBehavior[] \| undefined` |                |
-| `attachInternalsWithBehaviors` |         |             |            | `ElementInternals`                          |                |
+| Name              | Privacy | Description | Parameters | Return                            | Inherited From |
+| ----------------- | ------- | ----------- | ---------- | --------------------------------- | -------------- |
+| `createBehaviors` |         |             |            | `readonly unknown[] \| undefined` |                |
+
+<details><summary>Private API</summary>
+
+##### Methods
+
+| Name                           | Privacy   | Description | Parameters | Return             | Inherited From |
+| ------------------------------ | --------- | ----------- | ---------- | ------------------ | -------------- |
+| `attachInternalsWithBehaviors` | protected |             |            | `ElementInternals` |                |
+
+</details>
 
 <hr/>
 
@@ -372,12 +399,16 @@ form.addEventListener('submit', (e) => {
 
 #### Exports
 
-| Kind | Name                       | Declaration              | Module                        | Package |
-| ---- | -------------------------- | ------------------------ | ----------------------------- | ------- |
-| `js` | `BlkMixinElementInternals` | BlkMixinElementInternals | ./BlkMixinElementInternals.js |         |
-| `js` | `BlkMixinInternalsBase`    | BlkMixinInternalsBase    | ./BlkMixinInternalsBase.js    |         |
-| `js` | `internals`                | internals                | ./BlkMixinInternalsBase.js    |         |
-| `js` | `BehaviorCreator`          | BehaviorCreator          | ./BlkMixinInternalsBase.js    |         |
-| `js` | `BlkMixinFormAssociated`   | BlkMixinFormAssociated   | ./BlkMixinFormAssociated.js   |         |
-| `js` | `FormAssociated`           | FormAssociated           | ./BlkMixinFormAssociated.js   |         |
-| `js` | `BlkFormValidationEvent`   | BlkFormValidationEvent   | ./BlkFormValidationEvent.js   |         |
+| Kind | Name                              | Declaration                     | Module                        | Package |
+| ---- | --------------------------------- | ------------------------------- | ----------------------------- | ------- |
+| `js` | `BlkMixinElementInternals`        | BlkMixinElementInternals        | ./BlkMixinElementInternals.js |         |
+| `js` | `ElementInternalsHost`            | ElementInternalsHost            | ./BlkMixinElementInternals.js |         |
+| `js` | `ElementInternalsHostConstructor` | ElementInternalsHostConstructor | ./BlkMixinElementInternals.js |         |
+| `js` | `BlkMixinInternalsBase`           | BlkMixinInternalsBase           | ./BlkMixinInternalsBase.js    |         |
+| `js` | `internals`                       | internals                       | ./BlkMixinInternalsBase.js    |         |
+| `js` | `BehaviorCreator`                 | BehaviorCreator                 | ./BlkMixinInternalsBase.js    |         |
+| `js` | `InternalsBaseHost`               | InternalsBaseHost               | ./BlkMixinInternalsBase.js    |         |
+| `js` | `InternalsBaseConstructor`        | InternalsBaseConstructor        | ./BlkMixinInternalsBase.js    |         |
+| `js` | `BlkMixinFormAssociated`          | BlkMixinFormAssociated          | ./BlkMixinFormAssociated.js   |         |
+| `js` | `FormAssociated`                  | FormAssociated                  | ./BlkMixinFormAssociated.js   |         |
+| `js` | `BlkFormValidationEvent`          | BlkFormValidationEvent          | ./BlkFormValidationEvent.js   |         |
