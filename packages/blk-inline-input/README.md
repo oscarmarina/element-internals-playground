@@ -1,19 +1,48 @@
-### \<blk-inline-input>
+![Lit](https://img.shields.io/badge/lit-3.0.0-blue.svg)
 
-#### Usage
+## `<blk-inline-input>`
 
-Install
 
-```bash
-npm i
-```
+### `src/BlkInlineInput.ts`:
 
-Generate `README.md` from a `custom-elements.json` file
+#### class: `BlkInlineInput`, `blk-inline-input`
 
-```bash
-npm run analyze
-```
+<hr/>
 
-Husky is pre-installed.
+#### Exports
 
-After `git init`; run `npm run prepare` to set up Husky and its Git hooks.
+| Kind | Name             | Declaration    | Module                | Package |
+| ---- | ---------------- | -------------- | --------------------- | ------- |
+| `js` | `BlkInlineInput` | BlkInlineInput | src/BlkInlineInput.ts |         |
+
+### `src/index.ts`:
+
+#### Exports
+
+| Kind | Name             | Declaration    | Module              | Package |
+| ---- | ---------------- | -------------- | ------------------- | ------- |
+| `js` | `BlkInlineInput` | BlkInlineInput | ./BlkInlineInput.js |         |
+
+### `src/define/blk-inline-input.ts`:
+
+#### Exports
+
+| Kind                        | Name               | Declaration    | Module                 | Package |
+| --------------------------- | ------------------ | -------------- | ---------------------- | ------- |
+| `custom-element-definition` | `blk-inline-input` | BlkInlineInput | /src/BlkInlineInput.js |         |
+
+### `src/styles/blk-inline-input-styles.css.ts`:
+
+#### Variables
+
+| Name     | Description | Type |
+| -------- | ----------- | ---- |
+| `styles` |             |      |
+
+<hr/>
+
+#### Exports
+
+| Kind | Name     | Declaration | Module                                    | Package |
+| ---- | -------- | ----------- | ----------------------------------------- | ------- |
+| `js` | `styles` | styles      | src/styles/blk-inline-input-styles.css.ts |         |

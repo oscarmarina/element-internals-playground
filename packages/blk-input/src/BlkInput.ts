@@ -632,9 +632,8 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
   }
 
   private _onBlur(ev: Event) {
-    this._markAsInteracted();
     const input = this.__defaultInput;
-    if (input) {
+    if (input && this.__hasInteracted) {
       this.invalid = !input.validity.valid;
     }
     this._redispatchEvent(ev);

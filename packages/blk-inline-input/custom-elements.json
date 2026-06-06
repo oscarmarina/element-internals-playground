@@ -1,0 +1,85 @@
+{
+  "schemaVersion": "1.0.0",
+  "readme": "",
+  "modules": [
+    {
+      "kind": "javascript-module",
+      "path": "src/BlkInlineInput.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "![Lit](https://img.shields.io/badge/lit-3.0.0-blue.svg)\n\n## `<blk-inline-input>`",
+          "name": "BlkInlineInput",
+          "members": [],
+          "superclass": {
+            "name": "BlkInput",
+            "package": "@blockquote-playground/blk-input"
+          },
+          "tagName": "blk-inline-input",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "BlkInlineInput",
+          "declaration": {
+            "name": "BlkInlineInput",
+            "module": "src/BlkInlineInput.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/index.ts",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "BlkInlineInput",
+          "declaration": {
+            "name": "BlkInlineInput",
+            "module": "./BlkInlineInput.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/define/blk-inline-input.ts",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "blk-inline-input",
+          "declaration": {
+            "name": "BlkInlineInput",
+            "module": "/src/BlkInlineInput.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/styles/blk-inline-input-styles.css.ts",
+      "declarations": [
+        {
+          "kind": "variable",
+          "name": "styles",
+          "default": "css` :host { display: block; box-sizing: border-box; } :host([hidden]), [hidden] { display: none !important; } *, *::before, *::after { box-sizing: inherit; } `"
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "styles",
+          "declaration": {
+            "name": "styles",
+            "module": "src/styles/blk-inline-input-styles.css.ts"
+          }
+        }
+      ]
+    }
+  ]
+}

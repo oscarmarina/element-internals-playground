@@ -1,10 +1,21 @@
 import {dedupeMixin} from '@open-wc/dedupe-mixin';
 export const internals = Symbol('internals');
 
-export type BehaviorCreator = () => unknown | null | undefined;
+export type BehaviorCreator<T = unknown> = () => T | null | undefined;
 
-const InternalsBase = <T extends CustomElementConstructor>(Base: T) =>
-  class InternalsBaseMixin extends Base {
+export interface InternalsBaseHost {
+  [internals]: ElementInternals;
+  createBehaviors(): readonly unknown[] | undefined;
+}
+
+export interface InternalsBaseConstructor {
+  internalsBehaviors?: readonly BehaviorCreator[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  new (...args: any[]): InternalsBaseHost;
+}
+
+const InternalsBase = <T extends CustomElementConstructor>(Base: T): T & InternalsBaseConstructor =>
+  class InternalsBaseMixin extends Base implements InternalsBaseHost {
     static internalsBehaviors?: readonly BehaviorCreator[];
 
     [internals]!: ElementInternals;
