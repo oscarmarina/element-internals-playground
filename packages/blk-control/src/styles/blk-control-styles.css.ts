@@ -5,9 +5,11 @@ export const styles = css`
     --_control-size: var(--control-element-size, 1rem);
     --_control-color: var(--control-element-color, #1a73e8);
     --_control-border-color: var(--control-element-border-color, #757575);
+    --_control-background-color: var(--control-element-background-color, #e0e0e0);
     --_control-disabled-opacity: var(--control-element-disabled-opacity, 0.38);
     --_control-gap: var(--control-element-gap, calc(1rem + 4px));
     --_control-error-color: var(--control-element-error-color, #d83020);
+    --_control-error-hover-color: var(--control-element-error-hover-color, #c4281a);
     --_control-hover-border-color: var(--control-element-hover-border-color, fieldtext);
     --_control-focus-outline-color: var(--control-element-focus-outline-color, #007ac2);
     --_control-animation: var(
@@ -35,16 +37,19 @@ export const styles = css`
 
   :host(:state(disabled)) {
     opacity: var(--_control-disabled-opacity);
-    cursor: not-allowed;
   }
 
   :host(:state(disabled)) i {
     border-color: var(--_control-border-color);
-    background-color: #e0e0e0;
+    background-color: var(--_control-background-color);
+  }
+
+  :host(:state(disabled)) i::after {
+    background-color: GrayText;
   }
 
   :host(:state(disabled)) ::slotted(label) {
-    cursor: not-allowed;
+    cursor: default;
     color: var(--_control-border-color);
   }
 
@@ -61,7 +66,7 @@ export const styles = css`
   }
 
   :host(:not(:state(focus)):state(invalid):not(:state(disabled)):hover) i {
-    border-color: var(--_control-hover-border-color);
+    border-color: var(--_control-error-hover-color);
   }
 
   :host(:state(focus):not(:state(disabled))) i {
@@ -90,11 +95,13 @@ export const styles = css`
     inline-size: var(--_control-size);
     border: 2px solid var(--_control-border-color);
     background-color: transparent;
-    transition: border-color var(--_control-animation), background-color var(--_control-animation);
+    transition:
+      border-color var(--_control-animation),
+      background-color var(--_control-animation);
   }
 
   .mark i::after {
-    content: "";
+    content: '';
     display: block;
     block-size: 50%;
     inline-size: 50%;
@@ -105,11 +112,11 @@ export const styles = css`
     margin: auto;
   }
 
-  :host([type=radio]) i {
+  :host([type='radio']) i {
     border-radius: 50%;
   }
 
-  :host([type=checkbox]) i {
+  :host([type='checkbox']) i {
     border-radius: 2px;
   }
 
@@ -117,7 +124,7 @@ export const styles = css`
     border-color: var(--_control-color);
   }
 
-  :host(:state(checked):not(:state(disabled))) i::after {
+  :host(:state(checked)) i::after {
     opacity: 1;
   }
 
@@ -128,7 +135,7 @@ export const styles = css`
     border-radius: 0;
   }
 
-  ::slotted(label[slot=embedded]) {
+  ::slotted(label[slot='embedded']) {
     display: flex;
     align-items: center;
     min-block-size: 1.5rem;
@@ -136,11 +143,11 @@ export const styles = css`
     cursor: pointer;
   }
 
-  :host([label-position=start]) .mark i {
-    right: 0;
+  :host([label-position='start']) .mark i {
+    inset-inline-end: 0;
   }
 
-  :host([label-position=start]) ::slotted(label[slot=embedded]) {
+  :host([label-position='start']) ::slotted(label[slot='embedded']) {
     padding-inline: 0 var(--_control-gap);
   }
 

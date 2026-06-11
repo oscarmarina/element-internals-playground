@@ -11,6 +11,7 @@ export const styles = css`
     --_error-outline-color: var(--input-element-error-outline-color, #d83020);
     --_error-label-text-color: var(--input-element-error-label-text-color, #d83020);
     --_hover-outline-color: var(--input-element-hover-outline-color, fieldtext);
+    --_error-hover-outline-color: var(--control-element-error-hover-color, #c4281a);
     --_focus-outline-color: var(--input-element-focus-outline-color, #007ac2);
     --_focus-label-text-color: var(--input-element-focus--label-text-color, #007ac2);
     --_error-message-text-color: var(--input-element-error-message-text-color, #d83020);
@@ -62,9 +63,12 @@ export const styles = css`
     border-color: var(--_error-content-color);
   }
 
-  :host(:hover) .field-flex,
-  :host(:not(:focus-within):enabled[invalid]:hover) .field-flex {
+  :host(:hover) .field-flex {
     border-color: var(--_hover-outline-color);
+  }
+
+  :host(:not(:focus-within):enabled[invalid]:hover) .field-flex {
+    border-color: var(--_error-hover-outline-color);
   }
 
   /* :focus-within instead of :focus because it works better at the :host level in Safari. */

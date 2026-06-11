@@ -2,9 +2,11 @@
   --_control-size: var(--control-element-size, 1rem);
   --_control-color: var(--control-element-color, #1a73e8);
   --_control-border-color: var(--control-element-border-color, #757575);
+  --_control-background-color: var(--control-element-background-color, #e0e0e0);
   --_control-disabled-opacity: var(--control-element-disabled-opacity, 0.38);
   --_control-gap: var(--control-element-gap, calc(1rem + 4px));
   --_control-error-color: var(--control-element-error-color, #d83020);
+  --_control-error-hover-color: var(--control-element-error-hover-color, #c4281a);
   --_control-hover-border-color: var(--control-element-hover-border-color, fieldtext);
   --_control-focus-outline-color: var(--control-element-focus-outline-color, #007ac2);
   --_control-animation: var(
@@ -33,15 +35,18 @@
 
 :host(:state(disabled)) {
   opacity: var(--_control-disabled-opacity);
-  cursor: not-allowed;
 
   i {
     border-color: var(--_control-border-color);
-    background-color: #e0e0e0;
+    background-color: var(--_control-background-color);
+
+    &::after {
+      background-color: GrayText;
+    }
   }
 
   ::slotted(label) {
-    cursor: not-allowed;
+    cursor: default;
     color: var(--_control-border-color);
   }
 }
@@ -59,7 +64,7 @@
 }
 
 :host(:not(:state(focus)):state(invalid):not(:state(disabled)):hover) i {
-  border-color: var(--_control-hover-border-color);
+  border-color: var(--_control-error-hover-color);
 }
 
 :host(:state(focus):not(:state(disabled))) i {
@@ -117,7 +122,7 @@
   border-color: var(--_control-color);
 }
 
-:host(:state(checked):not(:state(disabled))) i::after {
+:host(:state(checked)) i::after {
   opacity: 1;
 }
 
@@ -139,7 +144,7 @@
 :host([label-position="start"]) {
   .mark {
     i {
-      right: 0;
+      inset-inline-end: 0;
     }
   }
 
