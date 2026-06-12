@@ -233,54 +233,6 @@
     </main>
 
     <script type="module" src="./entry.js"></script>
-    <script>
-      // on INVALID → preventDefault + return (errors stay visible, no reload);
-      // on VALID → native submit (GET) proceeds, and we log the entries first.
-      const handleFormSubmit = (form) => {
-        form.addEventListener('submit', (ev) => {
-          if (!form.checkValidity()) {
-            ev.preventDefault();
-            return;
-          }
-          const formData = new FormData(form);
-          for (const [key, value] of formData.entries()) {
-            console.log(`${key}: ${value}`);
-          }
-        });
-      };
-
-      // ── blk-control form ──
-      // For blk-control, errors are shown by its own `:state(invalid)` + CSS (the
-      // native `invalid` events fired by checkValidity() flip that state).
-      const blkForm = document.getElementById('form-sec1');
-      handleFormSubmit(blkForm);
-
-      // Optional: observe the library's own validation event. It bubbles, so a single
-      // listener on the form catches every blk-control. The data lives on the event
-      // itself (`e.valid` / `e.validityResult`) — BlkFormValidationEvent extends Event,
-      // not CustomEvent, so there is no `e.detail`.
-      blkForm.addEventListener('validation', (e) => {
-        const el = e.target;
-        console.log(`validation [${el.name}=${el.value}] valid=${e.valid}`);
-      });
-
-      // ── native form (manual error toggling, same pattern as blk-input demo) ──
-      const nativeForm = document.getElementById('form-native');
-      const toggle = (input, errorId) => {
-        const err = document.getElementById(errorId);
-        const update = () => err.classList.toggle('visible', !input.validity.valid);
-        input.addEventListener('invalid', update);
-        input.addEventListener('change', update);
-      };
-      toggle(document.getElementById('n-terms'), 'n-termsError');
-      nativeForm
-        .querySelectorAll('input[name="n-contact"]')
-        .forEach((r) => toggle(r, 'n-contactError'));
-
-      handleFormSubmit(nativeForm);
-      nativeForm.addEventListener('reset', () => {
-        nativeForm.querySelectorAll('.error-native').forEach((e) => e.classList.remove('visible'));
-      });
-    </script>
+    <script type="module" src="./form.js"></script>
   </body>
 </html>

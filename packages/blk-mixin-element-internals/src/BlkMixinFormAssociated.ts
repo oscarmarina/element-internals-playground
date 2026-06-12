@@ -50,14 +50,25 @@ const FormAssociatedBase = <T extends CustomElementConstructor>(
       return this[internals].labels;
     }
 
-    /** A best-attempt based on observed behaviour in FireFox 115 on fedora 38 */
+    /**
+     * Resolves the accessible name to forward onto the inner native control,
+     * mirroring how a native `<input>` resolves its name. Precedence:
+     * 1. The author-set `aria-label` content attribute on the host (overrides the
+     *    visible label, exactly like a native `<input aria-label>`).
+     * 2. The `ElementInternals.ariaLabel` default semantic set by the component.
+     * 3. The text of any associated `<label>` elements (`for`/`id`).
+     *
+     * A best-attempt based on observed behaviour in FireFox 115 on fedora 38.
+     */
     get labelText(): string {
       return (
+        this.ariaLabel ||
         this[internals].ariaLabel ||
         Array.from(this.labels as NodeListOf<HTMLElement>)
           .map((label) => label.textContent?.trim())
           .filter(Boolean)
-          .join(' ')
+          .join(' ') ||
+        ''
       );
     }
 

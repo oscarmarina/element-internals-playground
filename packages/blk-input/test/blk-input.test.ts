@@ -39,6 +39,38 @@ suite('BlkInput', () => {
       expect(getDiffableHTML(el, {ignoreAttributes: ['id', 'for']})).toMatchSnapshot('LIGHT DOM');
       await assert.isAccessible(el);
     });
+
+    test('should forward a host aria-label onto the inner control (native parity: aria-label overrides the visible label)', async () => {
+      el = await fixture(
+        html`<blk-input label="Email" aria-label="Correo electrónico"></blk-input>`
+      );
+      const input = el.nativeControl as HTMLInputElement;
+      assert.equal(el.labelText, 'Correo electrónico');
+      assert.equal(input.getAttribute('aria-label'), 'Correo electrónico');
+    });
+
+    test('should forward a host aria-label when there is no visible label', async () => {
+      el = await fixture(html`<blk-input aria-label="Correo electrónico"></blk-input>`);
+      const input = el.nativeControl as HTMLInputElement;
+      assert.equal(input.getAttribute('aria-label'), 'Correo electrónico');
+    });
+
+    test('should prefer the host aria-label over an external <label for>', async () => {
+      const root = await fixture(
+        html`<div>
+          <label for="pri1">Name</label>
+          <blk-input id="pri1" aria-label="Correo electrónico">light-dom</blk-input>
+        </div>`
+      );
+      el = root.querySelector('blk-input')!;
+      assert.equal(el.labelText, 'Correo electrónico');
+    });
+
+    test('should not emit aria-label on the inner control when only a visible label is set', async () => {
+      el = await fixture(html`<blk-input label="Email"></blk-input>`);
+      const input = el.nativeControl as HTMLInputElement;
+      assert.isFalse(input.hasAttribute('aria-label'));
+    });
   });
 
   suite('Label Handling - Textarea', () => {

@@ -189,7 +189,7 @@
               "type": {
                 "text": "string"
               },
-              "description": "A best-attempt based on observed behaviour in FireFox 115 on fedora 38",
+              "description": "Resolves the accessible name to forward onto the inner native control,\nmirroring how a native `<input>` resolves its name. Precedence:\n1. The author-set `aria-label` content attribute on the host (overrides the\n   visible label, exactly like a native `<input aria-label>`).\n2. The `ElementInternals.ariaLabel` default semantic set by the component.\n3. The text of any associated `<label>` elements (`for`/`id`).\n\nA best-attempt based on observed behaviour in FireFox 115 on fedora 38.",
               "readonly": true
             },
             {

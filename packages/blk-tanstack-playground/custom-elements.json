@@ -63,6 +63,21 @@
     },
     {
       "kind": "javascript-module",
+      "path": "src/define/blk-tanstack-playground.ts",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "blk-tanstack-playground",
+          "declaration": {
+            "name": "BlkTanstackPlayground",
+            "module": "/src/BlkTanstackPlayground.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
       "path": "src/components/BlkFormField.ts",
       "declarations": [
         {
@@ -103,21 +118,6 @@
           "declaration": {
             "name": "BlkFormField",
             "module": "src/components/BlkFormField.ts"
-          }
-        }
-      ]
-    },
-    {
-      "kind": "javascript-module",
-      "path": "src/define/blk-tanstack-playground.ts",
-      "declarations": [],
-      "exports": [
-        {
-          "kind": "custom-element-definition",
-          "name": "blk-tanstack-playground",
-          "declaration": {
-            "name": "BlkTanstackPlayground",
-            "module": "/src/BlkTanstackPlayground.js"
           }
         }
       ]

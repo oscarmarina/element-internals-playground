@@ -74,10 +74,16 @@ export const styles = css`
   /* :focus-within instead of :focus because it works better at the :host level in Safari. */
   :host(:focus-within) .field-flex {
     border-color: var(--_focus-outline-color);
+    outline: 2px solid var(--_focus-outline-color);
+    outline-offset: 2px;
   }
 
   :host(:focus-within) label {
     color: var(--_focus-label-text-color);
+  }
+
+  :host(:enabled[invalid]:focus-within) .field-flex {
+    outline-color: var(--_error-outline-color);
   }
 
   :host(:enabled[invalid]:focus-within) label {

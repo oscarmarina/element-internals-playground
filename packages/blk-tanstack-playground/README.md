@@ -29,6 +29,14 @@
 | `js` | `BlkTanstackPlayground` | BlkTanstackPlayground | ./BlkTanstackPlayground.js   |         |
 | `js` | `BlkFormField`          | BlkFormField          | ./components/BlkFormField.js |         |
 
+### `src/define/blk-tanstack-playground.ts`:
+
+#### Exports
+
+| Kind                        | Name                      | Declaration           | Module                        | Package |
+| --------------------------- | ------------------------- | --------------------- | ----------------------------- | ------- |
+| `custom-element-definition` | `blk-tanstack-playground` | BlkTanstackPlayground | /src/BlkTanstackPlayground.js |         |
+
 ### `src/components/BlkFormField.ts`:
 
 #### Functions
@@ -44,14 +52,6 @@
 | Kind | Name           | Declaration  | Module                         | Package |
 | ---- | -------------- | ------------ | ------------------------------ | ------- |
 | `js` | `BlkFormField` | BlkFormField | src/components/BlkFormField.ts |         |
-
-### `src/define/blk-tanstack-playground.ts`:
-
-#### Exports
-
-| Kind                        | Name                      | Declaration           | Module                        | Package |
-| --------------------------- | ------------------------- | --------------------- | ----------------------------- | ------- |
-| `custom-element-definition` | `blk-tanstack-playground` | BlkTanstackPlayground | /src/BlkTanstackPlayground.js |         |
 
 ### `src/styles/blk-tanstack-playground-styles.css.ts`:
 

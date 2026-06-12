@@ -80,6 +80,8 @@
 :host(:focus-within) {
   .field-flex {
     border-color: var(--_focus-outline-color);
+    outline: 2px solid var(--_focus-outline-color);
+    outline-offset: 2px;
   }
 
   label {
@@ -88,6 +90,10 @@
 }
 
 :host(:enabled[invalid]:focus-within) {
+  .field-flex {
+    outline-color: var(--_error-outline-color);
+  }
+
   label {
     color: var(--input-element-error-label-text-color);
   }

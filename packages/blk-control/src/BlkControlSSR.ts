@@ -205,7 +205,7 @@ export class BlkControlSSR extends BlkMixinFormAssociated(LitElement) {
     }
 
     /* the native input: transparent overlay on the indicator (focusable/operable, and the
-   native validation bubble anchors here). Pure CSS → applied on first paint, no flash. */
+ native validation bubble anchors here). Pure CSS → applied on first paint, no flash. */
     ::slotted(input) {
       position: absolute;
       inset-block-start: 50%;
@@ -238,7 +238,7 @@ export class BlkControlSSR extends BlkMixinFormAssociated(LitElement) {
     }
 
     /* Forced colors / Windows High Contrast: author colors are ignored → redraw with
-   CSS system color keywords to keep the indicator visible and stateful. */
+ CSS system color keywords to keep the indicator visible and stateful. */
     @media (forced-colors: active) {
       .mark i {
         border-color: CanvasText;

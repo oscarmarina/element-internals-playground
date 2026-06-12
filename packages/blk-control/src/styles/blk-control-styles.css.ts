@@ -151,6 +151,14 @@ export const styles = css`
     padding-inline: 0 var(--_control-gap);
   }
 
+  @media (prefers-reduced-motion: reduce) {
+    i,
+    i::after,
+    ::slotted(label) {
+      transition: none;
+    }
+  }
+
   /* Forced colors / Windows High Contrast: author colors are ignored, so redraw the
      indicator with CSS system color keywords to keep it visible and stateful. */
   @media (forced-colors: active) {
