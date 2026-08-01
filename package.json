@@ -1,7 +1,7 @@
 {
   "name": "element-internals-playground",
   "version": "1.0.0",
-  "type": "module",
+  "private": true,
   "keywords": [
     "web-components",
     "custom-elements",
@@ -11,18 +11,43 @@
     "mixin",
     "a11y"
   ],
+  "type": "module",
   "workspaces": [
     "packages/*"
   ],
   "scripts": {
+    "analyze": "lerna run analyze --stream --concurrency 1",
     "clean": "rm package-lock.json && lerna clean",
     "clean:packages": "lerna exec -- rm -rf ./node_modules && npm run clean:packages:dev && npm run clean:packages:coverage",
     "clean:packages:coverage": "lerna exec -- rm -rf ./test/coverage",
-    "clean:packages:dev": "lerna exec -- rm -rf ./dev && lerna exec -- rm -rf ./package-lock.json",
+    "clean:packages:dev": "lerna exec -- rm -rf ./dev && lerna exec -- rm -rf ./dist && lerna exec -- rm -rf ./package-lock.json",
     "eslint": "eslint --fix 'packages/**/*.*'",
     "format": "lerna run format --stream --concurrency 1",
+    "format:pre-push": "npm run format -- --since",
+    "lint": "npm run eslint && npm run prettier && npm run stylelint",
+    "prepare": "husky",
+    "prettier": "prettier --write --ignore-path .prettierignore 'packages/**/*.{js,ts,css,scss,html,json}'",
+    "push": "git push --follow-tags origin main",
+    "release": "npm ci && npm run test:pre-push && lerna version --no-push",
+    "standard": "commit-and-tag-version",
+    "stylelint": "stylelint -f verbose --ignore-path .prettierignore 'packages/**/*.{js,ts,css,scss,html}'",
     "test": "lerna run test --stream --concurrency 1 -- --run",
-    "prepare": "husky"
+    "test:pre-push": "lerna run test --stream --concurrency 1 --since origin/main -- --run",
+    "test:scope": "func() { lerna run test --stream --concurrency 1 --scope @blockquote-playground/${1}; }; func",
+    "postversion": "npm run standard"
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional",
+      "@commitlint/config-workspace-scopes"
+    ],
+    "rules": {
+      "header-max-length": [
+        2,
+        "always",
+        150
+      ]
+    }
   },
   "lint-staged": {
     "**/*.{js,ts,html}": [
@@ -37,8 +62,9 @@
     ]
   },
   "prettier": {
-    "bracketSpacing": false,
     "bracketSameLine": true,
+    "bracketSpacing": false,
+    "htmlWhitespaceSensitivity": "ignore",
     "printWidth": 100,
     "singleQuote": true,
     "trailingComma": "es5",
@@ -88,34 +114,38 @@
     ]
   },
   "overrides": {
-    "axios": "^1.17.0",
-    "nx": {
-      "brace-expansion": "^5.0.6"
-    },
-    "follow-redirects": "^1.16.0",
-    "yaml": "^2.9.0"
+    "tar": "^7.5.22",
+    "brace-expansion": "^5.0.9"
   },
   "devDependencies": {
-    "@commitlint/cli": "^21.0.2",
-    "commit-and-tag-version": "^12.7.3",
+    "@commitlint/cli": "^21.2.1",
+    "@commitlint/config-conventional": "^21.2.0",
+    "@commitlint/config-workspace-scopes": "^21.2.0",
     "@eslint/js": "^10.0.1",
-    "eslint": "^10.4.1",
+    "@html-eslint/eslint-plugin": "^0.64.0",
+    "@html-eslint/parser": "^0.64.0",
+    "@typescript-eslint/parser": "^8.66.0",
+    "commit-and-tag-version": "^13.1.2",
+    "eslint": "^10.8.0",
     "eslint-config-prettier": "^10.1.8",
+    "eslint-import-resolver-typescript": "^4.4.5",
     "eslint-plugin-html": "^8.1.4",
-    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-import-x": "^4.17.1",
     "eslint-plugin-lit": "^2.3.1",
     "eslint-plugin-lit-a11y": "^5.1.1",
     "eslint-plugin-wc": "^3.1.0",
-    "globals": "^17.6.0",
+    "globals": "^17.9.0",
     "husky": "^9.1.7",
-    "lerna": "^9.0.7",
-    "lint-staged": "^17.0.7",
-    "@html-eslint/eslint-plugin": "^0.61.0",
-    "@html-eslint/parser": "^0.61.0",
-    "prettier": "^3.8.3",
-    "@typescript-eslint/parser": "^8.60.1",
-    "typescript-eslint": "^8.60.1",
-    "stylelint": "^17.13.0"
+    "lerna": "^10.0.0",
+    "lint-staged": "^17.3.0",
+    "prettier": "^3.9.6",
+    "stylelint": "^17.14.1",
+    "typescript-eslint": "^8.66.0"
+  },
+  "commit-and-tag-version": {
+    "releaseCommitMessageFormat": "chore: release {{currentTag}}",
+    "commitUrlFormat": "{{host}}/oscarmarina/element-internals-playground/commit/{{hash}}",
+    "compareUrlFormat": "{{host}}/oscarmarina/element-internals-playground/compare/{{previousTag}}...{{currentTag}}"
   },
   "stackblitz": {
     "startCommand": "npm --prefix packages/blk-input start"

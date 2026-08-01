@@ -1,4 +1,11 @@
 import {dedupeMixin} from '@open-wc/dedupe-mixin';
+
+/**
+ * Internal storage key used by the internals mixins.
+ *
+ * Consumers should use `element.internals` exposed by
+ * `BlkMixinElementInternals` or `BlkMixinFormAssociated` instead of accessing this symbol directly.
+ */
 export const internals = Symbol('internals');
 
 export type BehaviorCreator<T = unknown> = () => T | null | undefined;

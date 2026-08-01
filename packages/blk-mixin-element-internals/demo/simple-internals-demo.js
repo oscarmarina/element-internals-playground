@@ -203,13 +203,15 @@ export class SimpleInternalsDemo extends BlkMixinElementInternals(LitElement) {
 
       <div class="states-display">
         <div class="states-title">Active states (internals.states):</div>
-        ${currentStates.length > 0
-          ? currentStates.map(
-              (state) => html`
-                <span class="state-item" data-state="${state}">:state(${state})</span>
-              `
-            )
-          : html`<span class="state-item">No active states</span>`}
+        ${
+          currentStates.length > 0
+            ? currentStates.map(
+                (state) => html`
+                  <span class="state-item" data-state="${state}">:state(${state})</span>
+                `
+              )
+            : html`<span class="state-item">No active states</span>`
+        }
       </div>
     `;
   }

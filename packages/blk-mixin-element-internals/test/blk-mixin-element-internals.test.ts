@@ -42,7 +42,7 @@ suite('BlkMixinInternalsBase (real)', () => {
 
   test('createBehaviors() override retains behavior references on the instance', async () => {
     class InternalsOverrideEl extends BlkMixinInternalsBase(HTMLElement) {
-      _behavior: unknown;
+      declare _behavior: unknown;
 
       override createBehaviors() {
         this._behavior = {kind: 'submit-behavior'};

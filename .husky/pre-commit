@@ -1,0 +1,5 @@
+# Skip CI
+[ -n "$CI" ] && exit 0
+
+npx --no-install lint-staged --concurrent false
+npm run test:pre-push

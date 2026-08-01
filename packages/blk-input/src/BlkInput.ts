@@ -129,21 +129,13 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
    */
   @property({type: String, attribute: 'inputmode'})
   override inputMode:
-    | 'none'
-    | 'text'
-    | 'tel'
-    | 'url'
-    | 'email'
-    | 'numeric'
-    | 'decimal'
-    | 'search'
-    | '' = 'text';
+    'none' | 'text' | 'tel' | 'url' | 'email' | 'numeric' | 'decimal' | 'search' | '' = 'text';
 
   /**
    * The maximum allowed value for number, range, date, and time inputs.
    * For number inputs, this should be a numeric value. For date/time inputs, use appropriate date formats.
    */
-  @property({type: Number})
+  @property({type: String})
   max?: string | number;
 
   /**
@@ -157,7 +149,7 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
    * The minimum allowed value for number, range, date, and time inputs.
    * For number inputs, this should be a numeric value. For date/time inputs, use appropriate date formats.
    */
-  @property({type: Number})
+  @property({type: String})
   min?: string | number;
 
   /**
@@ -408,31 +400,37 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
 
   get _messageTextTpl() {
     return html`
-      ${this._messageTextEmpty
-        ? nothing
-        : html`<div class="message-text">
-            ${this._infoMessageTextTpl} ${this._errorMessageTextTpl}
-          </div>`}
+      ${
+        this._messageTextEmpty
+          ? nothing
+          : html`<div class="message-text">
+              ${this._infoMessageTextTpl} ${this._errorMessageTextTpl}
+            </div>`
+      }
     `;
   }
 
   get _infoMessageTextTpl() {
-    return html`${this.infoMessageText
-      ? html`<div class="info-message-text" id="info-message-text">${this.infoMessageText}</div>`
-      : nothing}`;
+    return html`${
+      this.infoMessageText
+        ? html`<div class="info-message-text" id="info-message-text">${this.infoMessageText}</div>`
+        : nothing
+    }`;
   }
 
   get _errorMessageTextTpl() {
     return html`
-      ${!this.nativeValidationMessage
-        ? html`<div
-            class="error-message-text"
-            role="alert"
-            id="error-message-text"
-            ?empty="${!this._hasVisibleErrorMessage}">
-            ${this._hasVisibleErrorMessage ? this.errorMessageText : nothing}
-          </div>`
-        : nothing}
+      ${
+        !this.nativeValidationMessage
+          ? html`<div
+              class="error-message-text"
+              role="alert"
+              id="error-message-text"
+              ?empty="${!this._hasVisibleErrorMessage}">
+              ${this._hasVisibleErrorMessage ? this.errorMessageText : nothing}
+            </div>`
+          : nothing
+      }
     `;
   }
 
@@ -446,10 +444,12 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
 
   get _labelTpl() {
     return html`
-      ${this.label
-        ? html`<span class="mask"></span>
-            <label for="${this.__internalIdref}">${this.label}</label>`
-        : nothing}
+      ${
+        this.label
+          ? html`<span class="mask"></span>
+              <label for="${this.__internalIdref}">${this.label}</label>`
+          : nothing
+      }
     `;
   }
 

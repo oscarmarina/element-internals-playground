@@ -1,18 +1,27 @@
 {
   "version": "independent",
+  "packages": [
+    "packages/*"
+  ],
   "npmClient": "npm",
   "command": {
+    "bootstrap": {
+      "npmClientArgs": [
+        "--no-package-lock"
+      ]
+    },
     "version": {
-      "push": false,
       "conventionalCommits": true,
       "conventionalGraduate": true,
-      "message": "chore: publish",
-      "ignoreChanges": [
-        "**/demo/**",
-        "**/test/**",
-        "**/*.md"
-      ]
+      "message": "chore: publish"
     }
   },
+  "ignoreChanges": [
+    "**/demo/**",
+    "**/test/**",
+    "**/*.md",
+    "**/*.config.js",
+    "**/.*"
+  ],
   "$schema": "node_modules/lerna/schemas/lerna-schema.json"
 }

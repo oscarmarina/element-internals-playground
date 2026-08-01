@@ -1,4 +1,5 @@
 import {defineConfig} from 'vite';
+import {fileURLToPath, URL} from 'node:url';
 import {playwright} from '@vitest/browser-playwright';
 import {globSync} from 'tinyglobby';
 import copy from 'rollup-plugin-copy';

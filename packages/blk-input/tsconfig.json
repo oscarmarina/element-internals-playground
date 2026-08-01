@@ -25,6 +25,9 @@
     "resolveJsonModule": true,
     "resolvePackageJsonExports": true,
     "resolvePackageJsonImports": true,
+    "customConditions": [
+      "workspaces"
+    ],
     "rootDir": "./src/",
     "sourceMap": true,
     "strict": true,

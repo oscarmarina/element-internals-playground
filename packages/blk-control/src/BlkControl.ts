@@ -320,11 +320,13 @@ export class BlkControl extends BlkMixinFormAssociated(LitElement) {
 
   get _labelTpl() {
     return html`
-      ${this.label
-        ? html`<label slot="embedded"
-            >${this._inputTpl} <span class="label-text">${this.label}</span></label
-          >`
-        : html`${this._inputTpl}`}
+      ${
+        this.label
+          ? html`<label slot="embedded"
+              >${this._inputTpl} <span class="label-text">${this.label}</span></label
+            >`
+          : html`${this._inputTpl}`
+      }
     `;
   }
 
