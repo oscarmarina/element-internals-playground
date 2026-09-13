@@ -61,8 +61,19 @@
         background: #d1d1d1;
         font: inherit;
         cursor: pointer;
+        transition: background 0.15s;
       }
-      /* error UI driven by the native :user-invalid, surfaced through the host */
+
+      button[type='submit'] {
+        background: #188038;
+        color: #fff;
+      }
+
+      button:hover {
+        filter: brightness(0.92);
+      }
+
+      /* error UI driven by :state(invalid) (JS-gated "touched" flag) */
       .error {
         color: #d83020;
         font-size: 0.75rem;
@@ -76,6 +87,27 @@
 
       .radio-group:has(blk-control-ssr:state(invalid)) + .error {
         display: block;
+      }
+
+      /* ── FormData output panel ── */
+      .form-output {
+        margin-block-start: 1.25rem;
+        padding: 0.75rem 1rem;
+        background: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        font-family: monospace;
+        font-size: 0.8rem;
+        color: #333;
+        min-block-size: 3.5rem;
+        white-space: pre;
+        overflow-x: auto;
+      }
+
+      .form-output:empty::before {
+        content: '— no data submitted yet —';
+        color: #aaa;
+        font-style: italic;
       }
     </style>
   </head>
@@ -153,6 +185,7 @@
             <button type="submit">Submit</button>
             <button type="reset">Reset</button>
           </div>
+          <pre class="form-output" id="form-output" aria-live="polite"></pre>
         </form>
       </section>
     </main>
@@ -161,14 +194,24 @@
       import '../src/define/blk-control.js';
 
       const form = document.getElementById('form');
+      const output = document.getElementById('form-output');
+
       form.addEventListener('submit', (ev) => {
+        ev.preventDefault();
         if (!form.checkValidity()) {
-          ev.preventDefault();
+          output.textContent = '';
           return;
         }
-        ev.preventDefault();
-        console.log('submit:', Object.fromEntries(new FormData(form)));
+        const entries = [...new FormData(form).entries()];
+        output.textContent = entries.length
+          ? entries.map(([k, v]) => `${k}: ${v}`).join('\n')
+          : '(no fields submitted)';
       });
+
+      form.addEventListener('reset', () => {
+        output.textContent = '';
+      });
+
       form.addEventListener('validation', (e) =>
         console.log(`validation [${e.target.name}=${e.target.value}] valid=${e.valid}`)
       );

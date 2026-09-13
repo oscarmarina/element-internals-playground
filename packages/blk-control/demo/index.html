@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="data:," />
-    <meta name="description" content="blk-control" />
+    <meta name="description" content="blk-control — three-way comparison demo" />
     <style>
       html,
       body {
@@ -18,29 +18,38 @@
       main {
         display: grid;
         padding: 2rem;
-        grid-auto-rows: 1fr;
-        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1rem;
       }
 
       section {
         background-color: #fff;
         padding: 2rem;
-        margin: 1rem;
         border-radius: 16px;
         box-shadow:
-          0 10px 15px -3px rgb(0, 0, 0, 0.1),
-          0 4px 6px -2px rgb(0, 0, 0, 0.05);
+          0 10px 15px -3px rgb(0 0 0 / 0.1),
+          0 4px 6px -2px rgb(0 0 0 / 0.05);
+        display: flex;
+        flex-direction: column;
+      }
+
+      section > form {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
       }
 
       fieldset {
         border: none;
         padding: 0;
         margin: 0;
+        flex: 1;
       }
 
       legend {
         padding-inline: 0;
         font-weight: bold;
+        margin-block-end: 0.5rem;
       }
 
       .field {
@@ -61,10 +70,22 @@
         gap: 0.25rem;
       }
 
+      /* ── Native labels ── */
+      label:has(input[type='checkbox']),
+      label:has(input[type='radio']) {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        font-size: 0.9375rem;
+      }
+
       .actions {
         margin-block: 1rem;
         margin-inline: 0.5rem;
-        white-space: nowrap;
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
       }
 
       button {
@@ -78,18 +99,27 @@
         border-radius: 4px;
         font: inherit;
         cursor: pointer;
+        transition: background 0.15s;
+      }
+
+      button[type='submit'] {
+        background: #1a73e8;
+        color: #fff;
+      }
+
+      button:hover {
+        filter: brightness(0.92);
       }
 
       .hint {
         font-size: 0.75rem;
         margin-block-start: 0.25rem;
-        color: #333;
+        color: #555;
       }
 
-      /* ── blk-control error display ──
-         No `error-message-text` like blk-input: the error is shown purely from the
-         component's own `:state(invalid)` custom state (touched-gated, so it appears
-         only after a submit attempt / interaction, and clears automatically on reset). */
+      /* ── Error messages ──────────────────────────────────────────────────────
+         blk-control: driven by :state(invalid) (JS-gated "touched" flag).
+         Native: driven by :user-invalid (browser-native "touched" gating).      */
       .error {
         color: #d83020;
         font-size: 0.75rem;
@@ -97,36 +127,104 @@
         display: none;
       }
 
-      /* single checkbox: error is the adjacent sibling of the control */
+      /* blk-control — single */
       blk-control:state(invalid) + .error {
         display: block;
       }
 
-      /* radio group: show one error if ANY member is invalid */
+      /* blk-control — radio group */
       .radio-group:has(blk-control:state(invalid)) + .error {
         display: block;
       }
 
-      /* native comparison section */
-      .error-native {
-        color: #d83020;
-        font-size: 0.75rem;
-        margin-block-start: 0.25rem;
+      /* blk-control-ssr — single */
+      blk-control-ssr:state(invalid) + .error {
+        display: block;
+      }
+
+      /* blk-control-ssr — radio group */
+      .radio-group:has(blk-control-ssr:state(invalid)) + .error {
+        display: block;
+      }
+
+      /* Native — single checkbox: input is inside <label>, so use :has() on the label */
+      label:has(input[type='checkbox']:user-invalid) ~ .error {
+        display: block;
+      }
+
+      /* Native — radio group */
+      .radio-group:has(input[type='radio']:user-invalid) + .error {
+        display: block;
+      }
+
+      /* :user-invalid persists after reset in current browsers — suppress it
+         while the form carries the transient `just-reset` class. */
+      .just-reset label:has(input[type='checkbox']:user-invalid) ~ .error,
+      .just-reset .radio-group:has(input[type='radio']:user-invalid) + .error {
         display: none;
       }
 
-      .error-native.visible {
-        display: block;
+      /* ── FormData output panel ── */
+      .form-output {
+        margin-block-start: 1.25rem;
+        padding: 0.75rem 1rem;
+        background: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        font-family: monospace;
+        font-size: 0.8rem;
+        color: #333;
+        min-block-size: 3.5rem;
+        white-space: pre;
+        overflow-x: auto;
+        transition: background 0.2s;
+      }
+
+      .form-output:empty::before {
+        content: '— no data submitted yet —';
+        color: #aaa;
+        font-style: italic;
+      }
+
+      /* pill badge on each section header */
+      .badge {
+        display: inline-block;
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        padding: 0.2em 0.55em;
+        border-radius: 999px;
+        vertical-align: middle;
+        margin-inline-start: 0.4rem;
+      }
+
+      .badge-lit {
+        background: #e8f0fe;
+        color: #1a73e8;
+      }
+
+      .badge-ssr {
+        background: #e6f4ea;
+        color: #188038;
+      }
+
+      .badge-native {
+        background: #fce8e6;
+        color: #c5221f;
       }
     </style>
   </head>
   <body>
     <main>
-      <!-- ── blk-control: required checkbox + required radio group ── -->
+      <!-- ── 1. blk-control (Lit renders the input) ── -->
       <section id="sec1">
         <form id="form-sec1" novalidate>
           <fieldset>
-            <legend>Sign Up</legend>
+            <legend>
+              Sign Up
+              <span class="badge badge-lit">&lt;blk-control&gt;</span>
+            </legend>
 
             <!-- required single checkbox -->
             <div class="field">
@@ -168,6 +266,7 @@
               <div class="error" role="alert">Please choose a contact method.</div>
             </div>
 
+            <!-- optional -->
             <div class="field">
               <blk-control name="news" label="Subscribe to the newsletter"></blk-control>
               <div class="hint">Optional.</div>
@@ -178,23 +277,106 @@
             <button type="submit">Submit</button>
             <button type="reset">Reset</button>
           </div>
+          <pre class="form-output" id="output-sec1" aria-live="polite"></pre>
         </form>
       </section>
 
-      <!-- ── Native equivalent for comparison ── -->
+      <!-- ── 2. blk-control-ssr (author provides the input) ── -->
+      <section id="sec2">
+        <form id="form-sec2" novalidate>
+          <fieldset>
+            <legend>
+              Sign Up
+              <span class="badge badge-ssr">&lt;blk-control-ssr&gt;</span>
+            </legend>
+
+            <div class="field">
+              <blk-control-ssr>
+                <input
+                  slot="embedded"
+                  id="ssr-terms"
+                  type="checkbox"
+                  name="terms"
+                  value="yes"
+                  required
+                />
+                <label slot="embedded" for="ssr-terms">I accept the terms</label>
+              </blk-control-ssr>
+              <div class="error" role="alert">You must accept the terms to continue.</div>
+            </div>
+
+            <div class="field">
+              <span id="ssr-contact-label" class="group-label">Preferred contact method</span>
+              <div class="radio-group" role="radiogroup" aria-labelledby="ssr-contact-label">
+                <blk-control-ssr>
+                  <input
+                    slot="embedded"
+                    id="ssr-email"
+                    type="radio"
+                    name="contact"
+                    value="email"
+                    required
+                  />
+                  <label slot="embedded" for="ssr-email">Email</label>
+                </blk-control-ssr>
+                <blk-control-ssr>
+                  <input
+                    slot="embedded"
+                    id="ssr-phone"
+                    type="radio"
+                    name="contact"
+                    value="phone"
+                    required
+                  />
+                  <label slot="embedded" for="ssr-phone">Phone</label>
+                </blk-control-ssr>
+                <blk-control-ssr>
+                  <input
+                    slot="embedded"
+                    id="ssr-sms"
+                    type="radio"
+                    name="contact"
+                    value="sms"
+                    required
+                  />
+                  <label slot="embedded" for="ssr-sms">SMS</label>
+                </blk-control-ssr>
+              </div>
+              <div class="error" role="alert">Please choose a contact method.</div>
+            </div>
+
+            <div class="field">
+              <blk-control-ssr>
+                <input slot="embedded" id="ssr-news" type="checkbox" name="news" value="on" />
+                <label slot="embedded" for="ssr-news">Subscribe to the newsletter</label>
+              </blk-control-ssr>
+              <div class="hint">Optional.</div>
+            </div>
+          </fieldset>
+
+          <div class="actions">
+            <button type="submit">Submit</button>
+            <button type="reset">Reset</button>
+          </div>
+          <pre class="form-output" id="output-sec2" aria-live="polite"></pre>
+        </form>
+      </section>
+
+      <!-- ── 3. Native <input> (pure platform reference) ── -->
       <section id="sec-native">
         <form id="form-native" novalidate>
           <fieldset>
-            <legend>Sign Up (native)</legend>
+            <legend>
+              Sign Up
+              <span class="badge badge-native">Native</span>
+            </legend>
 
             <div class="field">
               <label>
                 <input type="checkbox" name="terms" value="yes" required id="n-terms" />
                 I accept the terms
               </label>
-              <div class="error-native" id="n-termsError" role="alert">
-                You must accept the terms to continue.
-              </div>
+              <div class="error" role="alert">You must accept the terms to continue.</div>
             </div>
 
             <div class="field">
@@ -213,13 +395,14 @@
                   SMS
                 </label>
               </div>
-              <div class="error-native" id="n-contactError" role="alert">
-                Please choose a contact method.
-              </div>
+              <div class="error" role="alert">Please choose a contact method.</div>
             </div>
 
             <div class="field">
-              <blk-control name="news" label="Subscribe to the newsletter"></blk-control>
+              <label>
+                <input type="checkbox" name="news" value="on" />
+                Subscribe to the newsletter
+              </label>
               <div class="hint">Optional.</div>
             </div>
           </fieldset>
@@ -228,6 +411,7 @@
             <button type="submit">Submit</button>
             <button type="reset">Reset</button>
           </div>
+          <pre class="form-output" id="output-native" aria-live="polite"></pre>
         </form>
       </section>
     </main>

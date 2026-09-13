@@ -4,76 +4,84 @@ export {};
  * @typedef {import('../../blk-mixin-element-internals/src/BlkFormValidationEvent').BlkFormValidationEvent} BlkFormValidationEvent
  */
 
-/**
- * @typedef {HTMLElement & {name?: string, value?: string}} NamedValueElement
- */
+// ── Helpers ──────────────────────────────────────────────────────────────────
 
 /**
- * @param {HTMLFormElement | null} form
+ * Renders the submitted FormData entries into the section's output panel.
+ * Clears the panel on reset.
+ *
+ * @param {HTMLFormElement} form
+ * @param {string} outputId - ID of the <pre> element to write into
  */
-const handleFormSubmit = (form) => {
-  if (!form) {
-    return;
-  }
+const bindFormOutput = (form, outputId) => {
+  const output = document.getElementById(outputId);
+  if (!output) return;
 
   form.addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    // A submit attempt ends the "just reset" grace period so :user-invalid
+    // errors can surface again on native inputs.
+    form.classList.remove('just-reset');
+
     if (!form.checkValidity()) {
-      ev.preventDefault();
+      // checkValidity() on each input fires the `invalid` event, which activates
+      // :user-invalid without showing the browser's native tooltip (reportValidity
+      // would open the tooltip, which we don't want with novalidate forms).
+      form.querySelectorAll('input').forEach((i) => i.checkValidity());
+      output.textContent = '';
       return;
     }
-    const formData = new FormData(form);
-    for (const [key, value] of formData.entries()) {
-      console.log(`${key}: ${value}`);
-    }
+
+    const entries = [...new FormData(form).entries()];
+    output.textContent = entries.length
+      ? entries.map(([k, v]) => `${k}: ${v}`).join('\n')
+      : '(no fields submitted)';
+  });
+
+  form.addEventListener('reset', () => {
+    output.textContent = '';
+    // :user-invalid persists after reset in current browsers — apply a transient
+    // class to suppress the stale error state until the user interacts again.
+    form.classList.add('just-reset');
+  });
+
+  // Remove the suppressor class on the first interaction after reset.
+  form.addEventListener('change', () => form.classList.remove('just-reset'), {capture: true});
+};
+
+/**
+ * Logs `validation` events from blk-control / blk-control-ssr to the console.
+ *
+ * @param {HTMLFormElement} form
+ */
+const bindValidationLog = (form) => {
+  form.addEventListener('validation', (e) => {
+    const el = /** @type {HTMLElement & {name?: string, value?: string}} */ (e.target);
+    console.log(`[${form.id}] validation [${el.name}=${el.value}] valid=${e.valid}`);
   });
 };
 
-/** @type {HTMLFormElement | null} */
-const blkFormElement = /** @type {HTMLFormElement | null} */ (document.getElementById('form-sec1'));
+// ── Section 1: <blk-control> ─────────────────────────────────────────────────
 
-handleFormSubmit(blkFormElement);
+const formSec1 = /** @type {HTMLFormElement | null} */ (document.getElementById('form-sec1'));
+if (formSec1) {
+  bindFormOutput(formSec1, 'output-sec1');
+  bindValidationLog(formSec1);
+}
 
-blkFormElement?.addEventListener('validation', (e) => {
-  /** @type {NamedValueElement | null} */
-  const el = e.target instanceof HTMLElement ? e.target : null;
-  if (!el) {
-    return;
-  }
+// ── Section 2: <blk-control-ssr> ─────────────────────────────────────────────
 
-  console.log(`validation [${el.name}=${el.value}] valid=${e.valid}`);
-});
+const formSec2 = /** @type {HTMLFormElement | null} */ (document.getElementById('form-sec2'));
+if (formSec2) {
+  bindFormOutput(formSec2, 'output-sec2');
+  bindValidationLog(formSec2);
+}
 
-/** @type {HTMLFormElement | null} */
-const nativeForm = /** @type {HTMLFormElement | null} */ (document.getElementById('form-native'));
+// ── Section 3: Native <input> reference ──────────────────────────────────────
+// Error display is handled entirely via CSS :user-invalid — no JS needed.
+// We only wire up the submit/reset to show FormData in the output panel.
 
-/**
- * @param {HTMLInputElement | null} input
- * @param {string} errorId
- */
-const toggle = (input, errorId) => {
-  if (!input) {
-    return;
-  }
-
-  const err = document.getElementById(errorId);
-  if (!err) {
-    return;
-  }
-
-  const update = () => err.classList.toggle('visible', !input.validity.valid);
-  input.addEventListener('invalid', update);
-  input.addEventListener('change', update);
-};
-const nativeTermsInput = document.getElementById('n-terms');
-toggle(nativeTermsInput instanceof HTMLInputElement ? nativeTermsInput : null, 'n-termsError');
-
-/** @type {HTMLInputElement[]} */
-const nativeContactInputs = nativeForm
-  ? Array.from(nativeForm.querySelectorAll('input[name="n-contact"]'))
-  : [];
-nativeContactInputs.forEach((r) => toggle(r, 'n-contactError'));
-
-handleFormSubmit(nativeForm);
-nativeForm?.addEventListener('reset', () => {
-  nativeForm?.querySelectorAll('.error-native').forEach((e) => e.classList.remove('visible'));
-});
+const formNative = /** @type {HTMLFormElement | null} */ (document.getElementById('form-native'));
+if (formNative) {
+  bindFormOutput(formNative, 'output-native');
+}

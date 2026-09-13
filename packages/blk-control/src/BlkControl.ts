@@ -210,18 +210,17 @@ export class BlkControl extends BlkMixinFormAssociated(LitElement) {
     // The native light-DOM input owns the interactive role; keep the host neutral.
     this.internals.role = 'none';
 
-    // Observe the root (works with or without a <form>, since
-    // both `change` and `reset` bubble) to re-sync state from the native input:
+    // Observe the root to re-sync state from the native input:
     // - radio deselection (the browser unchecks a sibling without an event on it)
-    // - native form reset (restores the input to its default checked state)
+    // `change` bubbles from the light-DOM input through the host.
+    // Native form reset is handled by formResetCallback() (FACE lifecycle),
+    // which the browser calls after all controls in the form are already restored.
     this.__root = this.getRootNode() as Document | ShadowRoot;
     this.__root.addEventListener('change', this._onChange);
-    this.__root.addEventListener('reset', this._onRootReset);
   }
 
   override disconnectedCallback() {
     this.__root?.removeEventListener('change', this._onChange);
-    this.__root?.removeEventListener('reset', this._onRootReset);
     this.__root = undefined;
     super.disconnectedCallback?.();
   }
@@ -289,7 +288,7 @@ export class BlkControl extends BlkMixinFormAssociated(LitElement) {
         name="${this.name}"
         type="${this.type}"
         .value="${live(this.value)}"
-        .checked="${this.checked}"
+        .checked="${live(this.checked)}"
         .defaultChecked="${this.hasAttribute('checked')}"
         .indeterminate="${this.indeterminate}"
         ?disabled="${this.disabled}"
@@ -408,22 +407,25 @@ export class BlkControl extends BlkMixinFormAssociated(LitElement) {
     }
   };
 
-  private _onRootReset = () => {
-    // The `reset` event fires before the browser applies default values, so read
-    // the native input on the next microtask. Flag the upcoming sync as
-    // reset-driven so `updated()` suppresses the `validation` event (see contract).
-    queueMicrotask(() => {
-      const input = this.__defaultInput;
-      if (!input) {
-        return;
-      }
-      this.__fromReset =
-        this.checked !== input.checked || this.indeterminate !== input.indeterminate;
-      this.__hasInteracted = false;
-      this.invalid = false;
-      this._syncFromNative();
-    });
-  };
+  /**
+   * Called by the browser (FACE) after all form controls have been reset to
+   * their default values — so `this.__defaultInput.checked` already reflects the
+   * restored state. We read it synchronously (no microtask needed), flag the
+   * update as reset-driven so `updated()` suppresses the `validation` event,
+   * and let `_syncFromNative()` propagate the change to the host properties.
+   */
+  formResetCallback() {
+    const input = this.__defaultInput;
+    if (!input) {
+      return;
+    }
+    const resetRequiresUpdate =
+      this.checked !== input.checked || this.indeterminate !== input.indeterminate;
+    this.__fromReset = resetRequiresUpdate;
+    this.__hasInteracted = false;
+    this.invalid = false;
+    this._syncFromNative();
+  }
 
   /**
    * Fired by the browser when the native control fails constraint validation

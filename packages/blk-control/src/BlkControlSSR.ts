@@ -370,16 +370,16 @@ export class BlkControlSSR extends BlkMixinFormAssociated(LitElement) {
       return;
     }
     this.internals.role = 'none';
-    // Not notified of radio-group deselection / form reset (the host owns no value),
-    // so observe the root — both `change` and `reset` bubble there.
+    // Not notified of radio-group deselection (the host owns no value),
+    // so observe the root — `change` bubbles from the light-DOM input.
+    // Native form reset is handled by formResetCallback() (FACE lifecycle),
+    // which fires after the browser has already restored all control values.
     this.__root = this.getRootNode() as Document | ShadowRoot;
     this.__root.addEventListener('change', this._onRootChange);
-    this.__root.addEventListener('reset', this._onRootReset);
   }
 
   override disconnectedCallback() {
     this.__root?.removeEventListener('change', this._onRootChange);
-    this.__root?.removeEventListener('reset', this._onRootReset);
     this.__root = undefined;
     this._detachInput();
     super.disconnectedCallback();
@@ -485,14 +485,15 @@ export class BlkControlSSR extends BlkMixinFormAssociated(LitElement) {
     }
   };
 
-  private _onRootReset = () => {
-    // `reset` fires before defaults are applied → read on the next microtask.
-    // Reset returns the field to "pristine" so errors are cleared.
-    queueMicrotask(() => {
-      this.__hasInteracted = false;
-      this._syncStates();
-    });
-  };
+  /**
+   * Called by the browser (FACE) after all form controls are restored to their
+   * default values. The native input's state is already correct at this point,
+   * so we reset the "touched" flag and sync custom states synchronously.
+   */
+  formResetCallback() {
+    this.__hasInteracted = false;
+    this._syncStates();
+  }
 
   /**
    * Mirror the native input's live state into custom states for shadow-DOM styling.

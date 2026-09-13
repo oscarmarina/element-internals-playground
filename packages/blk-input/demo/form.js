@@ -2,13 +2,9 @@
  * @param {HTMLInputElement} input
  */
 const handleNativeInputValidation = (input) => {
-  const errorElement = document.getElementById(`${input.id}Error`);
-  if (!errorElement) return;
-
   const handleValidation = () => {
     const isValid = input.validity.valid;
     input.setAttribute('aria-invalid', String(!isValid));
-    errorElement.classList.toggle('visible', !isValid);
   };
 
   input.addEventListener('input', handleValidation);
@@ -17,30 +13,46 @@ const handleNativeInputValidation = (input) => {
 
 /**
  * @param {HTMLFormElement} form
+ * @param {HTMLElement | null} output
  */
-const handleFormSubmit = (form) => {
+const handleFormSubmit = (form, output) => {
   form.addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    form.classList.remove('just-reset');
+
     if (!form.checkValidity()) {
-      ev.preventDefault();
+      if (output) output.textContent = '';
       return;
     }
+
     const formData = new FormData(form);
-    for (const [key, value] of formData.entries()) {
-      console.log(`${key}: ${value}`);
+    if (output) {
+      const entries = [...formData.entries()];
+      output.textContent = entries.length
+        ? entries.map(([key, value]) => `${key}: ${value}`).join('\n')
+        : '(no fields submitted)';
     }
+  });
+
+  form.addEventListener('reset', () => {
+    if (output) output.textContent = '';
+    form.classList.add('just-reset');
   });
 };
 
 document.querySelectorAll('form').forEach((form) => {
   form.querySelectorAll('input').forEach((input) => handleNativeInputValidation(input));
+  const output = form.querySelector('.form-output');
 
   form.addEventListener('reset', () => {
     form.querySelectorAll('input').forEach((input) => {
       input.removeAttribute('aria-invalid');
-      const errorElement = document.getElementById(`${input.id}Error`);
-      if (errorElement) errorElement.classList.remove('visible');
     });
   });
 
-  handleFormSubmit(form);
+  const clearResetState = () => form.classList.remove('just-reset');
+  form.addEventListener('input', clearResetState, {capture: true});
+  form.addEventListener('change', clearResetState, {capture: true});
+
+  handleFormSubmit(form, output);
 });

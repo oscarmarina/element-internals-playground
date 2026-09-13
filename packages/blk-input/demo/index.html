@@ -20,28 +20,38 @@
         padding: 2rem;
         grid-auto-rows: 1fr;
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1rem;
       }
 
       section {
         background-color: #fff;
         padding: 2rem;
-        margin: 1rem;
         border-radius: 16px;
         box-shadow:
           0 10px 15px -3px rgb(0, 0, 0, 0.1),
           0 4px 6px -2px rgb(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+      }
+
+      section > form {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
       }
 
       fieldset {
         border: none;
         padding: 0;
         margin: 0;
+        flex: 1;
       }
 
       legend {
         padding-block: 0;
-        padding-inline: 0.5rem;
+        padding-inline: 0;
         font-weight: bold;
+        margin-block-end: 0.5rem;
       }
 
       div {
@@ -65,6 +75,8 @@
 
       div:has(button) {
         white-space: nowrap;
+        display: flex;
+        gap: 0.5rem;
       }
 
       button {
@@ -78,12 +90,20 @@
         border-radius: 4px;
         font: inherit;
         cursor: pointer;
-        transition: transform 125ms ease;
+        transition:
+          filter 0.15s,
+          transform 125ms ease;
+      }
+
+      button[type='submit'] {
+        background: #1a73e8;
+        color: #fff;
       }
 
       button:hover {
         transform: translateY(-1px);
         box-shadow: 0 4px 6px -1px rgb(0, 0, 0, 0.1);
+        filter: brightness(0.92);
       }
 
       .sr-only {
@@ -108,17 +128,75 @@
         display: none;
       }
 
-      .error.visible {
+      input:user-invalid ~ .error {
         display: block;
+      }
+
+      .just-reset input:user-invalid ~ .error {
+        display: none;
+      }
+
+      /* ── Section badges ── */
+      .badge {
+        display: inline-block;
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        padding: 0.2em 0.55em;
+        border-radius: 999px;
+        vertical-align: middle;
+        margin-inline-start: 0.4rem;
+      }
+
+      .badge-internal {
+        background: #e8f0fe;
+        color: #1a73e8;
+      }
+
+      .badge-external {
+        background: #e6f4ea;
+        color: #188038;
+      }
+
+      .badge-native {
+        background: #fce8e6;
+        color: #c5221f;
+      }
+
+      /* ── FormData output panel ── */
+      .form-output {
+        margin-block-start: 1.25rem;
+        padding: 0.75rem 1rem;
+        background: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        font-family: monospace;
+        font-size: 0.8rem;
+        color: #333;
+        min-block-size: 3.5rem;
+        white-space: pre;
+        overflow-x: auto;
+        margin-inline: 0.5rem;
+      }
+
+      .form-output:empty::before {
+        content: '— no data submitted yet —';
+        color: #aaa;
+        font-style: italic;
       }
     </style>
   </head>
   <body>
     <main>
+      <!-- ── Section 1: blk-input with internal label ── -->
       <section id="sec1">
         <form id="form-sec1" novalidate>
           <fieldset>
-            <legend>Sign Up</legend>
+            <legend>
+              Sign Up
+              <span class="badge badge-internal">Internal label</span>
+            </legend>
             <div>
               <blk-input
                 label="Name"
@@ -167,12 +245,18 @@
             <button type="submit">Submit</button>
             <button type="reset">Reset</button>
           </div>
+          <pre class="form-output" id="output-sec1" aria-live="polite"></pre>
         </form>
       </section>
+
+      <!-- ── Section 2: blk-input with external label ── -->
       <section id="sec2">
         <form id="form-sec2" novalidate>
           <fieldset>
-            <legend>Sign Up</legend>
+            <legend>
+              Sign Up
+              <span class="badge badge-external">External label</span>
+            </legend>
             <div>
               <label for="x1-sec2">Name</label>
               <blk-input
@@ -221,12 +305,18 @@
             <button type="submit">Submit</button>
             <button type="reset">Reset</button>
           </div>
+          <pre class="form-output" id="output-sec2" aria-live="polite"></pre>
         </form>
       </section>
+
+      <!-- ── Section 3: Native inputs (reference) ── -->
       <section id="sec3">
         <form id="form-sec3" novalidate>
           <fieldset>
-            <legend>Sign Up</legend>
+            <legend>
+              Sign Up
+              <span class="badge badge-native">Native</span>
+            </legend>
             <div>
               <label for="native-x1-sec3">Name</label>
               <input
@@ -283,6 +373,7 @@
             <button type="submit">Submit</button>
             <button type="reset" id="form-sec3Reset">Reset</button>
           </div>
+          <pre class="form-output" id="output-sec3" aria-live="polite"></pre>
         </form>
       </section>
     </main>
