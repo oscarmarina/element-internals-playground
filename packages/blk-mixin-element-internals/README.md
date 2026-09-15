@@ -141,7 +141,7 @@ connectedCallback() {
 
 ---
 
-## Quick uick Example — Form-Associa
+## Quick Example — Form-Associated Signup Form
 
 ```html
 <form id="signup-form" novalidate>

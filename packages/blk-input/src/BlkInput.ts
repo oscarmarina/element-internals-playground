@@ -44,7 +44,12 @@ const htmlAttributeStringConverter = {
  * ![Lit](https://img.shields.io/badge/lit-3.0.0-blue.svg)
  *
  * ## `<blk-input>`
- * An example element.
+ * A form-associated custom element that renders a native `<input>` or `<textarea>`
+ * (via `type="textarea"`), delegating constraint validation, form participation,
+ * and reset/state-restore to the browser through `ElementInternals`. It mirrors
+ * native input semantics (label association, validity, disabled/readonly state)
+ * while adding a configurable info/error message area driven by `errorMessageText`
+ * and `infoMessageText`.
  */
 export class BlkInput extends BlkMixinFormAssociated(LitElement) {
   __defaultInput?: HTMLInputElement | HTMLTextAreaElement;
