@@ -7,13 +7,15 @@ export type FormState = File | string | FormData | null;
 export interface FormAssociated {
   readonly form: HTMLFormElement | null;
   readonly labels: NodeList;
-  readonly role: string | null;
+  readonly internalsRole: string | null;
   readonly shadowRoot: ShadowRoot | null;
   readonly states: CustomStateSet;
   get isDisabled(): boolean;
+  get isFieldsetDisabled(): boolean;
   get isReadOnly(): boolean;
   get internals(): ElementInternals;
   get labelText(): string;
+  get hasReferenceTarget(): boolean;
   get validationMessage(): string;
   get validity(): ValidityState;
   get willValidate(): boolean;
@@ -56,7 +58,10 @@ const FormAssociatedBase = <T extends CustomElementConstructor>(
      * 1. The author-set `aria-label` content attribute on the host (overrides the
      *    visible label, exactly like a native `<input aria-label>`).
      * 2. The `ElementInternals.ariaLabel` default semantic set by the component.
-     * 3. The text of any associated `<label>` elements (`for`/`id`).
+     * 3. The text of any associated `<label>` elements (`for`/`id`) — skipped when the
+     *    shadow root has a `referenceTarget`: the platform then forwards those labels
+     *    to the target natively, and copying them would duplicate (or, on first render,
+     *    before the target exists, freeze) the name.
      *
      * A best-attempt based on observed behaviour in FireFox 115 on fedora 38.
      */
@@ -64,18 +69,28 @@ const FormAssociatedBase = <T extends CustomElementConstructor>(
       return (
         this.ariaLabel ||
         this[internals].ariaLabel ||
-        Array.from(this.labels as NodeListOf<HTMLElement>)
-          .map((label) => label.textContent?.trim())
-          .filter(Boolean)
-          .join(' ') ||
+        (this.hasReferenceTarget
+          ? ''
+          : Array.from(this.labels as NodeListOf<HTMLElement>)
+              .map((label) => label.textContent?.trim())
+              .filter(Boolean)
+              .join(' ')) ||
         ''
       );
     }
 
     /**
-     * The role read-only property of the ElementInternals interface returns the WAI-ARIA role for the element.
+     * Whether the shadow root forwards IDREF references to an inner element
+     * (experimental `referenceTarget`). Always `false` where unsupported.
      */
-    override get role() {
+    get hasReferenceTarget(): boolean {
+      return Boolean(
+        (this[internals].shadowRoot as (ShadowRoot & {referenceTarget?: string | null}) | null)
+          ?.referenceTarget
+      );
+    }
+
+    get internalsRole(): string | null {
       return this[internals].role;
     }
 
@@ -98,6 +113,29 @@ const FormAssociatedBase = <T extends CustomElementConstructor>(
      */
     get isDisabled() {
       return this.matches(':disabled');
+    }
+
+    /**
+     * Returns whether the host is disabled by an ancestor `<fieldset disabled>`,
+     * regardless of its own `disabled` attribute (elements inside the fieldset's first
+     * `<legend>` are not disabled by it).
+     *
+     * Unlike the combined value passed to `formDisabledCallback()`, this can be
+     * recomputed at any time — e.g. in `willUpdate()` when the host's own `disabled`
+     * changes, a case where the callback does not fire if the combined state is unchanged.
+     */
+    get isFieldsetDisabled() {
+      // Walk every ancestor `fieldset[disabled]`: the legend exception only covers that
+      // fieldset's own first legend, so an outer disabled fieldset can still apply.
+      let fieldset = this.closest('fieldset[disabled]');
+      while (fieldset) {
+        const legend = fieldset.querySelector(':scope > legend');
+        if (!legend?.contains(this)) {
+          return true;
+        }
+        fieldset = fieldset.parentElement?.closest('fieldset[disabled]') ?? null;
+      }
+      return false;
     }
 
     /**
@@ -163,10 +201,17 @@ const FormAssociatedBase = <T extends CustomElementConstructor>(
       this[internals].setValidity(validity, message, anchor);
     }
 
+    /**
+     * Submits the **owner form** (not just this control), like `form.requestSubmit()`.
+     */
     requestSubmit(submitter?: HTMLElement | null) {
       this.form?.requestSubmit(submitter);
     }
 
+    /**
+     * Resets the **whole owner form**, like `form.reset()`. There is no per-control
+     * reset in the platform; each control restores itself in `formResetCallback()`.
+     */
     reset() {
       this.form?.reset();
     }

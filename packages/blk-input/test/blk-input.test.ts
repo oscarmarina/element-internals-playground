@@ -551,6 +551,69 @@ suite('BlkInput', () => {
     });
   });
 
+  suite('Implicit submission', () => {
+    const pressEnter = (target: Element | undefined, init: KeyboardEventInit = {}) =>
+      target?.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key: 'Enter',
+          bubbles: true,
+          composed: true,
+          cancelable: true,
+          ...init,
+        })
+      );
+
+    test('should not submit while an IME composition is in progress', async () => {
+      const form = (await fixture(
+        html`<form novalidate><blk-input label="IME"></blk-input></form>`
+      )) as HTMLFormElement;
+      el = form.querySelector('blk-input')!;
+      const submitSpy = vi.spyOn(form, 'requestSubmit').mockImplementation(vi.fn());
+
+      pressEnter(el.nativeControl, {isComposing: true});
+
+      expect(submitSpy).not.toHaveBeenCalled();
+    });
+
+    test('should submit through the default button so it becomes the submitter', async () => {
+      const form = (await fixture(
+        html`<form novalidate>
+          <blk-input label="Default button" name="q" value="x"></blk-input>
+          <button type="submit" name="action" value="save">Save</button>
+          <button type="submit" name="action" value="delete">Delete</button>
+        </form>`
+      )) as HTMLFormElement;
+      el = form.querySelector('blk-input')!;
+      let submitter: HTMLElement | null = null;
+      form.addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        submitter = ev.submitter;
+      });
+
+      pressEnter(el.nativeControl);
+
+      assert.strictEqual(submitter, form.querySelector('button[value="save"]'));
+    });
+
+    test('should not submit when the default button is disabled', async () => {
+      const form = (await fixture(
+        html`<form novalidate>
+          <blk-input label="Disabled default"></blk-input>
+          <button type="submit" disabled>Save</button>
+        </form>`
+      )) as HTMLFormElement;
+      el = form.querySelector('blk-input')!;
+      const submitSpy = vi.fn((ev: Event) => ev.preventDefault());
+      form.addEventListener('submit', submitSpy);
+      const requestSpy = vi.spyOn(form, 'requestSubmit');
+
+      pressEnter(el.nativeControl);
+
+      expect(submitSpy).not.toHaveBeenCalled();
+      expect(requestSpy).not.toHaveBeenCalled();
+    });
+  });
+
   suite('Attribute Converters and Accessibility', () => {
     test('should handle spellcheck, autocomplete, autocorrect, and autocapitalize attributes (set 1)', async () => {
       el = await fixture(
@@ -771,6 +834,38 @@ suite('BlkInput', () => {
       assert.isTrue(el.validity.typeMismatch);
     });
 
+    test('should resync validity when step changes dynamically', async () => {
+      // min is the step base (otherwise the value attribute would be).
+      el = await fixture(html`<blk-input type="number" min="0" value="3"></blk-input>`);
+      assert.isTrue(el.validity.valid);
+
+      el.step = '2';
+      await el.updateComplete;
+
+      assert.isTrue(el.validity.stepMismatch);
+    });
+
+    test('should resync validity when readonly/disabled bar the control from validation', async () => {
+      el = await fixture(html`<blk-input required value=""></blk-input>`);
+      assert.isTrue(el.validity.valueMissing);
+
+      el.readOnly = true;
+      await el.updateComplete;
+      assert.isTrue(el.validity.valid);
+
+      el.readOnly = false;
+      await el.updateComplete;
+      assert.isTrue(el.validity.valueMissing);
+
+      el.disabled = true;
+      await el.updateComplete;
+      assert.isTrue(el.validity.valid);
+
+      el.disabled = false;
+      await el.updateComplete;
+      assert.isTrue(el.validity.valueMissing);
+    });
+
     test('should clear validity when required is toggled off after being invalid', async () => {
       el = await fixture(html`<blk-input required value=""></blk-input>`);
       assert.isFalse(el.validity.valid);
@@ -780,6 +875,144 @@ suite('BlkInput', () => {
       await el.updateComplete;
 
       assert.isTrue(el.validity.valid);
+    });
+  });
+
+  suite('Focus events', () => {
+    test('should fire focus and blur exactly once on the host', async () => {
+      const root = await fixture(
+        html`<div><blk-input label="Once"></blk-input><button>next</button></div>`
+      );
+      el = root.querySelector('blk-input')!;
+      const focusSpy = vi.fn();
+      const blurSpy = vi.fn();
+      el.addEventListener('focus', focusSpy);
+      el.addEventListener('blur', blurSpy);
+
+      el.nativeControl!.focus();
+      root.querySelector('button')!.focus();
+
+      expect(focusSpy).toHaveBeenCalledTimes(1);
+      expect(blurSpy).toHaveBeenCalledTimes(1);
+    });
+
+    test('should let focusin/focusout bubble to ancestors for delegation', async () => {
+      const root = await fixture(
+        html`<div><blk-input label="Delegation"></blk-input><button>next</button></div>`
+      );
+      el = root.querySelector('blk-input')!;
+      const focusinTargets: EventTarget[] = [];
+      const focusoutTargets: EventTarget[] = [];
+      root.addEventListener('focusin', (ev) => focusinTargets.push(ev.target!));
+      root.addEventListener('focusout', (ev) => focusoutTargets.push(ev.target!));
+
+      el.nativeControl!.focus();
+      root.querySelector('button')!.focus();
+
+      // Native, composed + bubbling: they leave the shadow tree retargeted to the host.
+      assert.deepEqual(focusinTargets, [el, root.querySelector('button')!]);
+      assert.deepEqual(focusoutTargets, [el]);
+    });
+  });
+
+  suite('Native control reference', () => {
+    test('should track the textarea after switching type, and keep validating it', async () => {
+      el = await fixture(html`<blk-input required></blk-input>`);
+      el.type = 'textarea';
+      await el.updateComplete;
+
+      const textarea = el.shadowRoot!.querySelector('textarea');
+      assert.ok(textarea);
+      assert.strictEqual(el.nativeControl, textarea);
+
+      el.value = 'filled';
+      await el.updateComplete;
+      assert.isTrue(el.validity.valid);
+    });
+  });
+
+  suite('Reactive accessible name', () => {
+    test('should forward aria-label changes on the host to the native control', async () => {
+      el = await fixture(html`<blk-input aria-label="First"></blk-input>`);
+      assert.equal(el.nativeControl!.getAttribute('aria-label'), 'First');
+
+      el.setAttribute('aria-label', 'Second');
+      await el.updateComplete;
+      assert.equal(el.nativeControl!.getAttribute('aria-label'), 'Second');
+
+      el.removeAttribute('aria-label');
+      await el.updateComplete;
+      assert.isFalse(el.nativeControl!.hasAttribute('aria-label'));
+    });
+  });
+
+  suite('Empty error-message-text', () => {
+    test('should fall back to the native message when error-message-text is empty', async () => {
+      el = await fixture(
+        html`<blk-input type="email" error-message-text="" value="not-an-email"></blk-input>`
+      );
+      assert.isTrue(el.validity.typeMismatch);
+      assert.isNotEmpty(el.validationMessage);
+      assert.equal(el.validationMessage, el.nativeControl!.validationMessage);
+    });
+  });
+
+  suite('Disabled via fieldset', () => {
+    test('should stay disabled by the fieldset after the host disabled attribute is removed', async () => {
+      const fieldset = (await fixture(
+        html`<fieldset><blk-input disabled label="Fieldset"></blk-input></fieldset>`
+      )) as HTMLFieldSetElement;
+      el = fieldset.querySelector('blk-input')!;
+
+      fieldset.disabled = true;
+      await el.updateComplete;
+      el.disabled = false;
+      await el.updateComplete;
+
+      assert.isTrue(el.matches(':disabled'));
+      assert.isTrue(el.nativeControl!.disabled);
+
+      fieldset.disabled = false;
+      await el.updateComplete;
+
+      assert.isFalse(el.matches(':disabled'));
+      assert.isFalse(el.nativeControl!.disabled);
+    });
+  });
+
+  suite('Default value', () => {
+    test('should keep the reset value when the element is moved after user input', async () => {
+      const form = (await fixture(
+        html`<form>
+          <div id="a"><blk-input value="initial"></blk-input></div>
+          <div id="b"></div>
+        </form>`
+      )) as HTMLFormElement;
+      el = form.querySelector('blk-input')!;
+
+      el.value = 'typed';
+      await el.updateComplete;
+      form.querySelector('#b')!.append(el);
+      await el.updateComplete;
+      form.reset();
+      await el.updateComplete;
+
+      assert.equal(el.value, 'initial');
+    });
+
+    test('should use the new value attribute as the reset value', async () => {
+      const form = (await fixture(
+        html`<form><blk-input value="initial"></blk-input></form>`
+      )) as HTMLFormElement;
+      el = form.querySelector('blk-input')!;
+
+      el.setAttribute('value', 'updated-default');
+      el.value = 'typed';
+      await el.updateComplete;
+      form.reset();
+      await el.updateComplete;
+
+      assert.equal(el.value, 'updated-default');
     });
   });
 

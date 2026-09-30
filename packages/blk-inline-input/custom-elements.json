@@ -8,7 +8,7 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "![Lit](https://img.shields.io/badge/lit-3.0.0-blue.svg)\n\n## `<blk-inline-input>`",
+          "description": "![Lit](https://img.shields.io/badge/lit-3.0.0-blue.svg)\n\n## `<blk-inline-input>`\n`<blk-input>` with its styles **replaced** (not extended) by a minimal stylesheet.\nAPI, form association, validation and events are inherited unchanged — this is the\nbase for an inline/unstyled variant that only swaps presentation.",
           "name": "BlkInlineInput",
           "members": [],
           "superclass": {

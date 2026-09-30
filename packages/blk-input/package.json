@@ -35,6 +35,16 @@
       "types": "./dist/define/blk-input.d.ts",
       "default": "./dist/define/blk-input.js"
     },
+    "./BlkInputReferenceTarget.js": {
+      "workspaces": "./src/BlkInputReferenceTarget.ts",
+      "types": "./dist/BlkInputReferenceTarget.d.ts",
+      "default": "./dist/BlkInputReferenceTarget.js"
+    },
+    "./blk-input-reference-target.js": {
+      "workspaces": "./src/define/blk-input-reference-target.ts",
+      "types": "./dist/define/blk-input-reference-target.d.ts",
+      "default": "./dist/define/blk-input-reference-target.js"
+    },
     "./index.js": {
       "workspaces": "./src/index.ts",
       "types": "./dist/index.d.ts",

@@ -16,14 +16,16 @@
               "name": "__defaultInput",
               "type": {
                 "text": "HTMLInputElement | undefined"
-              }
+              },
+              "privacy": "private"
             },
             {
               "kind": "field",
               "name": "__root",
               "type": {
                 "text": "Document | ShadowRoot | undefined"
-              }
+              },
+              "privacy": "private"
             },
             {
               "kind": "field",
@@ -31,6 +33,7 @@
               "type": {
                 "text": "boolean"
               },
+              "privacy": "private",
               "default": "false"
             },
             {
@@ -39,6 +42,7 @@
               "type": {
                 "text": "boolean"
               },
+              "privacy": "private",
               "default": "false"
             },
             {
@@ -59,7 +63,7 @@
                 "text": "string"
               },
               "default": "''",
-              "description": "Form field name. For radios this also defines the group scope.",
+              "description": "Form field name. For radios this also defines the group scope.\n\nNote: the host is form-associated (for lifecycle callbacks), so with a `name`\nattribute `form.elements.namedItem(name)` returns a `RadioNodeList` holding the\nhost *and* the native input. Use nativeControl or `FormData` instead.",
               "attribute": "name",
               "reflects": true
             },
@@ -172,6 +176,7 @@
               "type": {
                 "text": "boolean"
               },
+              "privacy": "private",
               "default": "false"
             },
             {
@@ -239,19 +244,7 @@
             {
               "kind": "method",
               "name": "formDisabledCallback",
-              "parameters": [
-                {
-                  "name": "disabled",
-                  "type": {
-                    "text": "boolean"
-                  }
-                }
-              ],
               "description": "Invoked by the browser (FACE) when this element's disabled state changes due\nto an ancestor `<fieldset disabled>` being toggled — the only native \"push\"\nfor that change. We never call `setFormValue`/`setValidity`, so the host\nstays out of submission; this is FACE used purely for lifecycle callbacks."
-            },
-            {
-              "kind": "method",
-              "name": "_litHtmlRender"
             },
             {
               "kind": "field",
@@ -267,6 +260,12 @@
               "kind": "field",
               "name": "_lightDomTpl",
               "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "_inputRef",
+              "privacy": "private",
+              "description": "Stable callback: a new arrow per render makes Lit call the old one with `undefined`\nand the new one with the element on every update, and can leave `__defaultInput`\npointing at a disconnected input when the label template switches."
             },
             {
               "kind": "method",
@@ -298,9 +297,9 @@
               "privacy": "private"
             },
             {
-              "kind": "field",
-              "name": "_onRootReset",
-              "privacy": "private"
+              "kind": "method",
+              "name": "formResetCallback",
+              "description": "Called by the browser (FACE) after all form controls have been reset to\ntheir default values — so `this.__defaultInput.checked` already reflects the\nrestored state. We read it synchronously (no microtask needed), flag the\nupdate as reset-driven so `updated()` suppresses the `validation` event,\nand let `_syncFromNative()` propagate the change to the host properties."
             },
             {
               "kind": "method",
@@ -345,7 +344,7 @@
               "fieldName": "type"
             },
             {
-              "description": "Form field name. For radios this also defines the group scope.",
+              "description": "Form field name. For radios this also defines the group scope.\n\nNote: the host is form-associated (for lifecycle callbacks), so with a `name`\nattribute `form.elements.namedItem(name)` returns a `RadioNodeList` holding the\nhost *and* the native input. Use nativeControl or `FormData` instead.",
               "name": "name",
               "type": {
                 "text": "string"
@@ -472,6 +471,7 @@
               "type": {
                 "text": "HTMLInputElement | null"
               },
+              "privacy": "private",
               "default": "null",
               "description": "The native control backing this element (acquired from the slot)."
             },
@@ -480,7 +480,8 @@
               "name": "__root",
               "type": {
                 "text": "Document | ShadowRoot | undefined"
-              }
+              },
+              "privacy": "private"
             },
             {
               "kind": "field",
@@ -488,6 +489,7 @@
               "type": {
                 "text": "boolean"
               },
+              "privacy": "private",
               "default": "false",
               "description": "\"Touched\" gate so errors show only after interaction / a submit attempt."
             },
@@ -656,9 +658,9 @@
               "privacy": "private"
             },
             {
-              "kind": "field",
-              "name": "_onRootReset",
-              "privacy": "private"
+              "kind": "method",
+              "name": "formResetCallback",
+              "description": "Called by the browser (FACE) after all form controls are restored to their\ndefault values. The native input's state is already correct at this point,\nso we reset the \"touched\" flag and sync custom states synchronously."
             },
             {
               "kind": "method",
@@ -740,6 +742,14 @@
           "declaration": {
             "name": "BlkControl",
             "module": "./BlkControl.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "BlkControlSSR",
+          "declaration": {
+            "name": "BlkControlSSR",
+            "module": "./BlkControlSSR.js"
           }
         }
       ]

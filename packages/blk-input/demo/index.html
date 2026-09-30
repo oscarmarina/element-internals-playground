@@ -159,6 +159,17 @@
         color: #188038;
       }
 
+      .badge-reference-target {
+        background: #f3e8fd;
+        color: #8430ce;
+      }
+
+      .rt-status {
+        margin: 0 0.5rem 0.75rem;
+        font-size: 0.8rem;
+        color: #555;
+      }
+
       .badge-native {
         background: #fce8e6;
         color: #c5221f;
@@ -306,6 +317,67 @@
             <button type="reset">Reset</button>
           </div>
           <pre class="form-output" id="output-sec2" aria-live="polite"></pre>
+        </form>
+      </section>
+
+      <!-- ── Section 2b: blk-input-reference-target (experimental) ── -->
+      <section id="sec-rt">
+        <form id="form-sec-rt" novalidate>
+          <fieldset>
+            <legend>
+              Sign Up
+              <span class="badge badge-reference-target">referenceTarget</span>
+            </legend>
+            <p class="rt-status" id="rt-status" aria-live="polite"></p>
+            <div>
+              <label for="x1-sec-rt">Name</label>
+              <blk-input-reference-target
+                required
+                minlength="2"
+                error-message-text="Name must be at least 2 characters"
+                id="x1-sec-rt"
+                name="x1-sec-rt"
+                placeholder="Enter your name"></blk-input-reference-target>
+            </div>
+            <div>
+              <label for="tx1-sec-rt">Textarea</label>
+              <blk-input-reference-target
+                type="textarea"
+                id="tx1-sec-rt"
+                name="tx1-sec-rt"
+                placeholder="Enter ..."></blk-input-reference-target>
+            </div>
+            <div>
+              <label for="x2-sec-rt">Email</label>
+              <blk-input-reference-target
+                type="email"
+                autocomplete="username"
+                name="x2-sec-rt"
+                id="x2-sec-rt"
+                placeholder="Enter your email"
+                required
+                pattern="(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).*"
+                info-message-text="Uppercase - Number"
+                error-message-text="Please enter a valid email address"></blk-input-reference-target>
+            </div>
+            <div>
+              <label for="x3-sec-rt">Password</label>
+              <blk-input-reference-target
+                type="password"
+                required
+                minlength="6"
+                placeholder="Create a password"
+                name="x3-sec-rt"
+                id="x3-sec-rt"
+                autocomplete="new-password"
+                error-message-text="Password must be at least 6 characters"></blk-input-reference-target>
+            </div>
+          </fieldset>
+          <div>
+            <button type="submit">Submit</button>
+            <button type="reset">Reset</button>
+          </div>
+          <pre class="form-output" id="output-sec-rt" aria-live="polite"></pre>
         </form>
       </section>
 

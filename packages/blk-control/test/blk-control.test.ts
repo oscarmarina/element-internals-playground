@@ -540,6 +540,65 @@ suite('BlkControl', () => {
     });
   });
 
+  suite('Review fixes', () => {
+    test('keeps :state(disabled) from the fieldset after the host disabled attribute is removed', async () => {
+      const fieldset = await fixture<HTMLFieldSetElement>(html`
+        <fieldset><blk-control disabled label="x" name="o"></blk-control></fieldset>
+      `);
+      const el = fieldset.querySelector<BlkControl>('blk-control')!;
+      fieldset.disabled = true;
+      await el.updateComplete;
+      el.disabled = false;
+      await el.updateComplete;
+
+      assert.isTrue(el.internals.states.has('disabled'));
+
+      fieldset.disabled = false;
+      await el.updateComplete;
+      assert.isFalse(el.internals.states.has('disabled'));
+      fixtureCleanup();
+    });
+
+    test('form.elements.namedItem(name) includes both the host and the native input (documented)', async () => {
+      const form = await fixture<HTMLFormElement>(html`
+        <form><blk-control label="Terms" name="terms" value="yes" checked></blk-control></form>
+      `);
+      const el = form.querySelector<BlkControl>('blk-control')!;
+      await el.updateComplete;
+
+      const named = form.elements.namedItem('terms') as RadioNodeList;
+      assert.instanceOf(named, RadioNodeList);
+      assert.sameMembers([...named], [el, el.nativeControl]);
+      // The host never contributes to submission.
+      assert.deepEqual(new FormData(form).getAll('terms'), ['yes']);
+      fixtureCleanup();
+    });
+
+    test('nativeControl tracks the live input when the label template switches', async () => {
+      const el = await fixture<BlkControl>(html`<blk-control label="x" name="o"></blk-control>`);
+      el.label = '';
+      await el.updateComplete;
+
+      const input = el.querySelector('input');
+      assert.ok(input);
+      assert.strictEqual(el.nativeControl, input);
+      assert.isTrue(el.nativeControl!.isConnected);
+      fixtureCleanup();
+    });
+
+    test('label-position updates the native input placement', async () => {
+      const el = await fixture<BlkControl>(html`<blk-control label="x" name="o"></blk-control>`);
+      assert.equal(el.nativeControl!.style.insetInlineStart, '0px');
+
+      el.labelPosition = 'start';
+      await el.updateComplete;
+
+      assert.equal(el.nativeControl!.style.insetInlineStart, 'auto');
+      assert.equal(el.nativeControl!.style.insetInlineEnd, '0px');
+      fixtureCleanup();
+    });
+  });
+
   // ── Validation API surface (proxied to native) ─────────────────────────────
 
   suite('Validation API', () => {

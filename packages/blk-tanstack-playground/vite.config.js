@@ -31,6 +31,9 @@ const entries = Object.fromEntries(
 // https://github.com/vitest-dev/vitest/commit/78b62ffe#diff-d3e264f3679867e205ed7eeb7622aa3b62bb0c4b1a4aa5a5983cb3aa118fcf3c
 
 export default defineConfig(({command}) => ({
+  resolve: {
+    conditions: ['workspaces', 'module', 'browser', 'development|production'],
+  },
   test: {
     onConsoleLog(log, type) {
       if (type === 'stderr' && log.includes('in dev mode')) {

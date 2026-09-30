@@ -56,3 +56,13 @@ document.querySelectorAll('form').forEach((form) => {
 
   handleFormSubmit(form, output);
 });
+
+// referenceTarget section: tell whether the engine forwards `<label for>` natively
+// or <blk-input-reference-target> is on the classic (aria-label) path.
+const rtStatus = document.getElementById('rt-status');
+if (rtStatus) {
+  rtStatus.textContent =
+    'referenceTarget' in ShadowRoot.prototype
+      ? 'Supported: outside <label for> is forwarded natively to the inner control.'
+      : 'Not supported in this browser: falls back to forwarding the label text as aria-label.';
+}

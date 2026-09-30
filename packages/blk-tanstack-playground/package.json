@@ -50,6 +50,7 @@
     "sass:watch": "sass-style-template -j ts",
     "sort:package": "npx sort-package-json",
     "start": "concurrently -k -r \"npm:vite\" \"npm:sass:watch\"",
+    "test": "vitest",
     "vite": "vite"
   },
   "dependencies": {
@@ -60,5 +61,12 @@
   "publishConfig": {
     "access": "public"
   },
-  "customElements": "custom-elements.json"
+  "customElements": "custom-elements.json",
+  "devDependencies": {
+    "@open-wc/testing-helpers": "^3.0.1",
+    "@vitest/browser-playwright": "^5.0.1",
+    "@vitest/coverage-istanbul": "^5.0.1",
+    "playwright": "^1.63.0",
+    "vitest": "^5.0.1"
+  }
 }

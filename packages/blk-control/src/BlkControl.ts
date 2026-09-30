@@ -2,6 +2,7 @@ import {html, LitElement, nothing, render as LitHtmlRender, type PropertyValues}
 import {property, state} from 'lit/decorators.js';
 import {live} from 'lit/directives/live.js';
 import {ref} from 'lit/directives/ref.js';
+import {styleMap} from 'lit/directives/style-map.js';
 import {
   BlkMixinFormAssociated,
   BlkFormValidationEvent,
@@ -71,10 +72,10 @@ export type BlkControlLabelPosition = 'start' | 'end';
  * - `:state(disabled)`      — disabled directly or via an ancestor `<fieldset disabled>`
  */
 export class BlkControl extends BlkMixinFormAssociated(LitElement) {
-  __defaultInput?: HTMLInputElement;
-  __root?: Document | ShadowRoot;
-  __fromReset = false;
-  __firstUpdateComplete = false;
+  private __defaultInput?: HTMLInputElement;
+  private __root?: Document | ShadowRoot;
+  private __fromReset = false;
+  private __firstUpdateComplete = false;
 
   static override styles = [styles];
 
@@ -86,6 +87,10 @@ export class BlkControl extends BlkMixinFormAssociated(LitElement) {
 
   /**
    * Form field name. For radios this also defines the group scope.
+   *
+   * Note: the host is form-associated (for lifecycle callbacks), so with a `name`
+   * attribute `form.elements.namedItem(name)` returns a `RadioNodeList` holding the
+   * host *and* the native input. Use {@link nativeControl} or `FormData` instead.
    */
   @property({type: String, reflect: true})
   name = '';
@@ -153,7 +158,7 @@ export class BlkControl extends BlkMixinFormAssociated(LitElement) {
    */
   @state() private __fieldsetDisabled = false;
 
-  __hasInteracted = false;
+  private __hasInteracted = false;
 
   /**
    * Returns true if the user has interacted with the control.
@@ -231,15 +236,26 @@ export class BlkControl extends BlkMixinFormAssociated(LitElement) {
    * for that change. We never call `setFormValue`/`setValidity`, so the host
    * stays out of submission; this is FACE used purely for lifecycle callbacks.
    */
-  formDisabledCallback(disabled: boolean) {
-    if (!this.disabled) {
-      this.__fieldsetDisabled = disabled;
+  formDisabledCallback() {
+    // The argument is the *combined* state (own attribute OR fieldset), so derive only the
+    // fieldset part from the DOM. See also willUpdate().
+    this.__fieldsetDisabled = this.isFieldsetDisabled;
+  }
+
+  override willUpdate(props: PropertyValues<this>) {
+    super.willUpdate(props);
+    // formDisabledCallback() does not fire when the host's own `disabled` toggles while an
+    // ancestor fieldset keeps the combined state unchanged — recompute the fieldset part.
+    if (props.has('disabled')) {
+      this.__fieldsetDisabled = this.isFieldsetDisabled;
     }
   }
 
-  override firstUpdated(_props: PropertyValues<this>) {
-    super.firstUpdated(_props);
-    this._syncStates();
+  override update(props: PropertyValues<this>) {
+    super.update(props);
+    // The native input is rendered into the light DOM (outside Lit's render root), right
+    // after the shadow DOM, so it exists before `updated()` reads its validity.
+    LitHtmlRender(this._lightDomTpl, this, {host: this});
   }
 
   override updated(props: PropertyValues<this>) {
@@ -269,20 +285,29 @@ export class BlkControl extends BlkMixinFormAssociated(LitElement) {
     }
   }
 
-  _litHtmlRender() {
-    LitHtmlRender(this._lightDomTpl, this, {host: this});
-  }
-
   override render() {
-    return html`<div class="mark">
-      <i aria-hidden="true"></i><slot name="embedded"></slot> ${this._litHtmlRender()}
-    </div> `;
+    return html`<div class="mark"><i aria-hidden="true"></i><slot name="embedded"></slot></div>`;
   }
 
   get _inputTpl() {
+    const atStart = this.labelPosition === 'start';
+    // Inline styles: the input may be nested in a slotted <label>, out of `::slotted()` reach.
+    const inputStyles = {
+      position: 'absolute',
+      insetBlockStart: '50%',
+      transform: 'translateY(-50%)',
+      insetInlineStart: atStart ? 'auto' : '0',
+      insetInlineEnd: atStart ? '0' : 'auto',
+      blockSize: 'var(--_control-size)',
+      inlineSize: 'var(--_control-size)',
+      margin: '0',
+      border: '0',
+      opacity: '0',
+      cursor: 'pointer',
+    };
     return html`
       <input
-        id="${this.idlabel ? this.idlabel : nothing}"
+        id="${this.idlabel || nothing}"
         slot="embedded"
         class="control"
         name="${this.name}"
@@ -296,23 +321,8 @@ export class BlkControl extends BlkMixinFormAssociated(LitElement) {
         @invalid="${this._onInvalid}"
         @focus="${this._onFocus}"
         @blur="${this._onBlur}"
-        ${ref((input) => {
-          this.__defaultInput = input as HTMLInputElement;
-          const atStart = this.labelPosition === 'start';
-          Object.assign((input as HTMLInputElement)?.style ?? {}, {
-            position: 'absolute',
-            insetBlockStart: '50%',
-            transform: 'translateY(-50%)',
-            insetInlineStart: atStart ? 'auto' : '0',
-            insetInlineEnd: atStart ? '0' : 'auto',
-            blockSize: 'var(--_control-size)',
-            inlineSize: 'var(--_control-size)',
-            margin: '0',
-            border: '0',
-            opacity: '0',
-            cursor: 'pointer',
-          });
-        })}
+        style=${styleMap(inputStyles)}
+        ${ref(this._inputRef)}
       />
     `;
   }
@@ -332,6 +342,15 @@ export class BlkControl extends BlkMixinFormAssociated(LitElement) {
   get _lightDomTpl() {
     return this._labelTpl;
   }
+
+  /**
+   * Stable callback: a new arrow per render makes Lit call the old one with `undefined`
+   * and the new one with the element on every update, and can leave `__defaultInput`
+   * pointing at a disconnected input when the label template switches.
+   */
+  private _inputRef = (input?: Element) => {
+    this.__defaultInput = input as HTMLInputElement | undefined;
+  };
 
   private _shouldSyncFormState(props: PropertyValues<this>) {
     const keys = [

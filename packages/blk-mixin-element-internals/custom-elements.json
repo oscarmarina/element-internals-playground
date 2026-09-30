@@ -88,6 +88,18 @@
               }
             },
             {
+              "kind": "field",
+              "name": "[behaviors]",
+              "type": {
+                "text": "readonly unknown[]"
+              },
+              "default": "[]",
+              "inheritedFrom": {
+                "name": "BlkMixinInternalsBase",
+                "module": "src/BlkMixinInternalsBase.ts"
+              }
+            },
+            {
               "kind": "method",
               "name": "createBehaviors",
               "return": {
@@ -95,6 +107,28 @@
                   "text": "readonly unknown[] | undefined"
                 }
               },
+              "inheritedFrom": {
+                "name": "BlkMixinInternalsBase",
+                "module": "src/BlkMixinInternalsBase.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "getBehavior",
+              "return": {
+                "type": {
+                  "text": "B | undefined"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "ctor",
+                  "type": {
+                    "text": "new (...args: any[]) => B"
+                  }
+                }
+              ],
+              "description": "Returns the attached behavior created by `ctor`, typed as its instance, or\n`undefined` if none was created (e.g. the browser lacks that behavior).\nLooks it up by type, so it does not depend on the order of `internalsBehaviors`.",
               "inheritedFrom": {
                 "name": "BlkMixinInternalsBase",
                 "module": "src/BlkMixinInternalsBase.ts"
@@ -189,13 +223,24 @@
               "type": {
                 "text": "string"
               },
-              "description": "Resolves the accessible name to forward onto the inner native control,\nmirroring how a native `<input>` resolves its name. Precedence:\n1. The author-set `aria-label` content attribute on the host (overrides the\n   visible label, exactly like a native `<input aria-label>`).\n2. The `ElementInternals.ariaLabel` default semantic set by the component.\n3. The text of any associated `<label>` elements (`for`/`id`).\n\nA best-attempt based on observed behaviour in FireFox 115 on fedora 38.",
+              "description": "Resolves the accessible name to forward onto the inner native control,\nmirroring how a native `<input>` resolves its name. Precedence:\n1. The author-set `aria-label` content attribute on the host (overrides the\n   visible label, exactly like a native `<input aria-label>`).\n2. The `ElementInternals.ariaLabel` default semantic set by the component.\n3. The text of any associated `<label>` elements (`for`/`id`) — skipped when the\n   shadow root has a `referenceTarget`: the platform then forwards those labels\n   to the target natively, and copying them would duplicate (or, on first render,\n   before the target exists, freeze) the name.\n\nA best-attempt based on observed behaviour in FireFox 115 on fedora 38.",
               "readonly": true
             },
             {
               "kind": "field",
-              "name": "role",
-              "description": "The role read-only property of the ElementInternals interface returns the WAI-ARIA role for the element.",
+              "name": "hasReferenceTarget",
+              "type": {
+                "text": "boolean"
+              },
+              "description": "Whether the shadow root forwards IDREF references to an inner element\n(experimental `referenceTarget`). Always `false` where unsupported.",
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "internalsRole",
+              "type": {
+                "text": "string | null"
+              },
               "readonly": true
             },
             {
@@ -214,6 +259,12 @@
               "kind": "field",
               "name": "isDisabled",
               "description": "Returns whether the host element is currently disabled.",
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "isFieldsetDisabled",
+              "description": "Returns whether the host is disabled by an ancestor `<fieldset disabled>`,\nregardless of its own `disabled` attribute (elements inside the fieldset's first\n`<legend>` are not disabled by it).\n\nUnlike the combined value passed to `formDisabledCallback()`, this can be\nrecomputed at any time — e.g. in `willUpdate()` when the host's own `disabled`\nchanges, a case where the callback does not fire if the combined state is unchanged.",
               "readonly": true
             },
             {
@@ -317,11 +368,13 @@
                     "text": "HTMLElement | null"
                   }
                 }
-              ]
+              ],
+              "description": "Submits the **owner form** (not just this control), like `form.requestSubmit()`."
             },
             {
               "kind": "method",
-              "name": "reset"
+              "name": "reset",
+              "description": "Resets the **whole owner form**, like `form.reset()`. There is no per-control\nreset in the platform; each control restores itself in `formResetCallback()`."
             },
             {
               "kind": "field",
@@ -347,6 +400,18 @@
               }
             },
             {
+              "kind": "field",
+              "name": "[behaviors]",
+              "type": {
+                "text": "readonly unknown[]"
+              },
+              "default": "[]",
+              "inheritedFrom": {
+                "name": "BlkMixinInternalsBase",
+                "module": "src/BlkMixinInternalsBase.ts"
+              }
+            },
+            {
               "kind": "method",
               "name": "createBehaviors",
               "return": {
@@ -354,6 +419,28 @@
                   "text": "readonly unknown[] | undefined"
                 }
               },
+              "inheritedFrom": {
+                "name": "BlkMixinInternalsBase",
+                "module": "src/BlkMixinInternalsBase.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "getBehavior",
+              "return": {
+                "type": {
+                  "text": "B | undefined"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "ctor",
+                  "type": {
+                    "text": "new (...args: any[]) => B"
+                  }
+                }
+              ],
+              "description": "Returns the attached behavior created by `ctor`, typed as its instance, or\n`undefined` if none was created (e.g. the browser lacks that behavior).\nLooks it up by type, so it does not depend on the order of `internalsBehaviors`.",
               "inheritedFrom": {
                 "name": "BlkMixinInternalsBase",
                 "module": "src/BlkMixinInternalsBase.ts"
@@ -418,7 +505,13 @@
       "declarations": [
         {
           "kind": "variable",
-          "name": "internals"
+          "name": "internals",
+          "description": "Internal storage key used by the internals mixins.\n\nConsumers should use `element.internals` exposed by\n`BlkMixinElementInternals` or `BlkMixinFormAssociated` instead of accessing this symbol directly."
+        },
+        {
+          "kind": "variable",
+          "name": "behaviors",
+          "description": "Storage key for the behavior objects passed to `attachInternals({behaviors})`.\n\nRead behavior references from `this[behaviors]`; don't stash them from an\noverridden `createBehaviors()`. That method runs inside the base constructor, and\nsubclass class fields are initialized only *after* `super()` returns:\n\n```js\nclass Broken extends BlkMixinInternalsBase(HTMLElement) {\n  _submitBehavior; // (2) field init runs after super(): resets it to undefined\n\n  createBehaviors() {\n    this._submitBehavior = new HTMLSubmitButtonBehavior(); // (1) set during super()\n    return [this._submitBehavior];\n  }\n}\n\nclass Works extends BlkMixinInternalsBase(HTMLElement) {\n  static internalsBehaviors = [() => new HTMLSubmitButtonBehavior()];\n\n  get _submitBehavior() {\n    // `this[behaviors]` is owned by the mixin, never touched by subclass fields.\n    return this.getBehavior(HTMLSubmitButtonBehavior);\n  }\n}\n```\n\n(A TypeScript `declare _submitBehavior: X;` emits no field, so it doesn't trigger\nthis — but a plain JS field or TS field without `declare` does.)"
         },
         {
           "kind": "mixin",
@@ -441,6 +534,14 @@
               }
             },
             {
+              "kind": "field",
+              "name": "[behaviors]",
+              "type": {
+                "text": "readonly unknown[]"
+              },
+              "default": "[]"
+            },
+            {
               "kind": "method",
               "name": "createBehaviors",
               "return": {
@@ -448,6 +549,24 @@
                   "text": "readonly unknown[] | undefined"
                 }
               }
+            },
+            {
+              "kind": "method",
+              "name": "getBehavior",
+              "return": {
+                "type": {
+                  "text": "B | undefined"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "ctor",
+                  "type": {
+                    "text": "new (...args: any[]) => B"
+                  }
+                }
+              ],
+              "description": "Returns the attached behavior created by `ctor`, typed as its instance, or\n`undefined` if none was created (e.g. the browser lacks that behavior).\nLooks it up by type, so it does not depend on the order of `internalsBehaviors`."
             },
             {
               "kind": "method",
@@ -490,10 +609,78 @@
         },
         {
           "kind": "js",
+          "name": "behaviors",
+          "declaration": {
+            "name": "behaviors",
+            "module": "src/BlkMixinInternalsBase.ts"
+          }
+        },
+        {
+          "kind": "js",
           "name": "BlkMixinInternalsBase",
           "declaration": {
             "name": "BlkMixinInternalsBase",
             "module": "src/BlkMixinInternalsBase.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/_BlkMixinInternalsSimpleBase.ts",
+      "declarations": [
+        {
+          "kind": "variable",
+          "name": "internals",
+          "description": "Internal storage key used by the internals mixins.\n\nConsumers should use `element.internals` exposed by\n`BlkMixinElementInternals` or `BlkMixinFormAssociated` instead of accessing this symbol directly."
+        },
+        {
+          "kind": "mixin",
+          "description": "",
+          "name": "BlkMixinInternalsSimpleBase",
+          "members": [
+            {
+              "kind": "field",
+              "name": "[internals]",
+              "type": {
+                "text": "ElementInternals"
+              }
+            },
+            {
+              "kind": "field"
+            }
+          ],
+          "parameters": [
+            {
+              "name": "Base",
+              "type": {
+                "text": "T"
+              }
+            }
+          ],
+          "mixins": [
+            {
+              "name": "dedupeMixin",
+              "package": "@open-wc/dedupe-mixin"
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "internals",
+          "declaration": {
+            "name": "internals",
+            "module": "src/_BlkMixinInternalsSimpleBase.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "BlkMixinInternalsSimpleBase",
+          "declaration": {
+            "name": "BlkMixinInternalsSimpleBase",
+            "module": "src/_BlkMixinInternalsSimpleBase.ts"
           }
         }
       ]
@@ -532,6 +719,14 @@
           "name": "BlkMixinInternalsBase",
           "declaration": {
             "name": "BlkMixinInternalsBase",
+            "module": "./BlkMixinInternalsBase.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "behaviors",
+          "declaration": {
+            "name": "behaviors",
             "module": "./BlkMixinInternalsBase.js"
           }
         },

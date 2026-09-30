@@ -60,12 +60,14 @@ class A11ySubmitButton extends BlkMixinInternalsBase(HTMLElement) {
 
   static observedAttributes = ['name', 'value', 'formmethod'];
 
-  // Override createBehaviors() to retain a reference for later attribute sync.
-  createBehaviors() {
-    if (SubmitButtonBehaviorCtor) {
-      this._submitBehavior = new SubmitButtonBehaviorCtor();
-      return [this._submitBehavior];
-    }
+  static internalsBehaviors = SubmitButtonBehaviorCtor
+    ? [() => new SubmitButtonBehaviorCtor()]
+    : undefined;
+
+  // Look the behavior up by type for later attribute sync. Don't stash it from an
+  // overridden createBehaviors(): that runs before class-field initializers.
+  get _submitBehavior() {
+    return SubmitButtonBehaviorCtor && this.getBehavior(SubmitButtonBehaviorCtor);
   }
 
   connectedCallback() {
@@ -340,7 +342,7 @@ class A11ySubmitButtonDemo extends LitElement {
         </section>
 
         <section>
-          <h3>Advanced case: override createBehaviors()</h3>
+          <h3>Advanced case: getBehavior()</h3>
           <div class="behavior-controls">
             <p>Button attributes -> _submitBehavior</p>
             <div class="behavior-controls-grid">

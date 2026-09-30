@@ -1,6 +1,9 @@
 ![Lit](https://img.shields.io/badge/lit-3.0.0-blue.svg)
 
 ## `<blk-inline-input>`
+`<blk-input>` with its styles **replaced** (not extended) by a minimal stylesheet.
+API, form association, validation and events are inherited unchanged — this is the
+base for an inline/unstyled variant that only swaps presentation.
 
 
 ### `src/BlkInlineInput.ts`:

@@ -16,6 +16,11 @@ export const BlkFormField = (
   minLength?: number
 ) => {
   const errors = field.state.meta.isTouched && field.state.meta.errors.length > 0;
+  // Property bindings on purpose:
+  // - `errorMessageText=` would target the lowercase `errormessagetext` attribute, which
+  //   <blk-input> does not observe (its attribute is `error-message-text`).
+  // - `live()` on `invalid`: <blk-input> also flips `invalid` itself on blur from native
+  //   validity; `live` re-asserts TanStack's verdict even when it did not change.
   const errorMessage = field.state.meta.isTouched ? field.state.meta.errors.join(', ') : '';
 
   return html`
@@ -25,8 +30,8 @@ export const BlkFormField = (
       type=${type as 'text' | 'email' | 'password'}
       minlength=${minLength ?? nothing}
       .value=${live(field.state.value)}
-      ?invalid=${errors}
-      errorMessageText=${errorMessage}
+      .invalid=${live(errors)}
+      .errorMessageText=${errorMessage}
       @input=${(e: Event) => field.handleChange((e.target as HTMLInputElement).value)}
       @blur=${field.handleBlur}></blk-input>
   `;

@@ -52,12 +52,13 @@ const htmlAttributeStringConverter = {
  * and `infoMessageText`.
  */
 export class BlkInput extends BlkMixinFormAssociated(LitElement) {
-  __defaultInput?: HTMLInputElement | HTMLTextAreaElement;
-  __defaultValue = '';
-  __fromReset = false;
-  __internalIdref = '';
-  __hasInteracted = false;
-  __firstUpdateComplete = false;
+  private __defaultInput?: HTMLInputElement | HTMLTextAreaElement;
+  private __defaultValue = '';
+  private __defaultValueCaptured = false;
+  private __fromReset = false;
+  private __internalIdref = '';
+  private __hasInteracted = false;
+  private __firstUpdateComplete = false;
 
   @state()
   private __fieldsetDisabled = false;
@@ -350,7 +351,40 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
   override connectedCallback() {
     super.connectedCallback?.();
     this.internals.role = 'none';
-    this.__defaultValue = this.value;
+    // Capture the reset value once: re-capturing on every connect would turn user input
+    // into the default whenever the element is moved in the DOM.
+    if (!this.__defaultValueCaptured) {
+      this.__defaultValue = this.value;
+      this.__defaultValueCaptured = true;
+    }
+  }
+
+  /**
+   * `aria-label` is not a reactive property (it is the host's native ARIA reflection),
+   * but `labelText` forwards it to the inner control, so observe it to re-render.
+   */
+  static override get observedAttributes() {
+    return [...super.observedAttributes, 'aria-label'];
+  }
+
+  override attributeChangedCallback(name: string, old: string | null, value: string | null) {
+    super.attributeChangedCallback(name, old, value);
+    // Like a native <input>, the `value` content attribute is the default (reset) value.
+    if (name === 'value') {
+      this.__defaultValue = value ?? '';
+    }
+    if (name === 'aria-label') {
+      this.requestUpdate();
+    }
+  }
+
+  override willUpdate(props: PropertyValues<this>) {
+    super.willUpdate(props);
+    // formDisabledCallback() does not fire when the host's own `disabled` toggles while an
+    // ancestor fieldset keeps the combined state unchanged — recompute the fieldset part.
+    if (props.has('disabled')) {
+      this.__fieldsetDisabled = this.isFieldsetDisabled;
+    }
   }
 
   override update(props: PropertyValues<this>) {
@@ -488,11 +522,10 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
         @compositionstart="${this._redispatchEvent}"
         @compositionend="${this._redispatchEvent}"
         @input="${this._onInput}"
-        @focus="${this._redispatchEvent}"
         @blur="${this._onBlur}"
         @keydown="${this._onKeydown}"
         @select="${this._redispatchEvent}"
-        ${ref((textarea) => (this.__defaultInput = textarea as HTMLTextAreaElement))}></textarea>
+        ${ref(this._controlRef)}></textarea>
     `;
   }
 
@@ -533,19 +566,26 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
         @compositionstart="${this._redispatchEvent}"
         @compositionend="${this._redispatchEvent}"
         @input="${this._onInput}"
-        @focus="${this._redispatchEvent}"
         @blur="${this._onBlur}"
         @keydown="${this._onKeydown}"
         @select="${this._redispatchEvent}"
-        ${ref((input) => (this.__defaultInput = input as HTMLInputElement))} />
+        ${ref(this._controlRef)} />
     `;
   }
 
-  formDisabledCallback(disabled: boolean) {
-    // Toggling the fieldset's `disabled` property will cause this callback to run.
-    if (!this.disabled) {
-      this.__fieldsetDisabled = disabled;
-    }
+  /**
+   * Stable callback shared by the input and textarea templates. A new arrow per render
+   * makes Lit call the old one with `undefined` after the new one ran, which left
+   * `__defaultInput` empty when `type` switched between input and textarea.
+   */
+  private _controlRef = (control?: Element) => {
+    this.__defaultInput = control as HTMLInputElement | HTMLTextAreaElement | undefined;
+  };
+
+  formDisabledCallback() {
+    // The argument is the *combined* state (own attribute OR fieldset), so derive only the
+    // fieldset part from the DOM. See also willUpdate().
+    this.__fieldsetDisabled = this.isFieldsetDisabled;
   }
 
   formResetCallback() {
@@ -578,7 +618,7 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
       return;
     }
 
-    this.setValidity(input.validity, this.errorMessageText ?? input.validationMessage, input);
+    this.setValidity(input.validity, this.errorMessageText || input.validationMessage, input);
   }
 
   private _shouldSyncFormState(props: PropertyValues<this>) {
@@ -594,9 +634,16 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
       'minLength',
       'maxLength',
       'multiple',
+      'step',
+      // readonly / disabled bar the control from constraint validation.
+      'readOnly',
+      'disabled',
     ] as const satisfies readonly (keyof BlkInput)[];
 
-    return keys.some((prop) => props.has(prop));
+    return (
+      keys.some((prop) => props.has(prop)) ||
+      (props as Map<PropertyKey, unknown>).has('__fieldsetDisabled')
+    );
   }
 
   /**
@@ -616,6 +663,7 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
   private _onKeydown(ev: KeyboardEvent) {
     const {key, target} = ev;
     if (
+      ev.isComposing ||
       ['Tab', 'Shift', 'Meta', 'Alt', 'Control'].includes(key) ||
       (target as HTMLElement).tagName === 'TEXTAREA'
     ) {
@@ -626,8 +674,34 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
 
     switch (key) {
       case 'Enter':
-        this.requestSubmit(null);
+        this._implicitSubmit();
     }
+  }
+
+  /**
+   * The inner control lives in the shadow tree, so the browser's implicit submission
+   * never reaches the owner form. Emulate it per spec: activate the form's default
+   * button (keeping it as the `submitter`, with its `formaction`/`name`/`value`),
+   * do nothing if that button is disabled, and fall back to `requestSubmit()`.
+   * https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#implicit-submission
+   */
+  private _implicitSubmit() {
+    const form = this.form;
+    if (!form) {
+      return;
+    }
+    const defaultButton = Array.from(form.elements).find(
+      (el): el is HTMLButtonElement | HTMLInputElement =>
+        (el instanceof HTMLButtonElement && el.type === 'submit') ||
+        (el instanceof HTMLInputElement && (el.type === 'submit' || el.type === 'image'))
+    );
+    if (defaultButton) {
+      if (!defaultButton.matches(':disabled')) {
+        defaultButton.click();
+      }
+      return;
+    }
+    this.requestSubmit(null);
   }
 
   private _onInput({target}: Event) {
@@ -636,12 +710,13 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
     this._markAsInteracted();
   }
 
-  private _onBlur(ev: Event) {
+  // `focus`/`blur` are composed, so the native events already reach the host
+  // (retargeted) — re-dispatching them would fire each one twice.
+  private _onBlur() {
     const input = this.__defaultInput;
     if (input && this.__hasInteracted) {
       this.invalid = !input.validity.valid;
     }
-    this._redispatchEvent(ev);
   }
 
   private _onChange(ev: Event | string) {

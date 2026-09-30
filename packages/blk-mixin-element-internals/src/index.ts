@@ -5,6 +5,7 @@ export {
 } from './BlkMixinElementInternals.js';
 export {
   BlkMixinInternalsBase,
+  behaviors,
   internals,
   type BehaviorCreator,
   type InternalsBaseHost,

@@ -275,10 +275,10 @@ export class BlkControlSSR extends BlkMixinFormAssociated(LitElement) {
   `;
 
   /** The native control backing this element (acquired from the slot). */
-  __defaultInput: HTMLInputElement | null = null;
-  __root?: Document | ShadowRoot;
+  private __defaultInput: HTMLInputElement | null = null;
+  private __root?: Document | ShadowRoot;
   /** "Touched" gate so errors show only after interaction / a submit attempt. */
-  __hasInteracted = false;
+  private __hasInteracted = false;
 
   // `change` is handled on the root (to also catch deselected radio siblings). These are
   // the events that don't surface there: focus/blur for the focus ring, invalid for touched.
