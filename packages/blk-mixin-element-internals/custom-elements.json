@@ -232,7 +232,7 @@
               "type": {
                 "text": "boolean"
               },
-              "description": "Whether the shadow root forwards IDREF references to an inner element\n(experimental `referenceTarget`). Always `false` where unsupported.",
+              "description": "Whether the shadow root forwards IDREF references to an inner element\n(experimental `referenceTarget`). Always `false` where unsupported.\n\nTrue as soon as `referenceTarget` is set, even before the target element exists:\nthe IDREF resolves lazily. Subclasses rely on this to set it in `willUpdate` so the\nfirst render already skips copying label text (see BlkInputReferenceTarget).",
               "readonly": true
             },
             {

@@ -74,6 +74,30 @@ suite('BlkInputReferenceTarget', () => {
   });
 
   suite.skipIf(!supportsReferenceTarget)('with referenceTarget support', () => {
+    test('targets the control from the first render, without a second update', async () => {
+      class CountingReferenceTarget extends BlkInputReferenceTarget {
+        updates = 0;
+        override updated(props: Parameters<BlkInputReferenceTarget['updated']>[0]) {
+          super.updated(props);
+          this.updates++;
+        }
+      }
+      customElements.define('counting-reference-target', CountingReferenceTarget);
+
+      const form = await fixture<HTMLFormElement>(html`
+        <form>
+          <label for="rt">Name</label>
+          <counting-reference-target id="rt" required></counting-reference-target>
+        </form>
+      `);
+      const el = form.querySelector<CountingReferenceTarget>('counting-reference-target')!;
+      await el.updateComplete;
+
+      assert.equal(el.updates, 1);
+      assert.isFalse(el.nativeControl!.hasAttribute('aria-label'));
+      assert.equal(referenceTargetOf(el), el.nativeControl!.id);
+    });
+
     test('targets the inner control, using the fallback id when there is no label', async () => {
       const {el} = await setup();
       assert.equal(el.nativeControl!.id, BlkInputReferenceTarget.fallbackControlId);

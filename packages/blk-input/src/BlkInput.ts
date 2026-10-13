@@ -329,6 +329,14 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
   }
 
   /**
+   * Id rendered on the inner control. Known before render, so subclasses can point
+   * references at it (e.g. `referenceTarget`) without waiting for the DOM.
+   */
+  get _controlId(): string | undefined {
+    return this.label ? this.__internalIdref : undefined;
+  }
+
+  /**
    * Returns true if the user has interacted.
    * Interaction is detected through typing, key presses, or a committed change.
    */
@@ -507,7 +515,7 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
       <textarea
         class="input-textarea textarea"
         aria-label="${this.labelText || nothing}"
-        id="${this.label ? this.__internalIdref : nothing}"
+        id="${this._controlId ?? nothing}"
         aria-invalid="${this.invalid ? 'true' : nothing}"
         aria-describedby="${this._describedBy}"
         aria-errormessage="${this._hasVisibleErrorMessage ? 'error-message-text' : nothing}"
@@ -540,7 +548,7 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
       <input
         class="input-textarea input"
         aria-label="${this.labelText || nothing}"
-        id="${this.label ? this.__internalIdref : nothing}"
+        id="${this._controlId ?? nothing}"
         aria-invalid="${this.invalid ? 'true' : nothing}"
         aria-describedby="${this._describedBy}"
         aria-errormessage="${this._hasVisibleErrorMessage ? 'error-message-text' : nothing}"

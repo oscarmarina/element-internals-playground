@@ -23,32 +23,23 @@ export class BlkInputReferenceTarget extends BlkInput {
    */
   static readonly fallbackControlId = 'control';
 
-  override updated(props: PropertyValues<this>) {
-    super.updated(props);
-    const wasTargeting = this.hasReferenceTarget;
-    this._syncReferenceTarget();
-    // The first render ran before the target existed: labels resolved to the host and
-    // `labelText` copied them into `aria-label`. Re-render once now that it is targeting.
-    if (!wasTargeting && this.hasReferenceTarget) {
-      this.requestUpdate();
-    }
+  override get _controlId(): string {
+    return super._controlId ?? BlkInputReferenceTarget.fallbackControlId;
   }
 
   /**
-   * Points the shadow root at the live inner control. It is re-run after every update
-   * because the control's id changes with `label`, and `type="textarea"` swaps the element.
+   * Points the shadow root at the control's id *before* rendering. `referenceTarget` is
+   * an IDREF resolved lazily, so it can name an element that doesn't exist yet: the first
+   * render already sees `hasReferenceTarget` and `labelText` never copies the label text.
+   * The id changes with `label`; `type="textarea"` swaps the element but keeps the id.
    */
-  private _syncReferenceTarget() {
+  override willUpdate(props: PropertyValues<this>) {
+    super.willUpdate(props);
     const root = this.shadowRoot as ShadowRootWithReferenceTarget | null;
-    const control = this.nativeControl;
     // Feature-detect on the instance: assigning on an unsupported engine would just create
     // an expando and make `hasReferenceTarget` report a false positive.
-    if (!root || !control || !('referenceTarget' in root)) {
-      return;
-    }
-    control.id ||= BlkInputReferenceTarget.fallbackControlId;
-    if (root.referenceTarget !== control.id) {
-      root.referenceTarget = control.id;
+    if (root && 'referenceTarget' in root && root.referenceTarget !== this._controlId) {
+      root.referenceTarget = this._controlId;
     }
   }
 }

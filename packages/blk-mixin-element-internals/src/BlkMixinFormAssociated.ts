@@ -82,6 +82,10 @@ const FormAssociatedBase = <T extends CustomElementConstructor>(
     /**
      * Whether the shadow root forwards IDREF references to an inner element
      * (experimental `referenceTarget`). Always `false` where unsupported.
+     *
+     * True as soon as `referenceTarget` is set, even before the target element exists:
+     * the IDREF resolves lazily. Subclasses rely on this to set it in `willUpdate` so the
+     * first render already skips copying label text (see BlkInputReferenceTarget).
      */
     get hasReferenceTarget(): boolean {
       return Boolean(

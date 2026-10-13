@@ -401,6 +401,15 @@
             },
             {
               "kind": "field",
+              "name": "_controlId",
+              "type": {
+                "text": "string | undefined"
+              },
+              "description": "Id rendered on the inner control. Known before render, so subclasses can point\nreferences at it (e.g. `referenceTarget`) without waiting for the DOM.",
+              "readonly": true
+            },
+            {
+              "kind": "field",
               "name": "touched",
               "type": {
                 "text": "boolean"
@@ -904,10 +913,17 @@
               "description": "Id given to the inner control when `<blk-input>` renders it without one (no `label`),\nso there is always something to target. Ids are scoped to the shadow root."
             },
             {
-              "kind": "method",
-              "name": "_syncReferenceTarget",
-              "privacy": "private",
-              "description": "Points the shadow root at the live inner control. It is re-run after every update\nbecause the control's id changes with `label`, and `type=\"textarea\"` swaps the element."
+              "kind": "field",
+              "name": "_controlId",
+              "type": {
+                "text": "string | undefined"
+              },
+              "description": "Id rendered on the inner control. Known before render, so subclasses can point\nreferences at it (e.g. `referenceTarget`) without waiting for the DOM.",
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "BlkInput",
+                "module": "src/BlkInput.ts"
+              }
             },
             {
               "kind": "field",
