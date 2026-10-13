@@ -58,6 +58,12 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
   private __fromReset = false;
   private __internalIdref = '';
   private __hasInteracted = false;
+  /**
+   * Mirrors the native "user validity" flag behind `:user-invalid`: set by a committed
+   * value change or a submission attempt, cleared on reset. Unlike `touched`, key presses
+   * that don't edit the value (arrows, Escape…) don't set it.
+   */
+  private __userValidity = false;
   private __firstUpdateComplete = false;
 
   @state()
@@ -324,7 +330,7 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
 
   /**
    * Returns true if the user has interacted.
-   * Interaction is detected through typing, key presses, or losing focus.
+   * Interaction is detected through typing, key presses, or a committed change.
    */
   get touched(): boolean {
     return this.__hasInteracted;
@@ -595,6 +601,7 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
     this.invalid = false;
     this.__fromReset = resetRequiresValueUpdate;
     this.__hasInteracted = false;
+    this.__userValidity = false;
   }
 
   formStateRestoreCallback(state: File | string | FormData | null) {
@@ -708,24 +715,27 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
     const newValue = (target as HTMLInputElement).value;
     this.value = newValue;
     this._markAsInteracted();
+    this.__userValidity = true;
   }
 
   // `focus`/`blur` are composed, so the native events already reach the host
   // (retargeted) — re-dispatching them would fire each one twice.
   private _onBlur() {
     const input = this.__defaultInput;
-    if (input && this.__hasInteracted) {
+    if (input && this.__userValidity) {
       this.invalid = !input.validity.valid;
     }
   }
 
   private _onChange(ev: Event | string) {
     this._markAsInteracted();
+    this.__userValidity = true;
     redispatchEvent(this, ev);
   }
 
   private _onInvalid() {
     this.__hasInteracted = true;
+    this.__userValidity = true;
     this.invalid = true;
   }
 }

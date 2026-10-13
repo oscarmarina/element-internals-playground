@@ -205,6 +205,46 @@ suite('BlkInput', () => {
       // Error should be visible now!
       assert.isTrue(el.invalid);
     });
+
+    test('should not show invalid state when the user only tabs through an empty required field', async () => {
+      el = await fixture(
+        html`<blk-input required label="Name" error-message-text="Required"></blk-input>`
+      );
+      const input = el.nativeControl as HTMLInputElement;
+
+      // Focus in and out without typing: like native :user-invalid, this is not an interaction
+      input.dispatchEvent(new Event('focus'));
+      input.dispatchEvent(new Event('blur', {bubbles: true}));
+      await el.updateComplete;
+
+      assert.isFalse(el.invalid);
+      assert.isFalse(el.touched);
+      assert.isNull(input.getAttribute('aria-invalid'));
+      assert.isNull(input.getAttribute('aria-errormessage'));
+      assert.equal(
+        el.shadowRoot!.querySelector('.error-message-text')?.textContent?.trim() ?? '',
+        ''
+      );
+    });
+
+    test('should not show invalid state when non-editing keys are pressed before blur', async () => {
+      el = await fixture(
+        html`<blk-input required label="Name" error-message-text="Required"></blk-input>`
+      );
+      const input = el.nativeControl as HTMLInputElement;
+
+      // Navigation keys don't change the value: like native :user-invalid, no committed change
+      for (const key of ['ArrowLeft', 'Escape', 'Home']) {
+        input.dispatchEvent(
+          new KeyboardEvent('keydown', {key, bubbles: true, composed: true, cancelable: true})
+        );
+      }
+      input.dispatchEvent(new Event('blur', {bubbles: true}));
+      await el.updateComplete;
+
+      assert.isFalse(el.invalid);
+      assert.isNull(input.getAttribute('aria-invalid'));
+    });
   });
 
   suite('Validation and Messages', () => {

@@ -66,6 +66,16 @@
             },
             {
               "kind": "field",
+              "name": "__userValidity",
+              "type": {
+                "text": "boolean"
+              },
+              "privacy": "private",
+              "default": "false",
+              "description": "Mirrors the native \"user validity\" flag behind `:user-invalid`: set by a committed\nvalue change or a submission attempt, cleared on reset. Unlike `touched`, key presses\nthat don't edit the value (arrows, Escape…) don't set it."
+            },
+            {
+              "kind": "field",
               "name": "__firstUpdateComplete",
               "type": {
                 "text": "boolean"
@@ -395,7 +405,7 @@
               "type": {
                 "text": "boolean"
               },
-              "description": "Returns true if the user has interacted.\nInteraction is detected through typing, key presses, or losing focus.",
+              "description": "Returns true if the user has interacted.\nInteraction is detected through typing, key presses, or a committed change.",
               "readonly": true
             },
             {
@@ -978,6 +988,20 @@
             },
             {
               "kind": "field",
+              "name": "__userValidity",
+              "type": {
+                "text": "boolean"
+              },
+              "privacy": "private",
+              "default": "false",
+              "description": "Mirrors the native \"user validity\" flag behind `:user-invalid`: set by a committed\nvalue change or a submission attempt, cleared on reset. Unlike `touched`, key presses\nthat don't edit the value (arrows, Escape…) don't set it.",
+              "inheritedFrom": {
+                "name": "BlkInput",
+                "module": "src/BlkInput.ts"
+              }
+            },
+            {
+              "kind": "field",
               "name": "__firstUpdateComplete",
               "type": {
                 "text": "boolean"
@@ -1443,7 +1467,7 @@
               "type": {
                 "text": "boolean"
               },
-              "description": "Returns true if the user has interacted.\nInteraction is detected through typing, key presses, or losing focus.",
+              "description": "Returns true if the user has interacted.\nInteraction is detected through typing, key presses, or a committed change.",
               "readonly": true,
               "inheritedFrom": {
                 "name": "BlkInput",
