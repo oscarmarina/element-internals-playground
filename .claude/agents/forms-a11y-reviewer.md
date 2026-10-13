@@ -24,7 +24,7 @@ Ignore style, naming and anything a linter or axe already reports.
 
 ## Accepted decisions — do not report
 
-- External `<label>` text is copied into the inner `aria-label` at render time. If the label text changes or a label is added after render, the name is stale until the next render. Known and accepted; a sync via `ariaLabelledByElements` was tried and rejected.
+- Where supported, the control references its associated labels via `ariaLabelledByElements`, set once when the control is created (and again when the host `aria-label` changes); while it does, no `aria-label` is rendered. Translating a label's text updates the name live. Without support, label text is copied into `aria-label` at render time. Labels added, removed or re-associated after creation are not observed — accepted, out of scope (a label associated later falls back to the copied text on the next render). Do not propose MutationObservers or per-update sync for this.
 - After the error is shown, it clears as soon as the value is valid but only reappears on blur ("reward early, punish late") — intentional, avoids `role="alert"` firing on every keystroke.
 - `checkValidity()` showing the error (it fires `invalid`) is intentional, for `novalidate` + manual validation flows.
 

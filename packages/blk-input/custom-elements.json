@@ -8,7 +8,7 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "![Lit](https://img.shields.io/badge/lit-3.0.0-blue.svg)\n\n## `<blk-input>`\nA form-associated custom element that renders a native `<input>` or `<textarea>`\n(via `type=\"textarea\"`), delegating constraint validation, form participation,\nand reset/state-restore to the browser through `ElementInternals`. It mirrors\nnative input semantics (label association, validity, disabled/readonly state)\nwhile adding a configurable info/error message area driven by `errorMessageText`\nand `infoMessageText`.",
+          "description": "![Lit](https://img.shields.io/badge/lit-3.0.0-blue.svg)\n\n## `<blk-input>`\nA form-associated custom element that renders a native `<input>` or `<textarea>`\n(via `type=\"textarea\"`), delegating constraint validation, form participation,\nand reset/state-restore to the browser through `ElementInternals`. It mirrors\nnative input semantics (label association, validity, disabled/readonly state)\nwhile adding a configurable info/error message area driven by `errorMessageText`\nand `infoMessageText`.\n\nWhere supported, the internal control references its associated labels directly, so\ntranslating the text of a label updates the accessible name without a render. The\nreferences are set when the internal control is created; label-set changes are not\nobserved.",
           "name": "BlkInput",
           "members": [
             {
@@ -477,6 +477,28 @@
               "name": "_controlRef",
               "privacy": "private",
               "description": "Stable callback shared by the input and textarea templates. A new arrow per render\nmakes Lit call the old one with `undefined` after the new one ran, which left\n`__defaultInput` empty when `type` switched between input and textarea."
+            },
+            {
+              "kind": "method",
+              "name": "_syncLabelReferences",
+              "privacy": "private",
+              "description": "Where supported, points the inner control at its associated `<label>` elements, so\ntranslating a label's text updates the accessible name without a render. Set when\nthe control is created; changes to *which* labels are associated are not observed."
+            },
+            {
+              "kind": "field",
+              "name": "_canReferenceLabels",
+              "type": {
+                "text": "boolean"
+              },
+              "privacy": "private",
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "_controlAriaLabel",
+              "privacy": "private",
+              "description": "No `aria-label` while the control references its labels. Before the control exists\n(first render) it will reference them if it can; afterwards, only if it actually does,\nso a label associated later still falls back to the copied text.",
+              "readonly": true
             },
             {
               "kind": "method",
@@ -1594,6 +1616,40 @@
               "name": "_controlRef",
               "privacy": "private",
               "description": "Stable callback shared by the input and textarea templates. A new arrow per render\nmakes Lit call the old one with `undefined` after the new one ran, which left\n`__defaultInput` empty when `type` switched between input and textarea.",
+              "inheritedFrom": {
+                "name": "BlkInput",
+                "module": "src/BlkInput.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_syncLabelReferences",
+              "privacy": "private",
+              "description": "Where supported, points the inner control at its associated `<label>` elements, so\ntranslating a label's text updates the accessible name without a render. Set when\nthe control is created; changes to *which* labels are associated are not observed.",
+              "inheritedFrom": {
+                "name": "BlkInput",
+                "module": "src/BlkInput.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_canReferenceLabels",
+              "type": {
+                "text": "boolean"
+              },
+              "privacy": "private",
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "BlkInput",
+                "module": "src/BlkInput.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_controlAriaLabel",
+              "privacy": "private",
+              "description": "No `aria-label` while the control references its labels. Before the control exists\n(first render) it will reference them if it can; afterwards, only if it actually does,\nso a label associated later still falls back to the copied text.",
+              "readonly": true,
               "inheritedFrom": {
                 "name": "BlkInput",
                 "module": "src/BlkInput.ts"

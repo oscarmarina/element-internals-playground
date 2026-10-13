@@ -8,6 +8,8 @@ import '../src/define/blk-input.js';
 
 chai.use(chaiA11yAxe);
 
+const supportsAriaLabelledByElements = 'ariaLabelledByElements' in Element.prototype;
+
 const getElementState = (element: HTMLElement, matchesStr: string) => {
   return element?.matches(matchesStr) ?? false;
 };
@@ -70,6 +72,58 @@ suite('BlkInput', () => {
       el = await fixture(html`<blk-input label="Email"></blk-input>`);
       const input = el.nativeControl as HTMLInputElement;
       assert.isFalse(input.hasAttribute('aria-label'));
+    });
+
+    suite.skipIf(!supportsAriaLabelledByElements)('label references', () => {
+      test('should reference the associated label instead of copying its text', async () => {
+        const root = await fixture(
+          html`<div>
+            <label for="translated">Name</label>
+            <blk-input id="translated"></blk-input>
+          </div>`
+        );
+        el = root.querySelector('blk-input')!;
+        const input = el.nativeControl as HTMLInputElement;
+        const label = root.querySelector('label')!;
+        assert.deepEqual(input.ariaLabelledByElements, [label]);
+        assert.isFalse(input.hasAttribute('aria-label'));
+      });
+
+      test('should let a host aria-label take precedence when it is set and removed', async () => {
+        const root = await fixture(
+          html`<div>
+            <label for="precedence">Name</label>
+            <blk-input id="precedence"></blk-input>
+          </div>`
+        );
+        el = root.querySelector('blk-input')!;
+        const input = el.nativeControl as HTMLInputElement;
+        const label = root.querySelector('label')!;
+
+        el.setAttribute('aria-label', 'Explicit');
+        await el.updateComplete;
+        assert.isNull(input.ariaLabelledByElements);
+        assert.equal(input.getAttribute('aria-label'), 'Explicit');
+
+        el.removeAttribute('aria-label');
+        await el.updateComplete;
+        assert.deepEqual(input.ariaLabelledByElements, [label]);
+        assert.isFalse(input.hasAttribute('aria-label'));
+      });
+
+      test('should fall back to copying a label associated after the control was created', async () => {
+        const root = await fixture(html`<div><blk-input id="late"></blk-input></div>`);
+        el = root.querySelector('blk-input')!;
+        const label = Object.assign(document.createElement('label'), {
+          htmlFor: 'late',
+          textContent: 'Name',
+        });
+        root.prepend(label);
+        el.requestUpdate();
+        await el.updateComplete;
+
+        assert.equal(el.nativeControl!.getAttribute('aria-label'), 'Name');
+      });
     });
   });
 

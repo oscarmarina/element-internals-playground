@@ -30,6 +30,9 @@ const htmlAttributeStringConverter = {
   },
 };
 
+const supportsAriaLabelledByElements =
+  typeof Element !== 'undefined' && 'ariaLabelledByElements' in Element.prototype;
+
 // https://github.com/ionic-team/ionic-framework/blob/main/core/src/components/input/input.tsx#L373
 // https://github.com/Esri/calcite-design-system/blob/dev/packages/calcite-components/src/components/input/input.tsx
 // https://github.com/material-components/material-web/blob/main/textfield/internal/text-field.ts
@@ -50,6 +53,11 @@ const htmlAttributeStringConverter = {
  * native input semantics (label association, validity, disabled/readonly state)
  * while adding a configurable info/error message area driven by `errorMessageText`
  * and `infoMessageText`.
+ *
+ * Where supported, the internal control references its associated labels directly, so
+ * translating the text of a label updates the accessible name without a render. The
+ * references are set when the internal control is created; label-set changes are not
+ * observed.
  */
 export class BlkInput extends BlkMixinFormAssociated(LitElement) {
   private __defaultInput?: HTMLInputElement | HTMLTextAreaElement;
@@ -388,6 +396,7 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
       this.__defaultValue = value ?? '';
     }
     if (name === 'aria-label') {
+      this._syncLabelReferences();
       this.requestUpdate();
     }
   }
@@ -514,7 +523,7 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
     return html`
       <textarea
         class="input-textarea textarea"
-        aria-label="${this.labelText || nothing}"
+        aria-label="${this._controlAriaLabel}"
         id="${this._controlId ?? nothing}"
         aria-invalid="${this.invalid ? 'true' : nothing}"
         aria-describedby="${this._describedBy}"
@@ -547,7 +556,7 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
     return html`
       <input
         class="input-textarea input"
-        aria-label="${this.labelText || nothing}"
+        aria-label="${this._controlAriaLabel}"
         id="${this._controlId ?? nothing}"
         aria-invalid="${this.invalid ? 'true' : nothing}"
         aria-describedby="${this._describedBy}"
@@ -594,7 +603,46 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
    */
   private _controlRef = (control?: Element) => {
     this.__defaultInput = control as HTMLInputElement | HTMLTextAreaElement | undefined;
+    this._syncLabelReferences();
   };
+
+  /**
+   * Where supported, points the inner control at its associated `<label>` elements, so
+   * translating a label's text updates the accessible name without a render. Set when
+   * the control is created; changes to *which* labels are associated are not observed.
+   */
+  private _syncLabelReferences() {
+    const control = this.__defaultInput;
+    if (!control || !supportsAriaLabelledByElements) {
+      return;
+    }
+    control.ariaLabelledByElements = this._canReferenceLabels
+      ? Array.from(this.labels as NodeListOf<HTMLElement>)
+      : null;
+  }
+
+  private get _canReferenceLabels(): boolean {
+    return Boolean(
+      supportsAriaLabelledByElements &&
+      !this.hasReferenceTarget &&
+      !this.ariaLabel &&
+      !this.internals.ariaLabel &&
+      this.labels.length
+    );
+  }
+
+  /**
+   * No `aria-label` while the control references its labels. Before the control exists
+   * (first render) it will reference them if it can; afterwards, only if it actually does,
+   * so a label associated later still falls back to the copied text.
+   */
+  private get _controlAriaLabel() {
+    const control = this.__defaultInput;
+    const referencing = control
+      ? Boolean(control.ariaLabelledByElements?.length)
+      : this._canReferenceLabels;
+    return referencing ? nothing : this.labelText || nothing;
+  }
 
   formDisabledCallback() {
     // The argument is the *combined* state (own attribute OR fieldset), so derive only the

@@ -151,9 +151,10 @@ suite('BlkInputReferenceTarget', () => {
       assert.notProperty(el.shadowRoot!, 'referenceTarget');
     });
 
-    test('falls back to forwarding the label text as aria-label', async () => {
-      const {el} = await setup();
-      assert.equal(el.nativeControl!.getAttribute('aria-label'), 'Name');
+    test('falls back to BlkInput: the inner control references the outside label', async () => {
+      const {el, label} = await setup();
+      assert.deepEqual(el.nativeControl!.ariaLabelledByElements, [label]);
+      assert.isFalse(el.nativeControl!.hasAttribute('aria-label'));
     });
   });
 });
