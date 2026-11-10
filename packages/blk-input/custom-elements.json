@@ -10,6 +10,88 @@
           "kind": "class",
           "description": "![Lit](https://img.shields.io/badge/lit-3.0.0-blue.svg)\n\n## `<blk-input>`\nA form-associated custom element that renders a native `<input>` or `<textarea>`\n(via `type=\"textarea\"`), delegating constraint validation, form participation,\nand reset/state-restore to the browser through `ElementInternals`. It mirrors\nnative input semantics (label association, validity, disabled/readonly state)\nwhile adding a configurable info/error message area driven by `errorMessageText`\nand `infoMessageText`.\n\nWhere supported, the internal control references its associated labels directly, so\ntranslating the text of a label updates the accessible name without a render. The\nreferences are set when the internal control is created; label-set changes are not\nobserved.",
           "name": "BlkInput",
+          "cssProperties": [
+            {
+              "description": "Background of the field.",
+              "name": "--input-element-filled-color",
+              "default": "#f9f9f9"
+            },
+            {
+              "description": "Text color of the value.",
+              "name": "--input-element-content-color",
+              "default": "#1d1b20"
+            },
+            {
+              "description": "Border color of the field.",
+              "name": "--input-element-outline-color",
+              "default": "#79747e"
+            },
+            {
+              "description": "Border color on hover.",
+              "name": "--input-element-hover-outline-color",
+              "default": "fieldtext"
+            },
+            {
+              "description": "Border color while focused.",
+              "name": "--input-element-focus-outline-color",
+              "default": "#007ac2"
+            },
+            {
+              "description": "Label color.",
+              "name": "--input-element-label-text-color",
+              "default": "#49454f"
+            },
+            {
+              "description": "Label color while focused.",
+              "name": "--input-element-focus--label-text-color",
+              "default": "#007ac2"
+            },
+            {
+              "description": "Info message color.",
+              "name": "--input-element-info-message-text-color",
+              "default": "#1d1b20"
+            },
+            {
+              "description": "Text color when invalid.",
+              "name": "--input-element-error-content-color",
+              "default": "#d83020"
+            },
+            {
+              "description": "Border color when invalid.",
+              "name": "--input-element-error-outline-color",
+              "default": "#d83020"
+            },
+            {
+              "description": "Label color when invalid.",
+              "name": "--input-element-error-label-text-color",
+              "default": "#d83020"
+            },
+            {
+              "description": "Error message color.",
+              "name": "--input-element-error-message-text-color",
+              "default": "#d83020"
+            },
+            {
+              "description": "Opacity when disabled.",
+              "name": "--input-element-disabled-content-opacity",
+              "default": "0.38"
+            },
+            {
+              "description": "Space above the value (room for the label).",
+              "name": "--input-element-top-space",
+              "default": "1.375em"
+            },
+            {
+              "description": "Space around the value.",
+              "name": "--input-element-around-space",
+              "default": "0.375em"
+            },
+            {
+              "description": "Transition of the label and border.",
+              "name": "--input-element-content-animation",
+              "default": "125ms cubic-bezier(0.45, 0.05, 0.55, 0.95)"
+            }
+          ],
           "members": [
             {
               "kind": "field",
@@ -633,6 +715,30 @@
               "type": {
                 "text": "BlkFormValidationEvent"
               }
+            },
+            {
+              "description": "The native `change` of the inner control, re-dispatched from the host.",
+              "name": "change"
+            },
+            {
+              "description": "The native `input` of the inner control (composed, so it reaches the host).",
+              "name": "input"
+            },
+            {
+              "description": "The native `select` of the inner control, re-dispatched from the host.",
+              "name": "select"
+            },
+            {
+              "description": "The native `compositionstart`, re-dispatched from the host.",
+              "name": "compositionstart"
+            },
+            {
+              "description": "The native `compositionend`, re-dispatched from the host.",
+              "name": "compositionend"
+            },
+            {
+              "description": "{@link BlkFormValidationEvent}, carrying the current `ValidityState`. Fires when a validity-affecting property changes, not on form reset.",
+              "name": "validation"
             }
           ],
           "attributes": [
@@ -1841,6 +1947,152 @@
           },
           "tagName": "blk-input-reference-target",
           "customElement": true,
+          "cssProperties": [
+            {
+              "description": "Background of the field.",
+              "name": "--input-element-filled-color",
+              "default": "#f9f9f9",
+              "inheritedFrom": {
+                "name": "BlkInput",
+                "module": "src/BlkInput.ts"
+              }
+            },
+            {
+              "description": "Text color of the value.",
+              "name": "--input-element-content-color",
+              "default": "#1d1b20",
+              "inheritedFrom": {
+                "name": "BlkInput",
+                "module": "src/BlkInput.ts"
+              }
+            },
+            {
+              "description": "Border color of the field.",
+              "name": "--input-element-outline-color",
+              "default": "#79747e",
+              "inheritedFrom": {
+                "name": "BlkInput",
+                "module": "src/BlkInput.ts"
+              }
+            },
+            {
+              "description": "Border color on hover.",
+              "name": "--input-element-hover-outline-color",
+              "default": "fieldtext",
+              "inheritedFrom": {
+                "name": "BlkInput",
+                "module": "src/BlkInput.ts"
+              }
+            },
+            {
+              "description": "Border color while focused.",
+              "name": "--input-element-focus-outline-color",
+              "default": "#007ac2",
+              "inheritedFrom": {
+                "name": "BlkInput",
+                "module": "src/BlkInput.ts"
+              }
+            },
+            {
+              "description": "Label color.",
+              "name": "--input-element-label-text-color",
+              "default": "#49454f",
+              "inheritedFrom": {
+                "name": "BlkInput",
+                "module": "src/BlkInput.ts"
+              }
+            },
+            {
+              "description": "Label color while focused.",
+              "name": "--input-element-focus--label-text-color",
+              "default": "#007ac2",
+              "inheritedFrom": {
+                "name": "BlkInput",
+                "module": "src/BlkInput.ts"
+              }
+            },
+            {
+              "description": "Info message color.",
+              "name": "--input-element-info-message-text-color",
+              "default": "#1d1b20",
+              "inheritedFrom": {
+                "name": "BlkInput",
+                "module": "src/BlkInput.ts"
+              }
+            },
+            {
+              "description": "Text color when invalid.",
+              "name": "--input-element-error-content-color",
+              "default": "#d83020",
+              "inheritedFrom": {
+                "name": "BlkInput",
+                "module": "src/BlkInput.ts"
+              }
+            },
+            {
+              "description": "Border color when invalid.",
+              "name": "--input-element-error-outline-color",
+              "default": "#d83020",
+              "inheritedFrom": {
+                "name": "BlkInput",
+                "module": "src/BlkInput.ts"
+              }
+            },
+            {
+              "description": "Label color when invalid.",
+              "name": "--input-element-error-label-text-color",
+              "default": "#d83020",
+              "inheritedFrom": {
+                "name": "BlkInput",
+                "module": "src/BlkInput.ts"
+              }
+            },
+            {
+              "description": "Error message color.",
+              "name": "--input-element-error-message-text-color",
+              "default": "#d83020",
+              "inheritedFrom": {
+                "name": "BlkInput",
+                "module": "src/BlkInput.ts"
+              }
+            },
+            {
+              "description": "Opacity when disabled.",
+              "name": "--input-element-disabled-content-opacity",
+              "default": "0.38",
+              "inheritedFrom": {
+                "name": "BlkInput",
+                "module": "src/BlkInput.ts"
+              }
+            },
+            {
+              "description": "Space above the value (room for the label).",
+              "name": "--input-element-top-space",
+              "default": "1.375em",
+              "inheritedFrom": {
+                "name": "BlkInput",
+                "module": "src/BlkInput.ts"
+              }
+            },
+            {
+              "description": "Space around the value.",
+              "name": "--input-element-around-space",
+              "default": "0.375em",
+              "inheritedFrom": {
+                "name": "BlkInput",
+                "module": "src/BlkInput.ts"
+              }
+            },
+            {
+              "description": "Transition of the label and border.",
+              "name": "--input-element-content-animation",
+              "default": "125ms cubic-bezier(0.45, 0.05, 0.55, 0.95)",
+              "inheritedFrom": {
+                "name": "BlkInput",
+                "module": "src/BlkInput.ts"
+              }
+            }
+          ],
           "attributes": [
             {
               "name": "aria-label",
@@ -2220,6 +2472,54 @@
               "type": {
                 "text": "BlkFormValidationEvent"
               },
+              "inheritedFrom": {
+                "name": "BlkInput",
+                "module": "src/BlkInput.ts"
+              }
+            },
+            {
+              "description": "The native `change` of the inner control, re-dispatched from the host.",
+              "name": "change",
+              "inheritedFrom": {
+                "name": "BlkInput",
+                "module": "src/BlkInput.ts"
+              }
+            },
+            {
+              "description": "The native `input` of the inner control (composed, so it reaches the host).",
+              "name": "input",
+              "inheritedFrom": {
+                "name": "BlkInput",
+                "module": "src/BlkInput.ts"
+              }
+            },
+            {
+              "description": "The native `select` of the inner control, re-dispatched from the host.",
+              "name": "select",
+              "inheritedFrom": {
+                "name": "BlkInput",
+                "module": "src/BlkInput.ts"
+              }
+            },
+            {
+              "description": "The native `compositionstart`, re-dispatched from the host.",
+              "name": "compositionstart",
+              "inheritedFrom": {
+                "name": "BlkInput",
+                "module": "src/BlkInput.ts"
+              }
+            },
+            {
+              "description": "The native `compositionend`, re-dispatched from the host.",
+              "name": "compositionend",
+              "inheritedFrom": {
+                "name": "BlkInput",
+                "module": "src/BlkInput.ts"
+              }
+            },
+            {
+              "description": "{@link BlkFormValidationEvent}, carrying the current `ValidityState`. Fires when a validity-affecting property changes, not on form reset.",
+              "name": "validation",
               "inheritedFrom": {
                 "name": "BlkInput",
                 "module": "src/BlkInput.ts"

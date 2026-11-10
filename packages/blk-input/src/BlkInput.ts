@@ -58,6 +58,31 @@ const supportsAriaLabelledByElements =
  * translating the text of a label updates the accessible name without a render. The
  * references are set when the internal control is created; label-set changes are not
  * observed.
+ *
+ * @fires change - The native `change` of the inner control, re-dispatched from the host.
+ * @fires input - The native `input` of the inner control (composed, so it reaches the host).
+ * @fires select - The native `select` of the inner control, re-dispatched from the host.
+ * @fires compositionstart - The native `compositionstart`, re-dispatched from the host.
+ * @fires compositionend - The native `compositionend`, re-dispatched from the host.
+ * @fires validation - {@link BlkFormValidationEvent}, carrying the current `ValidityState`.
+ *   Fires when a validity-affecting property changes, not on form reset.
+ *
+ * @cssprop [--input-element-filled-color=#f9f9f9] - Background of the field.
+ * @cssprop [--input-element-content-color=#1d1b20] - Text color of the value.
+ * @cssprop [--input-element-outline-color=#79747e] - Border color of the field.
+ * @cssprop [--input-element-hover-outline-color=fieldtext] - Border color on hover.
+ * @cssprop [--input-element-focus-outline-color=#007ac2] - Border color while focused.
+ * @cssprop [--input-element-label-text-color=#49454f] - Label color.
+ * @cssprop [--input-element-focus--label-text-color=#007ac2] - Label color while focused.
+ * @cssprop [--input-element-info-message-text-color=#1d1b20] - Info message color.
+ * @cssprop [--input-element-error-content-color=#d83020] - Text color when invalid.
+ * @cssprop [--input-element-error-outline-color=#d83020] - Border color when invalid.
+ * @cssprop [--input-element-error-label-text-color=#d83020] - Label color when invalid.
+ * @cssprop [--input-element-error-message-text-color=#d83020] - Error message color.
+ * @cssprop [--input-element-disabled-content-opacity=0.38] - Opacity when disabled.
+ * @cssprop [--input-element-top-space=1.375em] - Space above the value (room for the label).
+ * @cssprop [--input-element-around-space=0.375em] - Space around the value.
+ * @cssprop [--input-element-content-animation=125ms cubic-bezier(0.45, 0.05, 0.55, 0.95)] - Transition of the label and border.
  */
 export class BlkInput extends BlkMixinFormAssociated(LitElement) {
   private __defaultInput?: HTMLInputElement | HTMLTextAreaElement;

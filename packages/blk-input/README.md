@@ -89,9 +89,15 @@ observed.
 
 ##### Events
 
-| Name | Type                     | Description | Inherited From |
-| ---- | ------------------------ | ----------- | -------------- |
-|      | `BlkFormValidationEvent` |             |                |
+| Name               | Type                     | Description                                                                                                                                  | Inherited From |
+| ------------------ | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
+|                    | `BlkFormValidationEvent` |                                                                                                                                              |                |
+| `change`           |                          | The native \`change\` of the inner control, re-dispatched from the host.                                                                     |                |
+| `input`            |                          | The native \`input\` of the inner control (composed, so it reaches the host).                                                                |                |
+| `select`           |                          | The native \`select\` of the inner control, re-dispatched from the host.                                                                     |                |
+| `compositionstart` |                          | The native \`compositionstart\`, re-dispatched from the host.                                                                                |                |
+| `compositionend`   |                          | The native \`compositionend\`, re-dispatched from the host.                                                                                  |                |
+| `validation`       |                          | {@link BlkFormValidationEvent}, carrying the current \`ValidityState\`. Fires when a validity-affecting property changes, not on form reset. |                |
 
 ##### Attributes
 
@@ -127,6 +133,27 @@ observed.
 | `error-message-text`        | errorMessageText        |                |
 | `invalid`                   | invalid                 |                |
 | `native-validation-message` | nativeValidationMessage |                |
+
+##### CSS Properties
+
+| Name                                       | Default                                      | Description                                 |
+| ------------------------------------------ | -------------------------------------------- | ------------------------------------------- |
+| `--input-element-filled-color`             | `#f9f9f9`                                    | Background of the field.                    |
+| `--input-element-content-color`            | `#1d1b20`                                    | Text color of the value.                    |
+| `--input-element-outline-color`            | `#79747e`                                    | Border color of the field.                  |
+| `--input-element-hover-outline-color`      | `fieldtext`                                  | Border color on hover.                      |
+| `--input-element-focus-outline-color`      | `#007ac2`                                    | Border color while focused.                 |
+| `--input-element-label-text-color`         | `#49454f`                                    | Label color.                                |
+| `--input-element-focus--label-text-color`  | `#007ac2`                                    | Label color while focused.                  |
+| `--input-element-info-message-text-color`  | `#1d1b20`                                    | Info message color.                         |
+| `--input-element-error-content-color`      | `#d83020`                                    | Text color when invalid.                    |
+| `--input-element-error-outline-color`      | `#d83020`                                    | Border color when invalid.                  |
+| `--input-element-error-label-text-color`   | `#d83020`                                    | Label color when invalid.                   |
+| `--input-element-error-message-text-color` | `#d83020`                                    | Error message color.                        |
+| `--input-element-disabled-content-opacity` | `0.38`                                       | Opacity when disabled.                      |
+| `--input-element-top-space`                | `1.375em`                                    | Space above the value (room for the label). |
+| `--input-element-around-space`             | `0.375em`                                    | Space around the value.                     |
+| `--input-element-content-animation`        | `125ms cubic-bezier(0.45, 0.05, 0.55, 0.95)` | Transition of the label and border.         |
 
 <details><summary>Private API</summary>
 
@@ -256,9 +283,15 @@ Without support it behaves exactly like `<blk-input>` (label text forwarded as
 
 ##### Events
 
-| Name | Type                     | Description | Inherited From |
-| ---- | ------------------------ | ----------- | -------------- |
-|      | `BlkFormValidationEvent` |             | BlkInput       |
+| Name               | Type                     | Description                                                                                                                                  | Inherited From |
+| ------------------ | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
+|                    | `BlkFormValidationEvent` |                                                                                                                                              | BlkInput       |
+| `change`           |                          | The native \`change\` of the inner control, re-dispatched from the host.                                                                     | BlkInput       |
+| `input`            |                          | The native \`input\` of the inner control (composed, so it reaches the host).                                                                | BlkInput       |
+| `select`           |                          | The native \`select\` of the inner control, re-dispatched from the host.                                                                     | BlkInput       |
+| `compositionstart` |                          | The native \`compositionstart\`, re-dispatched from the host.                                                                                | BlkInput       |
+| `compositionend`   |                          | The native \`compositionend\`, re-dispatched from the host.                                                                                  | BlkInput       |
+| `validation`       |                          | {@link BlkFormValidationEvent}, carrying the current \`ValidityState\`. Fires when a validity-affecting property changes, not on form reset. | BlkInput       |
 
 ##### Attributes
 
@@ -294,6 +327,27 @@ Without support it behaves exactly like `<blk-input>` (label text forwarded as
 | `error-message-text`        | errorMessageText        | BlkInput       |
 | `invalid`                   | invalid                 | BlkInput       |
 | `native-validation-message` | nativeValidationMessage | BlkInput       |
+
+##### CSS Properties
+
+| Name                                       | Default                                      | Description                                 |
+| ------------------------------------------ | -------------------------------------------- | ------------------------------------------- |
+| `--input-element-filled-color`             | `#f9f9f9`                                    | Background of the field.                    |
+| `--input-element-content-color`            | `#1d1b20`                                    | Text color of the value.                    |
+| `--input-element-outline-color`            | `#79747e`                                    | Border color of the field.                  |
+| `--input-element-hover-outline-color`      | `fieldtext`                                  | Border color on hover.                      |
+| `--input-element-focus-outline-color`      | `#007ac2`                                    | Border color while focused.                 |
+| `--input-element-label-text-color`         | `#49454f`                                    | Label color.                                |
+| `--input-element-focus--label-text-color`  | `#007ac2`                                    | Label color while focused.                  |
+| `--input-element-info-message-text-color`  | `#1d1b20`                                    | Info message color.                         |
+| `--input-element-error-content-color`      | `#d83020`                                    | Text color when invalid.                    |
+| `--input-element-error-outline-color`      | `#d83020`                                    | Border color when invalid.                  |
+| `--input-element-error-label-text-color`   | `#d83020`                                    | Label color when invalid.                   |
+| `--input-element-error-message-text-color` | `#d83020`                                    | Error message color.                        |
+| `--input-element-disabled-content-opacity` | `0.38`                                       | Opacity when disabled.                      |
+| `--input-element-top-space`                | `1.375em`                                    | Space above the value (room for the label). |
+| `--input-element-around-space`             | `0.375em`                                    | Space around the value.                     |
+| `--input-element-content-animation`        | `125ms cubic-bezier(0.45, 0.05, 0.55, 0.95)` | Transition of the label and border.         |
 
 <details><summary>Private API</summary>
 
