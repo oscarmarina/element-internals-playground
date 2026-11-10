@@ -64,9 +64,10 @@
   "customElements": "custom-elements.json",
   "devDependencies": {
     "@open-wc/testing-helpers": "^3.0.1",
-    "@vitest/browser-playwright": "^5.0.1",
-    "@vitest/coverage-istanbul": "^5.0.1",
+    "@vitest/browser-playwright": "^5.1.0",
+    "@vitest/coverage-istanbul": "^5.1.0",
     "playwright": "^1.63.0",
-    "vitest": "^5.0.1"
+    "storybook": "^11.0.0-beta.1",
+    "vitest": "^5.1.0"
   }
 }
