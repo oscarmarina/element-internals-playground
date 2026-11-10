@@ -7,6 +7,14 @@ Explore the [ElementInternals API](https://developer.mozilla.org/docs/Web/API/El
 - [BlkMixinFormAssociated](./packages/blk-mixin-element-internals/README.md): Extension of the core mixin enabling form-associated custom elements.
 - **BlkFormValidationEvent**: Custom event for validation state changes.
 
+## Storybook 11 (beta)
+
+A single Storybook at the repo root documents the elements. It reads the `custom-elements.json` of every package (`framework.options.customElementsManifest` in `.storybook/main.ts`), so run `npm run analyze` after changing an element's API.
+
+- `npm run storybook` starts it on port 6006; `npm run build-storybook` builds it.
+- Stories live in `packages/<pkg>/stories/`. Controls are keyed per category: `--css-var`, `<name>-slot` / `default-slot`, `<name>-event` (pass `fn()` to log it), `<name>-part`, `<name>-state`.
+- Storybook 11 is a beta (`storybook@next`); the runtime `setCustomElementsManifest()` is deprecated and not used here.
+
 ## AI-assisted review (Claude Code)
 
 `CLAUDE.md` is what Claude always knows about this repo. The agents are specialized reviewers that only run when a change calls for them. Scripts decide which ones run without spending tokens, and every run is logged to judge whether each reviewer is worth its cost.
