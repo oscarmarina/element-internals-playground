@@ -14,6 +14,7 @@ A single Storybook at the repo root documents the elements. It reads the `custom
 - `npm run storybook` starts it on port 6006; `npm run build-storybook` builds it.
 - Stories live in `packages/<pkg>/stories/`. Controls are keyed per category: `--css-var`, `<name>-slot` / `default-slot`, `<name>-event` (pass `fn()` to log it), `<name>-part`, `<name>-state`.
 - `npm run test:storybook` runs every story as a test (render + `play`) in Chromium and WebKit through `@storybook/addon-vitest`. Keep `vitest` and every `@vitest/*` package on the same version in all workspaces: they peer on one exact Vitest version.
+- New to Storybook? Read [docs/storybook.md](docs/storybook.md) (in Spanish).
 - Storybook 11 is a beta (`storybook@next`); the runtime `setCustomElementsManifest()` is deprecated and not used here.
 
 ## AI-assisted review (Claude Code)
