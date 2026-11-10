@@ -34,7 +34,9 @@
     "test": "lerna run test --stream --concurrency 1 -- --run",
     "test:pre-push": "lerna run test --stream --concurrency 1 --since origin/main -- --run",
     "test:scope": "func() { lerna run test --stream --concurrency 1 --scope @blockquote-playground/${1}; }; func",
-    "postversion": "npm run standard"
+    "postversion": "npm run standard",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "commitlint": {
     "extends": [
@@ -127,6 +129,7 @@
     "@eslint/js": "^10.0.1",
     "@html-eslint/eslint-plugin": "^0.66.1",
     "@html-eslint/parser": "^0.66.1",
+    "@storybook/web-components-vite": "^11.0.0-beta.1",
     "@typescript-eslint/parser": "^8.71.0",
     "commit-and-tag-version": "^13.2.1",
     "eslint": "^10.11.0",
@@ -142,6 +145,7 @@
     "lerna": "^10.0.1",
     "lint-staged": "^17.6.0",
     "prettier": "^3.9.9",
+    "storybook": "^11.0.0-beta.1",
     "stylelint": "^17.15.0",
     "typescript-eslint": "^8.71.0"
   },
