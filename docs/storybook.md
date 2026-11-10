@@ -174,7 +174,44 @@ Para un **elemento nuevo**, además:
 4. En el `eslint.config.js` del paquete, añade `` `**/stories/**/*.${fileTypes}` `` a la lista `devDependencies` de la regla `import-x/no-extraneous-dependencies`.
 5. Asegúrate de que el manifiesto del paquete aparece en `customElementsManifest` de `.storybook/main.ts`.
 
-## 8. Errores comunes
+## 8. Addons: Viewport, Backgrounds, Accessibility y pseudo-estados
+
+La barra de herramientas y los paneles de Storybook se amplían con addons. Estos son los que usamos:
+
+| Addon          | De dónde viene                      | Para qué sirve                                              |
+| -------------- | ----------------------------------- | ----------------------------------------------------------- |
+| Viewport       | Núcleo de Storybook (no se instala) | Ver el elemento en tamaños de móvil, tablet y escritorio    |
+| Backgrounds    | Núcleo de Storybook                 | Ver el elemento sobre fondo claro u oscuro                  |
+| Accessibility  | `@storybook/addon-a11y`             | Auditar WCAG 2.0, 2.1 y 2.2 AA con axe-core                 |
+| Pseudo-estados | `storybook-addon-pseudo-states`     | Forzar `:hover`, `:focus`, `:active`… para verlos sin ratón |
+
+Se registran en `.storybook/main.ts` (`addons`) y se configuran en `.storybook/preview.ts`.
+
+### Accessibility
+
+Abre una story y el panel **Accessibility**. Tiene tres pestañas: **Violations** (fallos), **Passes** (reglas que pasan) e **Incomplete** (cosas que hay que revisar a mano). Por defecto audita WCAG 2.0 y 2.1 niveles A y AA; en `preview.ts` añadimos `wcag22aa` y las buenas prácticas.
+
+Qué hay que saber, porque lo hemos comprobado en Chromium:
+
+- **Atraviesa el Shadow DOM.** Detecta, por ejemplo, un `<blk-input>` sin etiqueta como un fallo crítico `label` dentro del `<input>` interno.
+- **No entiende `referenceTarget`.** Si `<blk-input-reference-target>` tiene una `<label for>` externa, axe dice que no tiene etiqueta aunque en el árbol real de accesibilidad de Chromium el nombre sea correcto. Es un falso positivo. La story `ReferenceTargetExternalLabel` desactiva solo la regla `label` y lo explica en un comentario. Para ver el nombre real, usa las herramientas de desarrollo de Chromium: pestaña **Accessibility**, o **Elements** → **Accessibility**.
+- **Un `placeholder` con texto tapa una etiqueta que falta.** axe lo acepta como nombre. Por eso las stories de etiquetas no lo llevan.
+- **Una story sin etiqueta debe fallar.** `MissingLabel` existe a propósito para comprobar que el panel funciona.
+- Para desactivar una regla en una sola story: `parameters: {a11y: {config: {rules: [{id: 'label', enabled: false}]}}}`. No la desactives en `preview.ts`.
+
+### Pseudo-estados
+
+Se activa por story con el parámetro `pseudo`:
+
+```ts
+export const Hover: Story = {
+  parameters: {pseudo: {hover: true}},
+};
+```
+
+Comprobado: funciona con nuestros elementos aunque los estilos estén en el shadow root. En `blk-input`, la story `Hover` cambia el borde del campo sin pasar el ratón. Los estados admitidos son `hover`, `active`, `focus`, `focus-visible`, `focus-within`, `visited`, `link` y `target`. Si algún día da problemas, se quita quitando el addon de `main.ts`.
+
+## 9. Errores comunes
 
 | Síntoma                                                      | Causa probable                                                            | Solución                                                  |
 | ------------------------------------------------------------ | ------------------------------------------------------------------------- | --------------------------------------------------------- |
@@ -185,14 +222,14 @@ Para un **elemento nuevo**, además:
 | `git commit` rechazado por commitlint                        | Líneas del cuerpo de más de 100 caracteres                                | Acorta el mensaje                                         |
 | `'storybook' should be listed in the project's dependencies` | El paquete no declara `storybook`                                         | Mira el paso 3 de "elemento nuevo"                        |
 
-## 9. Cosas a tener presentes
+## 10. Cosas a tener presentes
 
 - **Es una beta** (`11.0.0-beta.x`). Puede haber errores propios de Storybook. Si algo raro no tiene explicación en el código, busca la incidencia en el repositorio de Storybook antes de gastar horas.
 - `setCustomElementsManifest()` está **deprecado** y no se usa en este repo.
 - La guía de migración de Storybook 11 avisa de regresiones temporales en la generación de los snippets de código fuente (los que se muestran en Docs). No las hemos probado con estos elementos.
 - Las reglas de comportamiento de los elementos (error solo con "user validity", nombre accesible, `referenceTarget`…) están en `CLAUDE.md`. Una story no debe saltárselas.
 
-## 10. Chuleta de comandos
+## 11. Chuleta de comandos
 
 | Comando                   | Para qué                                            |
 | ------------------------- | --------------------------------------------------- |
@@ -201,7 +238,7 @@ Para un **elemento nuevo**, además:
 | `npm run analyze`         | Regenera `custom-elements.json` y los README        |
 | `npm run lint`            | ESLint, Prettier y Stylelint (escribe los arreglos) |
 
-## 11. Glosario mínimo
+## 12. Glosario mínimo
 
 - **Story**: un ejemplo del componente con valores concretos.
 - **Args**: los valores que se pasan al componente; son los del panel Controls.

@@ -1,6 +1,7 @@
 import type {StorybookConfig} from '@storybook/web-components-vite';
 
 const config: StorybookConfig = {
+  addons: ['@storybook/addon-a11y', 'storybook-addon-pseudo-states'],
   // The "what's new" toast shows the latest stable release (10.x), not this beta.
   core: {disableWhatsNewNotifications: true},
   stories: ['../packages/*/stories/**/*.stories.ts'],
