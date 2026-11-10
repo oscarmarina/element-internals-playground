@@ -1,0 +1,15 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "..",
+    "emitDeclarationOnly": false,
+    "noEmit": true,
+    "customConditions": [
+      "workspaces"
+    ],
+    "skipLibCheck": true
+  },
+  "include": [
+    "./**/*.ts"
+  ]
+}

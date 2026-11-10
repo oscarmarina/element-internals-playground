@@ -59,6 +59,7 @@ const importFilesRules = {
         devDependencies: [
           `**/demo/**/*.${fileTypes}`,
           `**/test/**/*.${fileTypes}`,
+          `**/stories/**/*.${fileTypes}`,
           `**/*.config.${fileTypes}`,
           `**/*.conf.${fileTypes}`,
         ],
