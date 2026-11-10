@@ -1,6 +1,6 @@
 # Guía de Storybook para empezar a trabajar
 
-Esta guía está pensada para quien nunca ha usado Storybook. Al terminarla sabrás arrancarlo, entender qué hay en el repo, escribir una story, ejecutarla como test y resolver los errores más comunes.
+Esta guía está pensada para quien nunca ha usado Storybook. Al terminarla sabrás arrancarlo, entender qué hay en el repo, escribir una story y resolver los errores más comunes.
 
 ## 1. Qué es Storybook y para qué sirve aquí
 
@@ -10,7 +10,9 @@ En este repo sirve para tres cosas:
 
 1. **Ver y probar a mano** los elementos (`blk-input`, `blk-control`…) con un panel de controles para cambiar sus atributos, sin tocar código.
 2. **Documentar** su API: atributos, eventos, variables CSS, etc.
-3. **Probar automáticamente**: cada story se puede ejecutar como un test en Chromium y WebKit.
+3. **Revisar a ojo** lo que los tests unitarios no ven: aspecto, foco, tamaños de pantalla.
+
+Storybook se usa aquí **solo como demo y documentación**. Los tests están en cada paquete (`packages/<pkg>/test`) y no dependen de Storybook.
 
 Usamos **Storybook 11 (beta)**. Su novedad para web components es que lee el `custom-elements.json` (el "manifiesto" de cada paquete) y con él construye solo el panel de controles. Antes solo aparecían las propiedades; ahora también slots, eventos, variables CSS, parts, states y métodos.
 
@@ -20,7 +22,6 @@ Requisitos: **Node 22.12 o superior**.
 
 ```sh
 npm install                          # una sola vez, en la raíz del repo
-npx playwright install chromium webkit   # una sola vez, solo si vas a ejecutar tests
 npm run storybook                    # abre http://localhost:6006
 ```
 
@@ -28,7 +29,6 @@ Verás una barra lateral con los elementos. Elige una story y prueba:
 
 - **Controls** (panel inferior): cambia `label`, `required`, `disabled`… y el elemento se actualiza.
 - **Actions**: muestra los eventos que dispara el elemento (si la story lo pide con `fn()`, ver sección 6).
-- **Interactions**: muestra los pasos de la función `play` de la story.
 
 ## 3. Mapa del repo
 
@@ -41,7 +41,6 @@ packages/<paquete>/
     <elemento>.stories.ts   ← las stories de ese elemento
     tsconfig.json           ← para que TypeScript y ESLint entiendan los archivos de stories
   custom-elements.json      ← manifiesto (se GENERA, no se edita a mano)
-vitest.storybook.config.ts  ← ejecuta las stories como tests
 ```
 
 Hay **un único Storybook en la raíz** que muestra los seis paquetes.
@@ -140,7 +139,7 @@ export const Themed: Story = {
 
 ## 6. Eventos y `fn()`
 
-Para ver un evento en el panel **Actions** (y poder comprobarlo en un test), pasa `fn()` como arg con sufijo `-event`:
+Para ver un evento en el panel **Actions**, pasa `fn()` como arg con sufijo `-event`:
 
 ```ts
 import {fn} from 'storybook/test';
@@ -175,74 +174,38 @@ Para un **elemento nuevo**, además:
 4. En el `eslint.config.js` del paquete, añade `` `**/stories/**/*.${fileTypes}` `` a la lista `devDependencies` de la regla `import-x/no-extraneous-dependencies`.
 5. Asegúrate de que el manifiesto del paquete aparece en `customElementsManifest` de `.storybook/main.ts`.
 
-## 8. Stories como tests (`play`)
-
-Una story puede incluir una función `play` que interactúa con el componente, como lo haría un usuario, y comprueba el resultado. Ejemplo real de `blk-control`:
-
-```ts
-import {expect, fn, userEvent} from 'storybook/test';
-
-export const Checkbox: Story = {
-  args: {type: 'checkbox', label: 'Accept', 'change-event': fn()},
-  play: async ({canvasElement, args}) => {
-    const input = canvasElement.querySelector('blk-control input') as HTMLInputElement;
-    await userEvent.click(input);
-    await expect(input.checked).toBe(true);
-    await expect(args['change-event']).toHaveBeenCalledOnce();
-  },
-};
-```
-
-Ejecuta todas las stories como tests, en Chromium y WebKit:
-
-```sh
-npm run test:storybook
-```
-
-- Una story **sin** `play` solo comprueba que se renderiza sin errores.
-- Una story **con** `play` además verifica el comportamiento.
-- Los tests de cada paquete (`npx lerna run test --scope @blockquote-playground/<pkg> -- --run`) son otra cosa: están en `packages/<pkg>/test` y no dependen de Storybook.
-
-Un `play` útil de este repo es el de `blk-input` `Required`: comprueba que el error **no** aparece al renderizar ni mientras escribes, y que **sí** aparece al salir del campo (`Tab`) después de un cambio. Es una de las reglas del proyecto (ver `CLAUDE.md`).
-
-## 9. Errores comunes
+## 8. Errores comunes
 
 | Síntoma                                                      | Causa probable                                                            | Solución                                                  |
 | ------------------------------------------------------------ | ------------------------------------------------------------------------- | --------------------------------------------------------- |
 | El panel Controls está vacío o incompleto                    | Falta JSDoc o el manifiesto está viejo                                    | Añade el JSDoc y ejecuta `npm run analyze`                |
 | Un `argTypes` o `render` antiguo "no hace nada"              | Usas la clave sin sufijo (`'my-change'`)                                  | Usa `'my-change-event'`, `'actions-slot'`, `'label-part'` |
-| Un valor por defecto del manifiesto no llega al `play`       | Los defaults solo rellenan la columna "Default" de la tabla               | Ponlo explícitamente en `args`                            |
 | Un decorator falla al llamar métodos del elemento            | El render devuelve un `DocumentFragment` con el elemento como último hijo | Lee `result.lastElementChild`                             |
 | Un elemento registrado tarde (lazy) ignora los controles     | No se puede inspeccionar antes de renderizar                              | Importa el elemento al principio del archivo de stories   |
-| `Executable doesn't exist` al ejecutar tests                 | Faltan los navegadores de Playwright                                      | `npx playwright install chromium webkit`                  |
-| `ERESOLVE` al instalar dependencias de Vitest                | Todos los `@vitest/*` deben tener la misma versión que `vitest`           | Súbelos juntos en todos los `package.json`                |
 | `git commit` rechazado por commitlint                        | Líneas del cuerpo de más de 100 caracteres                                | Acorta el mensaje                                         |
 | `'storybook' should be listed in the project's dependencies` | El paquete no declara `storybook`                                         | Mira el paso 3 de "elemento nuevo"                        |
 
-## 10. Cosas a tener presentes
+## 9. Cosas a tener presentes
 
 - **Es una beta** (`11.0.0-beta.x`). Puede haber errores propios de Storybook. Si algo raro no tiene explicación en el código, busca la incidencia en el repositorio de Storybook antes de gastar horas.
 - `setCustomElementsManifest()` está **deprecado** y no se usa en este repo.
 - La guía de migración de Storybook 11 avisa de regresiones temporales en la generación de los snippets de código fuente (los que se muestran en Docs). No las hemos probado con estos elementos.
 - Las reglas de comportamiento de los elementos (error solo con "user validity", nombre accesible, `referenceTarget`…) están en `CLAUDE.md`. Una story no debe saltárselas.
 
-## 11. Chuleta de comandos
+## 10. Chuleta de comandos
 
-| Comando                                                            | Para qué                                            |
-| ------------------------------------------------------------------ | --------------------------------------------------- |
-| `npm run storybook`                                                | Arranca Storybook en `localhost:6006`               |
-| `npm run build-storybook`                                          | Genera la versión estática en `storybook-static/`   |
-| `npm run test:storybook`                                           | Ejecuta todas las stories como tests                |
-| `npm run analyze`                                                  | Regenera `custom-elements.json` y los README        |
-| `npm run lint`                                                     | ESLint, Prettier y Stylelint (escribe los arreglos) |
-| `npx lerna run test --scope @blockquote-playground/<pkg> -- --run` | Tests de un paquete                                 |
+| Comando                   | Para qué                                            |
+| ------------------------- | --------------------------------------------------- |
+| `npm run storybook`       | Arranca Storybook en `localhost:6006`               |
+| `npm run build-storybook` | Genera la versión estática en `storybook-static/`   |
+| `npm run analyze`         | Regenera `custom-elements.json` y los README        |
+| `npm run lint`            | ESLint, Prettier y Stylelint (escribe los arreglos) |
 
-## 12. Glosario mínimo
+## 11. Glosario mínimo
 
 - **Story**: un ejemplo del componente con valores concretos.
 - **Args**: los valores que se pasan al componente; son los del panel Controls.
 - **Meta**: la descripción del componente (el `export default` del archivo de stories).
-- **Controls / Actions / Interactions**: paneles de Storybook para cambiar valores, ver eventos y ver los pasos de `play`.
+- **Controls / Actions**: paneles de Storybook para cambiar valores y ver los eventos que dispara el elemento.
 - **CEM / manifiesto** (`custom-elements.json`): descripción de la API del elemento en formato estándar.
 - **JSDoc**: comentarios `/** … */` con etiquetas (`@fires`, `@cssprop`…) de los que sale el manifiesto.
-- **`play`**: función de una story que simula la interacción de un usuario y comprueba el resultado.
