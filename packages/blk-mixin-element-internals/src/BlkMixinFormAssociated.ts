@@ -62,8 +62,6 @@ const FormAssociatedBase = <T extends CustomElementConstructor>(
      *    shadow root has a `referenceTarget`: the platform then forwards those labels
      *    to the target natively, and copying them would duplicate (or, on first render,
      *    before the target exists, freeze) the name.
-     *
-     * A best-attempt based on observed behaviour in FireFox 115 on fedora 38.
      */
     get labelText(): string {
       return (
@@ -143,10 +141,13 @@ const FormAssociatedBase = <T extends CustomElementConstructor>(
     }
 
     /**
-     * Returns whether the host element is currently read-only.
+     * Returns whether the host carries the `readonly` attribute — the same signal the
+     * platform uses to bar a form-associated custom element from constraint validation.
+     * (`:read-only` is useless here: it matches every element that is not editable, so
+     * it is always true for a custom element.)
      */
     get isReadOnly() {
-      return this.matches(':read-only');
+      return this.hasAttribute('readonly');
     }
 
     /**

@@ -73,7 +73,7 @@
         filter: brightness(0.92);
       }
 
-      /* error UI driven by :state(invalid) (JS-gated "touched" flag) */
+      /* error UI driven by :state(invalid): off until the control has shown its error */
       .error {
         color: #d83020;
         font-size: 0.75rem;
@@ -122,6 +122,7 @@
               <blk-control-ssr>
                 <input
                   slot="embedded"
+                  aria-invalid="false"
                   id="terms"
                   type="checkbox"
                   name="terms"
@@ -139,6 +140,7 @@
                 <blk-control-ssr>
                   <input
                     slot="embedded"
+                    aria-invalid="false"
                     id="c-email"
                     type="radio"
                     name="contact"
@@ -150,6 +152,7 @@
                 <blk-control-ssr>
                   <input
                     slot="embedded"
+                    aria-invalid="false"
                     id="c-phone"
                     type="radio"
                     name="contact"
@@ -161,6 +164,7 @@
                 <blk-control-ssr>
                   <input
                     slot="embedded"
+                    aria-invalid="false"
                     id="c-sms"
                     type="radio"
                     name="contact"
@@ -175,7 +179,14 @@
 
             <div class="field">
               <blk-control-ssr>
-                <input slot="embedded" id="news" type="checkbox" name="news" value="on" />
+                <input
+                  slot="embedded"
+                  aria-invalid="false"
+                  id="news"
+                  type="checkbox"
+                  name="news"
+                  value="on"
+                />
                 <label slot="embedded" for="news">Subscribe to the newsletter</label>
               </blk-control-ssr>
             </div>

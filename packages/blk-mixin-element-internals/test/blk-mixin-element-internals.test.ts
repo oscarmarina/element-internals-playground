@@ -250,14 +250,19 @@ suite('BlkMixinFormAssociated (real form association and validation)', () => {
     assert.ok(el.shadowRoot);
   });
 
-  test('isDisabled and isReadOnly reflect :disabled and :read-only', async () => {
+  test('isDisabled and isReadOnly reflect :disabled and the readonly attribute', async () => {
     class FormAssociatedEl extends BlkMixinFormAssociated(HTMLElement) {}
     defineTestElement(FormAssociatedEl, 'form-associated-state');
     const el = await fixture<FormAssociatedEl>(
-      html`<form-associated disabled readonly></form-associated>`
+      html`<form-associated-state></form-associated-state>`
     );
+    assert.isFalse(el.isDisabled);
+    assert.isFalse(el.isReadOnly, ':read-only matches any non-editable element');
+    el.toggleAttribute('disabled', true);
+    el.toggleAttribute('readonly', true);
     assert.isTrue(el.isDisabled);
     assert.isTrue(el.isReadOnly);
+    assert.isFalse(el.willValidate, 'readonly bars the element from validation');
   });
 
   test('isFieldsetDisabled ignores the own attribute and the first legend', async () => {

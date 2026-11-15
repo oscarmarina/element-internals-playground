@@ -84,3 +84,4 @@ change code
 - [Reference Target (Igalia)](https://blogs.igalia.com/alice/reference-target-having-your-encapsulation-and-eating-it-too/)
 - [Reference Target Demo (Microsoft Edge)](https://microsoftedge.github.io/Demos/reference-target/)
 - [Platform-provided behaviors for custom elements (Microsoft Edge)](https://microsoftedge.github.io/Demos/platform-provided-behaviors-for-custom-elements/)
+- [Accessible Error Announcement (Chrome Developer Documentation)](https://developer.chrome.com/docs/modern-web-guidance/guides/accessibility/accessible-error-announcement)

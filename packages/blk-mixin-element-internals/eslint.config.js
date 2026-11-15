@@ -150,11 +150,8 @@ const tsFilesConfig = [...tseslint.strict, ...tseslint.stylistic].map((conf) => 
         // @ts-ignore
         ...conf.languageOptions.parserOptions,
         projectService: {
-          allowDefaultProject: [
-            `test/*.${fileTypes}`,
-            `*.config.${fileTypes}`,
-            `*.conf.${fileTypes}`,
-          ],
+          // Tests are not listed here: they have their own project, `test/tsconfig.json`.
+          allowDefaultProject: [`*.config.${fileTypes}`, `*.conf.${fileTypes}`],
         },
         tsconfigRootDir: import.meta.dirname,
       },

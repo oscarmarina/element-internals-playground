@@ -1,7 +1,8 @@
 import type {StorybookConfig} from '@storybook/web-components-vite';
 
 const config: StorybookConfig = {
-  addons: ['@storybook/addon-a11y', 'storybook-addon-pseudo-states'],
+  // addon-docs builds one Docs page per component from the manifest (see `tags` in preview.ts).
+  addons: ['@storybook/addon-docs', '@storybook/addon-a11y', 'storybook-addon-pseudo-states'],
   // The "what's new" toast shows the latest stable release (10.x), not this beta.
   core: {disableWhatsNewNotifications: true},
   stories: ['../packages/*/stories/**/*.stories.ts'],
@@ -9,11 +10,11 @@ const config: StorybookConfig = {
     name: '@storybook/web-components-vite',
     options: {
       // Paths are relative to this directory. Regenerate them with `npm run analyze`.
+      // Only packages that define elements: the mixin package has none.
       customElementsManifest: [
         '../packages/blk-control/custom-elements.json',
         '../packages/blk-inline-input/custom-elements.json',
         '../packages/blk-input/custom-elements.json',
-        '../packages/blk-mixin-element-internals/custom-elements.json',
         '../packages/blk-reference-target/custom-elements.json',
         '../packages/blk-tanstack-playground/custom-elements.json',
       ],

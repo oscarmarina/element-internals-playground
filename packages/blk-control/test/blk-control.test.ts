@@ -187,6 +187,262 @@ suite('BlkControl', () => {
       fixtureCleanup();
     });
 
+    test('checking a radio from script deselects its group siblings', async () => {
+      const root = await fixture<HTMLDivElement>(html`
+        <div role="radiogroup" aria-label="G1b">
+          <blk-control type="radio" name="g1b" value="a" label="A" checked></blk-control>
+          <blk-control type="radio" name="g1b" value="b" label="B"></blk-control>
+        </div>
+      `);
+      const [r1, r2] = Array.from(root.querySelectorAll<BlkControl>('blk-control'));
+      const onValidation = vi.fn();
+      r1.addEventListener('validation', onValidation);
+
+      r2.checked = true;
+      await r2.updateComplete;
+      await r1.updateComplete;
+
+      assert.isFalse(r1.checked, 'the sibling host follows its native input');
+      assert.isFalse(r1.internals.states.has('checked'));
+      expect(onValidation).toHaveBeenCalledTimes(1);
+
+      // An unrelated render of the deselected radio must not steal the selection back.
+      r1.label = 'A (renamed)';
+      await r1.updateComplete;
+      await r2.updateComplete;
+      assert.isTrue(r2.nativeControl!.checked);
+      assert.isFalse(r1.nativeControl!.checked);
+      fixtureCleanup();
+    });
+
+    // Same policy as blk-input: once the error has been shown, `invalid` follows the
+    // native validity; before that, nothing set by script raises it.
+    suite('When errors are shown', () => {
+      const mount = async () => {
+        const form = await fixture<HTMLFormElement>(
+          html`<form><blk-control name="terms" label="Terms" required></blk-control></form>`
+        );
+        const el = form.querySelector<BlkControl>('blk-control')!;
+        await el.updateComplete;
+        form.addEventListener('submit', (ev) => ev.preventDefault());
+        el.nativeControl!.addEventListener('invalid', (ev) => ev.preventDefault());
+        return {form, el};
+      };
+      const set = async (
+        el: BlkControl,
+        prop: 'checked' | 'required' | 'disabled',
+        value: boolean
+      ) => {
+        el[prop] = value;
+        await el.updateComplete;
+        await el.updateComplete;
+      };
+      const submit = async (form: HTMLFormElement, el: BlkControl) => {
+        form.requestSubmit();
+        await el.updateComplete;
+        assert.isTrue(el.invalid);
+      };
+
+      test('nothing set by script raises the first error', async () => {
+        const {el} = await mount();
+        await set(el, 'checked', true);
+        await set(el, 'checked', false);
+        assert.isFalse(el.invalid);
+        await set(el, 'required', false);
+        await set(el, 'required', true);
+        assert.isFalse(el.validity.valid);
+        assert.isFalse(el.invalid);
+        fixtureCleanup();
+      });
+
+      test('a user who never failed is not flagged by a later script change', async () => {
+        const {el} = await mount();
+        el.nativeControl!.click();
+        await el.updateComplete;
+        await set(el, 'checked', false);
+        assert.isFalse(el.invalid);
+        fixtureCleanup();
+      });
+
+      test('the user unchecking a required control shows the error at once', async () => {
+        const {el} = await mount();
+        el.nativeControl!.click();
+        await el.updateComplete;
+        assert.isFalse(el.invalid);
+        el.nativeControl!.click();
+        await el.updateComplete;
+        await el.updateComplete;
+        assert.isTrue(el.invalid);
+        fixtureCleanup();
+      });
+
+      test('once shown, the error follows a checked set by script', async () => {
+        const {form, el} = await mount();
+        await submit(form, el);
+        await set(el, 'checked', true);
+        assert.isFalse(el.invalid);
+        await set(el, 'checked', false);
+        assert.isTrue(el.invalid);
+        assert.equal(el.nativeControl!.getAttribute('aria-invalid'), 'true');
+        fixtureCleanup();
+      });
+
+      test('once shown, the error follows the constraints', async () => {
+        const {form, el} = await mount();
+        await submit(form, el);
+        await set(el, 'required', false);
+        assert.isFalse(el.invalid);
+        await set(el, 'required', true);
+        assert.isTrue(el.invalid);
+        await set(el, 'disabled', true);
+        assert.isFalse(el.invalid);
+        await set(el, 'disabled', false);
+        assert.isTrue(el.invalid);
+        fixtureCleanup();
+      });
+
+      test('error-message-id is referenced by the input only while the error is shown', async () => {
+        const form = await fixture<HTMLFormElement>(
+          html`<form>
+            <blk-control name="terms" label="Terms" required error-message-id="terms-error">
+            </blk-control>
+            <div id="terms-error">You must accept the terms.</div>
+          </form>`
+        );
+        const el = form.querySelector<BlkControl>('blk-control')!;
+        await el.updateComplete;
+        form.addEventListener('submit', (ev) => ev.preventDefault());
+        el.nativeControl!.addEventListener('invalid', (ev) => ev.preventDefault());
+        assert.isFalse(el.nativeControl!.hasAttribute('aria-errormessage'));
+
+        await submit(form, el);
+        assert.equal(el.nativeControl!.getAttribute('aria-errormessage'), 'terms-error');
+
+        el.nativeControl!.click();
+        await el.updateComplete;
+        await el.updateComplete;
+        assert.isFalse(el.nativeControl!.hasAttribute('aria-errormessage'));
+        fixtureCleanup();
+      });
+
+      test('without error-message-id no aria-errormessage is rendered', async () => {
+        const {form, el} = await mount();
+        await submit(form, el);
+        assert.isFalse(el.nativeControl!.hasAttribute('aria-errormessage'));
+        fixtureCleanup();
+      });
+
+      // A real click, not `input.click()`: only then do microtasks (and so a Lit update)
+      // run between two listeners of the same event.
+      test('a page change listener lifts an external error by clearing the custom validity', async () => {
+        const form = await fixture<HTMLFormElement>(
+          html`<form><blk-control name="news" label="News" checked></blk-control></form>`
+        );
+        const el = form.querySelector<BlkControl>('blk-control')!;
+        await el.updateComplete;
+        el.nativeControl!.setCustomValidity('Already subscribed');
+        el.invalid = true;
+        await el.updateComplete;
+        assert.isTrue(el.invalid);
+        // Only the native control is touched here, never the host (see the class docs).
+        form.addEventListener('change', () => el.nativeControl!.setCustomValidity(''));
+
+        await userEvent.click(el.nativeControl!);
+        await el.updateComplete;
+        await el.updateComplete;
+        assert.isFalse(el.nativeControl!.checked, 'one click is enough');
+        assert.isFalse(el.checked);
+        assert.isFalse(el.invalid);
+        fixtureCleanup();
+      });
+
+      test('invalid never sticks on a control that passes validation', async () => {
+        const el = await fixture<BlkControl>(html`<blk-control label="Valid"></blk-control>`);
+        el.invalid = true;
+        await el.updateComplete;
+        await el.updateComplete;
+        assert.isFalse(el.invalid);
+
+        const fromMarkup = await fixture<BlkControl>(
+          html`<blk-control label="Valid" invalid></blk-control>`
+        );
+        await fromMarkup.updateComplete;
+        await fromMarkup.updateComplete;
+        assert.isFalse(fromMarkup.invalid);
+        assert.isFalse(fromMarkup.hasAttribute('invalid'));
+        fixtureCleanup();
+      });
+
+      test('an external error goes through setCustomValidity and stays until it is cleared', async () => {
+        const el = await fixture<BlkControl>(html`<blk-control label="Taken"></blk-control>`);
+        el.nativeControl!.setCustomValidity('Taken');
+        el.invalid = true;
+        await el.updateComplete;
+        await el.updateComplete;
+        assert.isTrue(el.invalid);
+        assert.equal(el.nativeControl!.getAttribute('aria-invalid'), 'true');
+
+        el.nativeControl!.click();
+        await el.updateComplete;
+        await el.updateComplete;
+        assert.isTrue(el.invalid, 'toggling does not lift a custom error');
+
+        el.nativeControl!.setCustomValidity('');
+        el.requestUpdate();
+        await el.updateComplete;
+        await el.updateComplete;
+        assert.isFalse(el.invalid);
+        fixtureCleanup();
+      });
+
+      test('a reset starts over', async () => {
+        const {form, el} = await mount();
+        await submit(form, el);
+        form.reset();
+        await el.updateComplete;
+        await set(el, 'checked', true);
+        await set(el, 'checked', false);
+        assert.isFalse(el.invalid);
+        fixtureCleanup();
+      });
+    });
+
+    test('aria-invalid on the native input follows the host invalid state', async () => {
+      const form = await fixture<HTMLFormElement>(
+        html`<form><blk-control name="terms" label="Terms" required></blk-control></form>`
+      );
+      const el = form.querySelector<BlkControl>('blk-control')!;
+      await el.updateComplete;
+      assert.equal(el.nativeControl!.getAttribute('aria-invalid'), 'false');
+
+      form.addEventListener('submit', (ev) => ev.preventDefault());
+      el.nativeControl!.addEventListener('invalid', (ev) => ev.preventDefault());
+      form.requestSubmit();
+      await el.updateComplete;
+      assert.equal(el.nativeControl!.getAttribute('aria-invalid'), 'true');
+
+      form.reset();
+      await el.updateComplete;
+      assert.equal(el.nativeControl!.getAttribute('aria-invalid'), 'false');
+      fixtureCleanup();
+    });
+
+    test('a re-created input keeps the host checked state, not the checked attribute', async () => {
+      const el = await fixture<BlkControl>(html`<blk-control label="x" checked></blk-control>`);
+      el.nativeControl!.click();
+      await el.updateComplete;
+      assert.isFalse(el.checked);
+
+      // Dropping the label swaps the template, so a brand new <input> is rendered.
+      el.label = undefined;
+      el.setAttribute('aria-label', 'x');
+      await el.updateComplete;
+      el.nativeControl!.setAttribute('aria-label', 'x');
+      assert.isFalse(el.nativeControl!.checked, 'defaultChecked must not re-check it');
+      assert.isTrue(el.nativeControl!.defaultChecked);
+      fixtureCleanup();
+    });
+
     test('same-name radios in different forms do not cross-sync', async () => {
       const root = await fixture<HTMLDivElement>(html`
         <div>

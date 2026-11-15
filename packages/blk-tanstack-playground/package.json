@@ -67,7 +67,7 @@
     "@vitest/browser-playwright": "^5.1.0",
     "@vitest/coverage-istanbul": "^5.1.0",
     "playwright": "^1.63.0",
-    "storybook": "^11.0.0-beta.1",
+    "storybook": "11.0.0-beta.3",
     "vitest": "^5.1.0"
   }
 }

@@ -8,7 +8,7 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "![Lit](https://img.shields.io/badge/lit-3.0.0-blue.svg)\n\n## `<blk-input>`\nA form-associated custom element that renders a native `<input>` or `<textarea>`\n(via `type=\"textarea\"`), delegating constraint validation, form participation,\nand reset/state-restore to the browser through `ElementInternals`. It mirrors\nnative input semantics (label association, validity, disabled/readonly state)\nwhile adding a configurable info/error message area driven by `errorMessageText`\nand `infoMessageText`.\n\nWhere supported, the internal control references its associated labels directly, so\ntranslating the text of a label updates the accessible name without a render. The\nreferences are set when the internal control is created; label-set changes are not\nobserved.",
+          "description": "![Lit](https://img.shields.io/badge/lit-3.0.0-blue.svg)\n\n## `<blk-input>`\nA form-associated custom element that renders a native `<input>` or `<textarea>`\n(via `type=\"textarea\"`), delegating constraint validation, form participation,\nand reset/state-restore to the browser through `ElementInternals`. It mirrors\nnative input semantics (label association, validity, disabled/readonly state)\nwhile adding a configurable info/error message area driven by `errorMessageText`\nand `infoMessageText`.\n\nWhere supported, the internal control references its associated labels directly, so\ntranslating the text of a label updates the accessible name without a render. The\nreferences are set when the internal control is created; label-set changes are not\nobserved.\n\n### When errors are shown\n\nThe component follows the policy many form libraries use: validate on blur,\nre-validate on edit.\n\n> A field that has already shown its error re-validates on every change that can\n> affect it, until it is reset.\n\n- **Before the first error** nothing is shown while typing: the field waits for a blur\n  after an edit, or for an `invalid` event. That is usually a submission attempt, but\n  `checkValidity()` and `reportValidity()` fire it too and count the same. The user\n  gets the chance to finish before being told the value is wrong.\n- **After it**, the error appears and disappears as the user types. They already know\n  the rule of the field, so immediate feedback helps them fix it instead of getting\n  in the way.\n- **A field that never failed keeps waiting**: a blur with a valid value does not start\n  the live validation.\n- **A value set by script follows the same rule**: it never raises the first error, but\n  once the field has shown one, it re-validates like typing does.\n- **So does a changed constraint** (`required`, `pattern`, `min`, `max`, `type`,\n  `disabled`, `readonly`…): lifting it clears the error at once; making the value fail\n  shows the error only if the field has already shown one.\n- **A form reset starts over.**\n\nThis is the component's own policy. It is modelled on the native `:user-invalid`, but\nit does not read it or try to replicate it: the inner control is not form-associated,\nso a form submission never marks it. Two private flags are enough: `__hasUserEdited`\n(set on `input`/`change`) gates the validation on blur, and `__hasReportedError` (set\nwhen a blur or an `invalid` event shows the error) is read on every value or constraint\nchange. Both are cleared on reset.",
           "name": "BlkInput",
           "cssProperties": [
             {
@@ -148,13 +148,23 @@
             },
             {
               "kind": "field",
-              "name": "__userValidity",
+              "name": "__hasUserEdited",
               "type": {
                 "text": "boolean"
               },
               "privacy": "private",
               "default": "false",
-              "description": "Mirrors the native \"user validity\" flag behind `:user-invalid`: set by a committed\nvalue change or a submission attempt, cleared on reset. Unlike `touched`, key presses\nthat don't edit the value (arrows, Escape…) don't set it."
+              "description": "The user has edited the value (`input`/`change`); cleared on reset. Gates the\nvalidation on blur. Unlike `touched`, key presses that don't edit the value\n(arrows, Escape…) don't set it."
+            },
+            {
+              "kind": "field",
+              "name": "__hasReportedError",
+              "type": {
+                "text": "boolean"
+              },
+              "privacy": "private",
+              "default": "false",
+              "description": "The component has already shown this field's error (an invalid blur after an edit,\nor an `invalid` event); cleared on reset. From then on every value change (typed or\nset by script, see `update()`) and every constraint change (see `updated()`)\nre-validates, so the error follows the validity instead of waiting for the next blur."
             },
             {
               "kind": "field",
@@ -251,8 +261,8 @@
               "type": {
                 "text": "'none' | 'text' | 'tel' | 'url' | 'email' | 'numeric' | 'decimal' | 'search' | ''"
               },
-              "default": "'text'",
-              "description": "Hints at the type of virtual keyboard to display on mobile devices.\nOptions: `\"none\"`, `\"text\"`, `\"tel\"`, `\"url\"`, `\"email\"`, `\"numeric\"`, `\"decimal\"`, `\"search\"`.",
+              "default": "''",
+              "description": "Hints at the type of virtual keyboard to display on mobile devices.\nOptions: `\"none\"`, `\"text\"`, `\"tel\"`, `\"url\"`, `\"email\"`, `\"numeric\"`, `\"decimal\"`, `\"search\"`.\nUnset by default, so the keyboard follows `type` (an explicit `inputmode` overrides it:\n`\"text\"` would give `type=\"email\"` or `type=\"tel\"` a plain text keyboard).",
               "attribute": "inputmode"
             },
             {
@@ -455,7 +465,7 @@
                 "text": "boolean"
               },
               "default": "false",
-              "description": "When true, the input is currently invalid based on the browser's built-in validation rules",
+              "description": "Whether the component is showing its invalid state (error styles, error message,\n`aria-invalid=\"true\"`). It is not the native constraint validation result — read\n`validity` for that: a field can fail validation while `invalid` is still `false`,\nuntil the policy in \"When errors are shown\" lets the error through. It can also be\nset from outside to show an error decided elsewhere (e.g. by a server).",
               "attribute": "invalid",
               "reflects": true
             },
@@ -497,6 +507,18 @@
                 "text": "boolean"
               },
               "description": "Returns true if the user has interacted.\nInteraction is detected through typing, key presses, or a committed change.",
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "_controlPlaceholder",
+              "description": "Never empty: Safari needs at least a space for the label animation, which relies on\n`:placeholder-shown` (Chrome and Firefox work without it). Do not \"clean it up\".",
+              "readonly": true
+            },
+            {
+              "kind": "field",
+              "name": "_controlAriaInvalid",
+              "description": "Always explicit, never omitted. Without it browsers derive the state from the native\nvalidity and expose the control as invalid before any interaction (a pre-filled value\nthat fails `type`, `pattern`, `min`/`max`…), which breaks the user-validity rule.\nHonoured by Chromium and Safari; seen ignored by Firefox on a required radio.",
               "readonly": true
             },
             {
@@ -637,6 +659,19 @@
             },
             {
               "kind": "method",
+              "name": "_constraintChanged",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "props",
+                  "type": {
+                    "text": "PropertyValues<this>"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
               "name": "_markAsInteracted",
               "privacy": "private",
               "description": "Marks the input as having been interacted with by the user.\nThis is used internally to determine when to show validation messages."
@@ -671,7 +706,7 @@
               "kind": "method",
               "name": "_implicitSubmit",
               "privacy": "private",
-              "description": "The inner control lives in the shadow tree, so the browser's implicit submission\nnever reaches the owner form. Emulate it per spec: activate the form's default\nbutton (keeping it as the `submitter`, with its `formaction`/`name`/`value`),\ndo nothing if that button is disabled, and fall back to `requestSubmit()`.\nhttps://html.spec.whatwg.org/multipage/form-control-infrastructure.html#implicit-submission"
+              "description": "The inner control lives in the shadow tree, so the browser's implicit submission\nnever reaches the owner form. Emulate it per spec: activate the form's default\nbutton (keeping it as the `submitter`, with its `formaction`/`name`/`value`) and do\nnothing if that button is disabled. Without a submit button, submit only when this\nis the form's single field that blocks implicit submission.\nhttps://html.spec.whatwg.org/multipage/form-control-infrastructure.html#implicit-submission"
             },
             {
               "kind": "method",
@@ -804,8 +839,8 @@
               "type": {
                 "text": "'none' | 'text' | 'tel' | 'url' | 'email' | 'numeric' | 'decimal' | 'search' | ''"
               },
-              "default": "'text'",
-              "description": "Hints at the type of virtual keyboard to display on mobile devices.\nOptions: `\"none\"`, `\"text\"`, `\"tel\"`, `\"url\"`, `\"email\"`, `\"numeric\"`, `\"decimal\"`, `\"search\"`.",
+              "default": "''",
+              "description": "Hints at the type of virtual keyboard to display on mobile devices.\nOptions: `\"none\"`, `\"text\"`, `\"tel\"`, `\"url\"`, `\"email\"`, `\"numeric\"`, `\"decimal\"`, `\"search\"`.\nUnset by default, so the keyboard follows `type` (an explicit `inputmode` overrides it:\n`\"text\"` would give `type=\"email\"` or `type=\"tel\"` a plain text keyboard).",
               "fieldName": "inputMode"
             },
             {
@@ -982,7 +1017,7 @@
                 "text": "boolean"
               },
               "default": "false",
-              "description": "When true, the input is currently invalid based on the browser's built-in validation rules",
+              "description": "Whether the component is showing its invalid state (error styles, error message,\n`aria-invalid=\"true\"`). It is not the native constraint validation result — read\n`validity` for that: a field can fail validation while `invalid` is still `false`,\nuntil the policy in \"When errors are shown\" lets the error through. It can also be\nset from outside to show an error decided elsewhere (e.g. by a server).",
               "fieldName": "invalid"
             },
             {
@@ -1132,13 +1167,27 @@
             },
             {
               "kind": "field",
-              "name": "__userValidity",
+              "name": "__hasUserEdited",
               "type": {
                 "text": "boolean"
               },
               "privacy": "private",
               "default": "false",
-              "description": "Mirrors the native \"user validity\" flag behind `:user-invalid`: set by a committed\nvalue change or a submission attempt, cleared on reset. Unlike `touched`, key presses\nthat don't edit the value (arrows, Escape…) don't set it.",
+              "description": "The user has edited the value (`input`/`change`); cleared on reset. Gates the\nvalidation on blur. Unlike `touched`, key presses that don't edit the value\n(arrows, Escape…) don't set it.",
+              "inheritedFrom": {
+                "name": "BlkInput",
+                "module": "src/BlkInput.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "__hasReportedError",
+              "type": {
+                "text": "boolean"
+              },
+              "privacy": "private",
+              "default": "false",
+              "description": "The component has already shown this field's error (an invalid blur after an edit,\nor an `invalid` event); cleared on reset. From then on every value change (typed or\nset by script, see `update()`) and every constraint change (see `updated()`)\nre-validates, so the error follows the validity instead of waiting for the next blur.",
               "inheritedFrom": {
                 "name": "BlkInput",
                 "module": "src/BlkInput.ts"
@@ -1275,8 +1324,8 @@
               "type": {
                 "text": "'none' | 'text' | 'tel' | 'url' | 'email' | 'numeric' | 'decimal' | 'search' | ''"
               },
-              "default": "'text'",
-              "description": "Hints at the type of virtual keyboard to display on mobile devices.\nOptions: `\"none\"`, `\"text\"`, `\"tel\"`, `\"url\"`, `\"email\"`, `\"numeric\"`, `\"decimal\"`, `\"search\"`.",
+              "default": "''",
+              "description": "Hints at the type of virtual keyboard to display on mobile devices.\nOptions: `\"none\"`, `\"text\"`, `\"tel\"`, `\"url\"`, `\"email\"`, `\"numeric\"`, `\"decimal\"`, `\"search\"`.\nUnset by default, so the keyboard follows `type` (an explicit `inputmode` overrides it:\n`\"text\"` would give `type=\"email\"` or `type=\"tel\"` a plain text keyboard).",
               "attribute": "inputmode",
               "inheritedFrom": {
                 "name": "BlkInput",
@@ -1563,7 +1612,7 @@
                 "text": "boolean"
               },
               "default": "false",
-              "description": "When true, the input is currently invalid based on the browser's built-in validation rules",
+              "description": "Whether the component is showing its invalid state (error styles, error message,\n`aria-invalid=\"true\"`). It is not the native constraint validation result — read\n`validity` for that: a field can fail validation while `invalid` is still `false`,\nuntil the policy in \"When errors are shown\" lets the error through. It can also be\nset from outside to show an error decided elsewhere (e.g. by a server).",
               "attribute": "invalid",
               "reflects": true,
               "inheritedFrom": {
@@ -1612,6 +1661,26 @@
                 "text": "boolean"
               },
               "description": "Returns true if the user has interacted.\nInteraction is detected through typing, key presses, or a committed change.",
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "BlkInput",
+                "module": "src/BlkInput.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_controlPlaceholder",
+              "description": "Never empty: Safari needs at least a space for the label animation, which relies on\n`:placeholder-shown` (Chrome and Firefox work without it). Do not \"clean it up\".",
+              "readonly": true,
+              "inheritedFrom": {
+                "name": "BlkInput",
+                "module": "src/BlkInput.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_controlAriaInvalid",
+              "description": "Always explicit, never omitted. Without it browsers derive the state from the native\nvalidity and expose the control as invalid before any interaction (a pre-filled value\nthat fails `type`, `pattern`, `min`/`max`…), which breaks the user-validity rule.\nHonoured by Chromium and Safari; seen ignored by Firefox on a required radio.",
               "readonly": true,
               "inheritedFrom": {
                 "name": "BlkInput",
@@ -1836,6 +1905,23 @@
             },
             {
               "kind": "method",
+              "name": "_constraintChanged",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "props",
+                  "type": {
+                    "text": "PropertyValues<this>"
+                  }
+                }
+              ],
+              "inheritedFrom": {
+                "name": "BlkInput",
+                "module": "src/BlkInput.ts"
+              }
+            },
+            {
+              "kind": "method",
               "name": "_markAsInteracted",
               "privacy": "private",
               "description": "Marks the input as having been interacted with by the user.\nThis is used internally to determine when to show validation messages.",
@@ -1882,7 +1968,7 @@
               "kind": "method",
               "name": "_implicitSubmit",
               "privacy": "private",
-              "description": "The inner control lives in the shadow tree, so the browser's implicit submission\nnever reaches the owner form. Emulate it per spec: activate the form's default\nbutton (keeping it as the `submitter`, with its `formaction`/`name`/`value`),\ndo nothing if that button is disabled, and fall back to `requestSubmit()`.\nhttps://html.spec.whatwg.org/multipage/form-control-infrastructure.html#implicit-submission",
+              "description": "The inner control lives in the shadow tree, so the browser's implicit submission\nnever reaches the owner form. Emulate it per spec: activate the form's default\nbutton (keeping it as the `submitter`, with its `formaction`/`name`/`value`) and do\nnothing if that button is disabled. Without a submit button, submit only when this\nis the form's single field that blocks implicit submission.\nhttps://html.spec.whatwg.org/multipage/form-control-infrastructure.html#implicit-submission",
               "inheritedFrom": {
                 "name": "BlkInput",
                 "module": "src/BlkInput.ts"
@@ -2184,8 +2270,8 @@
               "type": {
                 "text": "'none' | 'text' | 'tel' | 'url' | 'email' | 'numeric' | 'decimal' | 'search' | ''"
               },
-              "default": "'text'",
-              "description": "Hints at the type of virtual keyboard to display on mobile devices.\nOptions: `\"none\"`, `\"text\"`, `\"tel\"`, `\"url\"`, `\"email\"`, `\"numeric\"`, `\"decimal\"`, `\"search\"`.",
+              "default": "''",
+              "description": "Hints at the type of virtual keyboard to display on mobile devices.\nOptions: `\"none\"`, `\"text\"`, `\"tel\"`, `\"url\"`, `\"email\"`, `\"numeric\"`, `\"decimal\"`, `\"search\"`.\nUnset by default, so the keyboard follows `type` (an explicit `inputmode` overrides it:\n`\"text\"` would give `type=\"email\"` or `type=\"tel\"` a plain text keyboard).",
               "fieldName": "inputMode",
               "inheritedFrom": {
                 "name": "BlkInput",
@@ -2446,7 +2532,7 @@
                 "text": "boolean"
               },
               "default": "false",
-              "description": "When true, the input is currently invalid based on the browser's built-in validation rules",
+              "description": "Whether the component is showing its invalid state (error styles, error message,\n`aria-invalid=\"true\"`). It is not the native constraint validation result — read\n`validity` for that: a field can fail validation while `invalid` is still `false`,\nuntil the policy in \"When errors are shown\" lets the error through. It can also be\nset from outside to show an error decided elsewhere (e.g. by a server).",
               "fieldName": "invalid",
               "inheritedFrom": {
                 "name": "BlkInput",
