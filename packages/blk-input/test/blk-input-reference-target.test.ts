@@ -2,7 +2,7 @@ import {suite, test, assert, afterEach, chai} from 'vitest';
 import {page, userEvent} from 'vitest/browser';
 import {fixture, fixtureCleanup} from '@open-wc/testing-helpers';
 import {chaiA11yAxe} from 'chai-a11y-axe';
-import {html} from 'lit';
+import {html, type PropertyValues} from 'lit';
 import {BlkInputReferenceTarget} from '../src/BlkInputReferenceTarget.js';
 import '../src/define/blk-input-reference-target.js';
 
@@ -77,11 +77,12 @@ suite('BlkInputReferenceTarget', () => {
     test('targets the control from the first render, without a second update', async () => {
       class CountingReferenceTarget extends BlkInputReferenceTarget {
         updates = 0;
-        override updated(props: Parameters<BlkInputReferenceTarget['updated']>[0]) {
+        override updated(props: PropertyValues<this>) {
           super.updated(props);
           this.updates++;
         }
       }
+      // @ts-expect-error -- DOM lib types `autocorrect` as boolean, but BlkInput types it as string.
       customElements.define('counting-reference-target', CountingReferenceTarget);
 
       const form = await fixture<HTMLFormElement>(html`

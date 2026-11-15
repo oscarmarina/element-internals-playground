@@ -223,7 +223,7 @@
               "type": {
                 "text": "string"
               },
-              "description": "Resolves the accessible name to forward onto the inner native control,\nmirroring how a native `<input>` resolves its name. Precedence:\n1. The author-set `aria-label` content attribute on the host (overrides the\n   visible label, exactly like a native `<input aria-label>`).\n2. The `ElementInternals.ariaLabel` default semantic set by the component.\n3. The text of any associated `<label>` elements (`for`/`id`) — skipped when the\n   shadow root has a `referenceTarget`: the platform then forwards those labels\n   to the target natively, and copying them would duplicate (or, on first render,\n   before the target exists, freeze) the name.\n\nA best-attempt based on observed behaviour in FireFox 115 on fedora 38.",
+              "description": "Resolves the accessible name to forward onto the inner native control,\nmirroring how a native `<input>` resolves its name. Precedence:\n1. The author-set `aria-label` content attribute on the host (overrides the\n   visible label, exactly like a native `<input aria-label>`).\n2. The `ElementInternals.ariaLabel` default semantic set by the component.\n3. The text of any associated `<label>` elements (`for`/`id`) — skipped when the\n   shadow root has a `referenceTarget`: the platform then forwards those labels\n   to the target natively, and copying them would duplicate (or, on first render,\n   before the target exists, freeze) the name.",
               "readonly": true
             },
             {
@@ -270,7 +270,7 @@
             {
               "kind": "field",
               "name": "isReadOnly",
-              "description": "Returns whether the host element is currently read-only.",
+              "description": "Returns whether the host carries the `readonly` attribute — the same signal the\nplatform uses to bar a form-associated custom element from constraint validation.\n(`:read-only` is useless here: it matches every element that is not editable, so\nit is always true for a custom element.)",
               "readonly": true
             },
             {

@@ -8,6 +8,12 @@ import {
   BlkFormValidationEvent,
 } from '@blockquote-playground/blk-mixin-element-internals';
 import {styles} from './styles/blk-control-styles.css.js';
+import {
+  isRadioGroupSibling,
+  registerRadioHost,
+  syncRadioGroupSiblings,
+  unregisterRadioHost,
+} from './radioGroup.js';
 
 export type BlkControlVariant = 'checkbox' | 'radio';
 
@@ -27,9 +33,10 @@ export type BlkControlLabelPosition = 'start' | 'end';
  *   (impossible across shadow-root boundaries), and
  * - the browser owns form participation, validation, reset, and state restore.
  *
- * The custom element does **not** participate in the form via ElementInternals.
- * It keeps `attachInternals()` only to expose custom states (`:state(checked)`,
- * `:state(indeterminate)`), proxies the constraint-validation API to the native
+ * The custom element is form-associated only for its lifecycle callbacks
+ * (`formResetCallback`, `formDisabledCallback`): it never calls `setFormValue` /
+ * `setValidity`, so it submits nothing. It exposes custom states (`:state(checked)`,
+ * `:state(indeterminate)`…), proxies the constraint-validation API to the native
  * input as the single source of truth, and dispatches {@link BlkFormValidationEvent}.
  *
  * ### Type: `checkbox`
@@ -40,6 +47,52 @@ export type BlkControlLabelPosition = 'start' | 'end';
  * - `required` validity is group-level (valid when any member is checked),
  *   provided natively by the browser.
  *
+ * ### When errors are shown
+ * Same policy as `blk-input`, adapted to a control whose every `change` is already a
+ * committed choice (there is no typing to wait for):
+ *
+ * > A control that has already shown its error re-validates on every change that can
+ * > affect it, until it is reset.
+ *
+ * - **Before the first error** nothing is shown on first render, nor for a `checked` or
+ *   a constraint set by script. The first error comes from the user's own `change`
+ *   (e.g. unchecking a required checkbox) or from an `invalid` event — usually a
+ *   submission attempt, but `checkValidity()` and `reportValidity()` count the same.
+ * - **After it**, `invalid` follows the native validity: checking or unchecking by
+ *   script, toggling `required`, or enabling the control again brings the error back
+ *   or clears it at once.
+ * - **A form reset starts over.**
+ * - **`invalid` is only ever `true` while the native control fails validation.** Set on
+ *   a valid control (by script or as an attribute) it is cleared on that same update:
+ *   there is no error text to explain it, and the form would submit anyway. To show an
+ *   error decided elsewhere (e.g. by a server), make the native control fail with
+ *   `nativeControl.setCustomValidity('…')` and set `invalid`; it stays until the custom
+ *   validity is cleared. To lift it when the user changes the control, clear only the
+ *   custom validity (`setCustomValidity('')`) in your `change` listener: the component
+ *   re-validates right after and drops `invalid` by itself.
+ * - **Do not set properties of this element from a `change` listener.** The component
+ *   syncs from the native input at the end of that event; a property set before that
+ *   renders with the previous `checked` and undoes the user's click.
+ *
+ * This is the component's own policy, modelled on the native `:user-invalid` without
+ * reading it or trying to replicate it.
+ *
+ * ### Your own error message
+ * The component has no error text: the page renders it and shows it with
+ * `blk-control:state(invalid) + .error`. Pass its `id` in `error-message-id` and the
+ * native input points at it with `aria-errormessage` while the error is shown, so a
+ * screen reader can read the reason again from the control, not only when it appears:
+ *
+ * ```html
+ * <blk-control name="terms" required label="I accept" error-message-id="terms-error">
+ * </blk-control>
+ * <div class="error" role="alert" id="terms-error">You must accept the terms.</div>
+ * ```
+ *
+ * The message must live in the same tree as the host (the input is in its light DOM).
+ * For a group — required radios, or "at least one" of several checkboxes — the error
+ * belongs to the group: link it from your own container (`role="radiogroup"`,
+ * `<fieldset>`) instead.
  *
  * @attribute type   - `"checkbox"` (default) | `"radio"`
  * @attribute name      - Form field name; also scopes radio groups.
@@ -51,6 +104,7 @@ export type BlkControlLabelPosition = 'start' | 'end';
  * @attribute label     - Visible label text. Falls back to default slot.
  * @attribute label-position - `"end"` (default) | `"start"`. Visual placement of the
  *                      label text relative to the control (CSS-only; DOM order unchanged).
+ * @attribute error-message-id - `id` of the page's own error message for this control.
  * @fires change     - The native `change` from the light-DOM `<input>`, which bubbles
  *                      through the host (not re-dispatched). Its `target` is therefore
  *                      the inner `<input>`, not the host — intentional, to keep native
@@ -63,9 +117,9 @@ export type BlkControlLabelPosition = 'start' | 'end';
  *                      event (submit-time) — those paths only refresh custom states.
  *
  * ### Custom states (for styling)
- * Exposed through `ElementInternals.states` because host pseudo-classes
- * (`:checked`, `:invalid`, `:disabled`) are unavailable on a non–form-associated
- * element. Match with the `:state()` selector on the host:
+ * Exposed through `ElementInternals.states` because the host submits no value and
+ * sets no validity, so `:checked` / `:invalid` never match it. Match with the
+ * `:state()` selector on the host:
  * - `:state(checked)`       — control is checked
  * - `:state(indeterminate)` — (checkbox) mixed state
  * - `:state(invalid)`       — native input currently fails constraint validation
@@ -120,8 +174,8 @@ export class BlkControl extends BlkMixinFormAssociated(LitElement) {
   required = false;
 
   /**
-   * (checkbox only) Puts the control into a `mixed` state.
-   * Setting `checked=true` clears indeterminate.
+   * (checkbox only) Puts the control into a `mixed` state. Like the native property,
+   * it is independent of `checked`: only a user toggle clears it.
    */
   @property({type: Boolean})
   indeterminate = false;
@@ -146,7 +200,20 @@ export class BlkControl extends BlkMixinFormAssociated(LitElement) {
   labelPosition: BlkControlLabelPosition = 'end';
 
   /**
-   * When true, the control is currently invalid based on the validation rules.
+   * The `id` of an element in the page that holds this control's error message. While
+   * `invalid` is true the native input references it with `aria-errormessage`; it is
+   * not rendered otherwise. The element must be in the same tree as the host.
+   */
+  @property({type: String, attribute: 'error-message-id'})
+  errorMessageId?: string;
+
+  /**
+   * Whether the component is showing its invalid state (`:state(invalid)`,
+   * `aria-invalid="true"`). It is not the native constraint validation result — read
+   * `validity` for that: a control can fail validation while `invalid` is still `false`,
+   * until the policy in "When errors are shown" lets the error through. The reverse
+   * never holds: on a control that passes validation it is cleared on the next update.
+   * For an error decided elsewhere, use `nativeControl.setCustomValidity()` first.
    */
   @property({type: Boolean, reflect: true})
   invalid = false;
@@ -159,6 +226,13 @@ export class BlkControl extends BlkMixinFormAssociated(LitElement) {
   @state() private __fieldsetDisabled = false;
 
   private __hasInteracted = false;
+  /**
+   * The component has already shown this control's error (an invalid `change` by the
+   * user, or an `invalid` event); cleared on reset. From then on `invalid` follows the
+   * native validity on every update (see `updated()`), script and constraint changes
+   * included.
+   */
+  private __hasReportedError = false;
 
   /**
    * Returns true if the user has interacted with the control.
@@ -261,13 +335,25 @@ export class BlkControl extends BlkMixinFormAssociated(LitElement) {
   override updated(props: PropertyValues<this>) {
     super.updated(props);
 
-    if (this.validity.valid) {
+    // A valid control never keeps an error. A failing one shows it only if it has already
+    // shown it once: a `checked` or a constraint set by script never raises the first one.
+    // A disabled control is barred from validation (`willValidate` is false) but its
+    // `validity` still reports the failure, so check both.
+    if (this.validity.valid || this.__defaultInput?.willValidate === false) {
       this.invalid = false;
+    } else if (this.__hasReportedError) {
+      this.invalid = true;
     }
 
     // Custom states always reflect the current snapshot — cheap, and covers
     // validity/disabled changes that aren't tied to a single reactive property.
     this._syncStates();
+
+    // Checking a radio from script unchecks its group siblings natively, with no event:
+    // tell their hosts, or they keep a stale `checked` and steal it back on next render.
+    if (props.has('checked') && this.checked && this.__defaultInput) {
+      syncRadioGroupSiblings(this.__defaultInput);
+    }
 
     // Do not emit `validation` on the initial render (parity with BlkInput): like
     // native controls, validity is not announced until something actually changes.
@@ -291,6 +377,9 @@ export class BlkControl extends BlkMixinFormAssociated(LitElement) {
 
   get _inputTpl() {
     const atStart = this.labelPosition === 'start';
+    // `aria-invalid` is always explicit: left alone, browsers expose a required, unchecked
+    // native checkbox or radio as invalid from the first render, before any interaction.
+    // Honoured by Chromium and Safari; seen ignored by Firefox on a required radio.
     // Inline styles: the input may be nested in a slotted <label>, out of `::slotted()` reach.
     const inputStyles = {
       position: 'absolute',
@@ -313,11 +402,13 @@ export class BlkControl extends BlkMixinFormAssociated(LitElement) {
         name="${this.name}"
         type="${this.type}"
         .value="${live(this.value)}"
-        .checked="${live(this.checked)}"
         .defaultChecked="${this.hasAttribute('checked')}"
+        .checked="${live(this.checked)}"
         .indeterminate="${this.indeterminate}"
         ?disabled="${this.disabled}"
         ?required="${this.required}"
+        aria-invalid="${this.invalid ? 'true' : 'false'}"
+        aria-errormessage="${(this.invalid && this.errorMessageId) || nothing}"
         @invalid="${this._onInvalid}"
         @focus="${this._onFocus}"
         @blur="${this._onBlur}"
@@ -347,9 +438,19 @@ export class BlkControl extends BlkMixinFormAssociated(LitElement) {
    * Stable callback: a new arrow per render makes Lit call the old one with `undefined`
    * and the new one with the element on every update, and can leave `__defaultInput`
    * pointing at a disconnected input when the label template switches.
+   *
+   * In the template, `.defaultChecked` must stay *before* `.checked`: on a fresh input
+   * (label added/removed) `live()` skips an unchanged `checked=false`, and a later
+   * `defaultChecked=true` would then check the still-pristine input behind our back.
    */
   private _inputRef = (input?: Element) => {
+    if (this.__defaultInput) {
+      unregisterRadioHost(this.__defaultInput);
+    }
     this.__defaultInput = input as HTMLInputElement | undefined;
+    if (this.__defaultInput) {
+      registerRadioHost(this.__defaultInput, this._syncFromNative);
+    }
   };
 
   private _shouldSyncFormState(props: PropertyValues<this>) {
@@ -384,7 +485,7 @@ export class BlkControl extends BlkMixinFormAssociated(LitElement) {
    * The native `change` itself bubbles through the light-DOM child, so consumers
    * still receive a `change` event on the host without manual re-dispatch.
    */
-  private _syncFromNative() {
+  private _syncFromNative = () => {
     const input = this.__defaultInput;
     if (!input) {
       return;
@@ -396,8 +497,14 @@ export class BlkControl extends BlkMixinFormAssociated(LitElement) {
       this.indeterminate = input.indeterminate;
     }
     if (this.__hasInteracted) {
-      this.invalid = !this.validity.valid;
+      this._validate();
     }
+  };
+
+  /** Shows or clears the error from the native validity, and remembers having shown it. */
+  private _validate() {
+    this.invalid = !this.validity.valid;
+    this.__hasReportedError ||= this.invalid;
   }
 
   private _onChange = (ev: Event) => {
@@ -405,20 +512,15 @@ export class BlkControl extends BlkMixinFormAssociated(LitElement) {
     if (!(target instanceof HTMLInputElement)) {
       return;
     }
-    const isOwnInput = target === this.__defaultInput;
+    const input = this.__defaultInput;
+    const isOwnInput = target === input;
     // A sibling radio in the same group was selected → this one was deselected
-    // natively, without firing an event on it. The native group is scoped by
-    // name *and* form owner (both `null` for form-less radios in the same root).
-    const isGroupSibling =
-      this.type === 'radio' &&
-      !!this.name &&
-      target.type === 'radio' &&
-      target.name === this.name &&
-      target.form === this.__defaultInput?.form;
+    // natively, without firing an event on it.
+    const isGroupSibling = !!input && isRadioGroupSibling(input, target);
 
     if (isOwnInput) {
       this.__hasInteracted = true;
-      this.invalid = !this.validity.valid;
+      this._validate();
     }
 
     if (isOwnInput || isGroupSibling) {
@@ -442,6 +544,7 @@ export class BlkControl extends BlkMixinFormAssociated(LitElement) {
       this.checked !== input.checked || this.indeterminate !== input.indeterminate;
     this.__fromReset = resetRequiresUpdate;
     this.__hasInteracted = false;
+    this.__hasReportedError = false;
     this.invalid = false;
     this._syncFromNative();
   }
@@ -454,6 +557,7 @@ export class BlkControl extends BlkMixinFormAssociated(LitElement) {
    */
   private _onInvalid() {
     this.__hasInteracted = true;
+    this.__hasReportedError = true;
     this.invalid = true;
     this._syncStates();
   }

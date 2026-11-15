@@ -260,6 +260,120 @@ suite('BlkInput', () => {
       assert.isTrue(el.invalid);
     });
 
+    // Validate on blur, re-validate on edit: once a field has shown its error, the error
+    // follows the typing. Own policy, not a copy of `:user-invalid`.
+    const typeInto = async (target: BlkInput, value: string) => {
+      const input = target.nativeControl as HTMLInputElement;
+      input.value = value;
+      input.dispatchEvent(new InputEvent('input', {bubbles: true, composed: true}));
+      await target.updateComplete;
+    };
+    const blur = async (target: BlkInput) => {
+      target.nativeControl!.dispatchEvent(new Event('blur', {bubbles: true}));
+      await target.updateComplete;
+    };
+
+    test('a field that has shown its error re-validates on every edit', async () => {
+      el = await fixture(
+        html`<blk-input type="email" required label="Email" error-message-text="Bad"></blk-input>`
+      );
+      const input = el.nativeControl as HTMLInputElement;
+
+      await typeInto(el, 'bad');
+      assert.isFalse(el.invalid, 'not before the first blur');
+      await blur(el);
+      assert.isTrue(el.invalid);
+
+      await typeInto(el, 'bad@example.com');
+      assert.isFalse(el.invalid, 'cleared while typing');
+
+      await typeInto(el, 'bad');
+      assert.isTrue(el.invalid, 'back without a blur');
+      assert.equal(input.getAttribute('aria-invalid'), 'true');
+      assert.equal(input.getAttribute('aria-errormessage'), 'error-message-text');
+    });
+
+    test('a field that never showed an error still waits for the blur', async () => {
+      el = await fixture(
+        html`<blk-input type="email" required label="Email" error-message-text="Bad"></blk-input>`
+      );
+      await typeInto(el, 'ok@example.com');
+      await blur(el);
+      assert.isFalse(el.invalid);
+
+      await typeInto(el, 'bad');
+      assert.isFalse(el.invalid, 'a valid blur does not start live validation');
+      await blur(el);
+      assert.isTrue(el.invalid);
+    });
+
+    test('re-validates on every edit after a submission attempt, and waits again after reset', async () => {
+      const form = await fixture<HTMLFormElement>(
+        html`<form>
+          <blk-input name="a" required label="Name" error-message-text="Required"></blk-input>
+        </form>`
+      );
+      el = form.querySelector<BlkInput>('blk-input')!;
+      await el.updateComplete;
+      form.addEventListener('submit', (ev) => ev.preventDefault());
+      el.addEventListener('invalid', (ev) => ev.preventDefault());
+
+      form.requestSubmit();
+      await el.updateComplete;
+      assert.isTrue(el.invalid);
+
+      await typeInto(el, 'x');
+      assert.isFalse(el.invalid);
+      await typeInto(el, '');
+      assert.isTrue(el.invalid, 'live after the submission attempt');
+
+      form.reset();
+      await el.updateComplete;
+      await typeInto(el, 'x');
+      await typeInto(el, '');
+      assert.isFalse(el.invalid, 'reset restores the wait for the first blur');
+    });
+
+    test('a value set by script re-validates once the field has shown its error', async () => {
+      el = await fixture(
+        html`<blk-input type="email" required label="Email" error-message-text="Bad"></blk-input>`
+      );
+      await typeInto(el, 'bad');
+      await blur(el);
+      assert.isTrue(el.invalid);
+
+      el.value = 'ok@example.com';
+      await el.updateComplete;
+      assert.isFalse(el.invalid);
+
+      el.value = 'worse';
+      await el.updateComplete;
+      assert.isTrue(el.invalid);
+      assert.equal(el.nativeControl!.getAttribute('aria-invalid'), 'true');
+
+      // e.g. a "clear" button on a required field
+      el.value = 'ok@example.com';
+      await el.updateComplete;
+      el.value = '';
+      await el.updateComplete;
+      assert.isTrue(el.invalid);
+    });
+
+    test('a value set by script never raises the first error', async () => {
+      el = await fixture(
+        html`<blk-input type="email" required label="Email" error-message-text="Bad"></blk-input>`
+      );
+      el.value = 'worse';
+      await el.updateComplete;
+      assert.isFalse(el.invalid, 'untouched field');
+
+      await typeInto(el, 'ok@example.com');
+      await blur(el);
+      el.value = 'worse';
+      await el.updateComplete;
+      assert.isFalse(el.invalid, 'edited, but never failed');
+    });
+
     test('should not show invalid state when the user only tabs through an empty required field', async () => {
       el = await fixture(
         html`<blk-input required label="Name" error-message-text="Required"></blk-input>`
@@ -273,7 +387,7 @@ suite('BlkInput', () => {
 
       assert.isFalse(el.invalid);
       assert.isFalse(el.touched);
-      assert.isNull(input.getAttribute('aria-invalid'));
+      assert.equal(input.getAttribute('aria-invalid'), 'false');
       assert.isNull(input.getAttribute('aria-errormessage'));
       assert.equal(
         el.shadowRoot!.querySelector('.error-message-text')?.textContent?.trim() ?? '',
@@ -297,7 +411,7 @@ suite('BlkInput', () => {
       await el.updateComplete;
 
       assert.isFalse(el.invalid);
-      assert.isNull(input.getAttribute('aria-invalid'));
+      assert.equal(input.getAttribute('aria-invalid'), 'false');
     });
   });
 
@@ -705,6 +819,183 @@ suite('BlkInput', () => {
 
       expect(submitSpy).not.toHaveBeenCalled();
       expect(requestSpy).not.toHaveBeenCalled();
+    });
+    test('should not submit on the keydown that confirms an IME composition (Safari)', async () => {
+      const form = (await fixture(
+        html`<form novalidate><blk-input label="IME"></blk-input></form>`
+      )) as HTMLFormElement;
+      el = form.querySelector('blk-input')!;
+      const submitSpy = vi.spyOn(form, 'requestSubmit').mockImplementation(vi.fn());
+
+      pressEnter(el.nativeControl, {keyCode: 229} as KeyboardEventInit);
+
+      expect(submitSpy).not.toHaveBeenCalled();
+    });
+
+    test('should not submit when the keydown was already cancelled', async () => {
+      const form = (await fixture(
+        html`<form novalidate><blk-input label="Cancelled"></blk-input></form>`
+      )) as HTMLFormElement;
+      el = form.querySelector('blk-input')!;
+      const submitSpy = vi.spyOn(form, 'requestSubmit').mockImplementation(vi.fn());
+      form.addEventListener('keydown', (ev) => ev.preventDefault(), {capture: true});
+
+      pressEnter(el.nativeControl);
+
+      expect(submitSpy).not.toHaveBeenCalled();
+    });
+
+    test('should use an image button as the default button', async () => {
+      const form = (await fixture(
+        html`<form novalidate>
+          <blk-input label="Image button"></blk-input>
+          <input type="image" alt="Go" src="data:," />
+          <button type="submit">Save</button>
+        </form>`
+      )) as HTMLFormElement;
+      el = form.querySelector('blk-input')!;
+      let submitter: HTMLElement | null = null;
+      form.addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        submitter = ev.submitter;
+      });
+
+      pressEnter(el.nativeControl);
+
+      assert.strictEqual(submitter, form.querySelector('input[type="image"]'));
+    });
+
+    test('should not submit a form with several text fields and no submit button', async () => {
+      const form = (await fixture(
+        html`<form novalidate>
+          <blk-input label="First"></blk-input>
+          <blk-input label="Second"></blk-input>
+        </form>`
+      )) as HTMLFormElement;
+      el = form.querySelector('blk-input')!;
+      const submitSpy = vi.spyOn(form, 'requestSubmit').mockImplementation(vi.fn());
+
+      pressEnter(el.nativeControl);
+
+      expect(submitSpy).not.toHaveBeenCalled();
+    });
+
+    test('should still submit when the other fields do not block implicit submission', async () => {
+      const form = (await fixture(
+        html`<form novalidate>
+          <blk-input label="Only text field"></blk-input>
+          <blk-input label="Notes" type="textarea"></blk-input>
+          <input type="checkbox" aria-label="Agree" />
+        </form>`
+      )) as HTMLFormElement;
+      el = form.querySelector('blk-input')!;
+      const submitSpy = vi.spyOn(form, 'requestSubmit').mockImplementation(vi.fn());
+
+      pressEnter(el.nativeControl);
+
+      expect(submitSpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  suite('Stale errors', () => {
+    const submitInvalid = async () => {
+      const form = (await fixture(
+        html`<form>
+          <blk-input label="Stale" required error-message-text="Required"></blk-input>
+        </form>`
+      )) as HTMLFormElement;
+      el = form.querySelector('blk-input')!;
+      el.addEventListener('invalid', (ev) => ev.preventDefault());
+      form.addEventListener('submit', (ev) => ev.preventDefault());
+      form.requestSubmit();
+      await el.updateComplete;
+      assert.isTrue(el.invalid);
+    };
+
+    test('should drop the error when the failing constraint is lifted', async () => {
+      await submitInvalid();
+      el.required = false;
+      await el.updateComplete;
+      await el.updateComplete;
+      assert.isFalse(el.invalid);
+      assert.isFalse(el.hasAttribute('invalid'));
+    });
+
+    test('should drop the error when the control is barred from validation', async () => {
+      await submitInvalid();
+      el.disabled = true;
+      await el.updateComplete;
+      await el.updateComplete;
+      assert.isFalse(el.invalid);
+    });
+
+    test('should bring the error back when the constraint returns, once it has been shown', async () => {
+      await submitInvalid();
+      el.required = false;
+      await el.updateComplete;
+      await el.updateComplete;
+      assert.isFalse(el.invalid);
+
+      el.required = true;
+      await el.updateComplete;
+      await el.updateComplete;
+      assert.isTrue(el.invalid);
+      assert.equal(el.nativeControl!.getAttribute('aria-invalid'), 'true');
+    });
+
+    test('should bring the error back when the control validates again', async () => {
+      await submitInvalid();
+      el.disabled = true;
+      await el.updateComplete;
+      await el.updateComplete;
+      assert.isFalse(el.invalid);
+
+      el.disabled = false;
+      await el.updateComplete;
+      await el.updateComplete;
+      assert.isTrue(el.invalid);
+    });
+
+    test('a new constraint never raises the first error', async () => {
+      el = await fixture(html`<blk-input label="Fresh" error-message-text="Required"></blk-input>`);
+      el.required = true;
+      await el.updateComplete;
+      await el.updateComplete;
+      assert.isFalse(el.validity.valid);
+      assert.isFalse(el.invalid);
+    });
+
+    test('should keep an externally set invalid when only the message changes', async () => {
+      el = await fixture(html`<blk-input label="External"></blk-input>`);
+      el.invalid = true;
+      el.errorMessageText = 'Taken';
+      await el.updateComplete;
+      await el.updateComplete;
+      assert.isTrue(el.invalid);
+    });
+  });
+
+  suite('Keyboard hints', () => {
+    test('should not force an inputmode, so the keyboard follows the type', async () => {
+      el = await fixture(html`<blk-input type="email" label="Email"></blk-input>`);
+      assert.isFalse(el.nativeControl!.hasAttribute('inputmode'));
+    });
+
+    test('should forward the editing hints to the textarea too', async () => {
+      el = await fixture(
+        html`<blk-input
+          type="textarea"
+          label="Notes"
+          spellcheck="true"
+          inputmode="numeric"
+          enterkeyhint="done"
+          autocapitalize="words"></blk-input>`
+      );
+      const control = el.nativeControl!;
+      assert.equal(control.getAttribute('spellcheck'), 'true');
+      assert.equal(control.getAttribute('inputmode'), 'numeric');
+      assert.equal(control.getAttribute('enterkeyhint'), 'done');
+      assert.equal(control.getAttribute('autocapitalize'), 'words');
     });
   });
 

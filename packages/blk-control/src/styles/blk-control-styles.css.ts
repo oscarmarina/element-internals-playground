@@ -158,7 +158,6 @@ export const styles = css`
       transition: none;
     }
   }
-
   /* Forced colors / Windows High Contrast: author colors are ignored, so redraw the
      indicator with CSS system color keywords to keep it visible and stateful. */
   @media (forced-colors: active) {

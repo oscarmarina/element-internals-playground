@@ -30,6 +30,42 @@ const htmlAttributeStringConverter = {
   },
 };
 
+/**
+ * Input types that "block implicit submission": with more than one such field and no
+ * submit button, Enter does not submit the form.
+ * https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#implicit-submission
+ */
+const blocksImplicitSubmission = new Set([
+  'text',
+  'search',
+  'tel',
+  'url',
+  'email',
+  'password',
+  'date',
+  'month',
+  'week',
+  'time',
+  'datetime-local',
+  'number',
+]);
+
+/** Properties that change the outcome of constraint validation without touching the value. */
+const constraintProps = [
+  'pattern',
+  'type',
+  'required',
+  'min',
+  'max',
+  'minLength',
+  'maxLength',
+  'multiple',
+  'step',
+  // readonly / disabled bar the control from constraint validation.
+  'readOnly',
+  'disabled',
+] as const;
+
 const supportsAriaLabelledByElements =
   typeof Element !== 'undefined' && 'ariaLabelledByElements' in Element.prototype;
 
@@ -58,6 +94,37 @@ const supportsAriaLabelledByElements =
  * translating the text of a label updates the accessible name without a render. The
  * references are set when the internal control is created; label-set changes are not
  * observed.
+ *
+ * ### When errors are shown
+ *
+ * The component follows the policy many form libraries use: validate on blur,
+ * re-validate on edit.
+ *
+ * > A field that has already shown its error re-validates on every change that can
+ * > affect it, until it is reset.
+ *
+ * - **Before the first error** nothing is shown while typing: the field waits for a blur
+ *   after an edit, or for an `invalid` event. That is usually a submission attempt, but
+ *   `checkValidity()` and `reportValidity()` fire it too and count the same. The user
+ *   gets the chance to finish before being told the value is wrong.
+ * - **After it**, the error appears and disappears as the user types. They already know
+ *   the rule of the field, so immediate feedback helps them fix it instead of getting
+ *   in the way.
+ * - **A field that never failed keeps waiting**: a blur with a valid value does not start
+ *   the live validation.
+ * - **A value set by script follows the same rule**: it never raises the first error, but
+ *   once the field has shown one, it re-validates like typing does.
+ * - **So does a changed constraint** (`required`, `pattern`, `min`, `max`, `type`,
+ *   `disabled`, `readonly`…): lifting it clears the error at once; making the value fail
+ *   shows the error only if the field has already shown one.
+ * - **A form reset starts over.**
+ *
+ * This is the component's own policy. It is modelled on the native `:user-invalid`, but
+ * it does not read it or try to replicate it: the inner control is not form-associated,
+ * so a form submission never marks it. Two private flags are enough: `__hasUserEdited`
+ * (set on `input`/`change`) gates the validation on blur, and `__hasReportedError` (set
+ * when a blur or an `invalid` event shows the error) is read on every value or constraint
+ * change. Both are cleared on reset.
  *
  * @fires change - The native `change` of the inner control, re-dispatched from the host.
  * @fires input - The native `input` of the inner control (composed, so it reaches the host).
@@ -92,11 +159,18 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
   private __internalIdref = '';
   private __hasInteracted = false;
   /**
-   * Mirrors the native "user validity" flag behind `:user-invalid`: set by a committed
-   * value change or a submission attempt, cleared on reset. Unlike `touched`, key presses
-   * that don't edit the value (arrows, Escape…) don't set it.
+   * The user has edited the value (`input`/`change`); cleared on reset. Gates the
+   * validation on blur. Unlike `touched`, key presses that don't edit the value
+   * (arrows, Escape…) don't set it.
    */
-  private __userValidity = false;
+  private __hasUserEdited = false;
+  /**
+   * The component has already shown this field's error (an invalid blur after an edit,
+   * or an `invalid` event); cleared on reset. From then on every value change (typed or
+   * set by script, see `update()`) and every constraint change (see `updated()`)
+   * re-validates, so the error follows the validity instead of waiting for the next blur.
+   */
+  private __hasReportedError = false;
   private __firstUpdateComplete = false;
 
   @state()
@@ -171,10 +245,12 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
   /**
    * Hints at the type of virtual keyboard to display on mobile devices.
    * Options: `"none"`, `"text"`, `"tel"`, `"url"`, `"email"`, `"numeric"`, `"decimal"`, `"search"`.
+   * Unset by default, so the keyboard follows `type` (an explicit `inputmode` overrides it:
+   * `"text"` would give `type="email"` or `type="tel"` a plain text keyboard).
    */
   @property({type: String, attribute: 'inputmode'})
   override inputMode:
-    'none' | 'text' | 'tel' | 'url' | 'email' | 'numeric' | 'decimal' | 'search' | '' = 'text';
+    'none' | 'text' | 'tel' | 'url' | 'email' | 'numeric' | 'decimal' | 'search' | '' = '';
 
   /**
    * The maximum allowed value for number, range, date, and time inputs.
@@ -328,7 +404,11 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
   errorMessageText?: string;
 
   /**
-   * When true, the input is currently invalid based on the browser's built-in validation rules
+   * Whether the component is showing its invalid state (error styles, error message,
+   * `aria-invalid="true"`). It is not the native constraint validation result — read
+   * `validity` for that: a field can fail validation while `invalid` is still `false`,
+   * until the policy in "When errors are shown" lets the error through. It can also be
+   * set from outside to show an error decided elsewhere (e.g. by a server).
    */
   @property({
     type: Boolean,
@@ -375,6 +455,24 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
    */
   get touched(): boolean {
     return this.__hasInteracted;
+  }
+
+  /**
+   * Never empty: Safari needs at least a space for the label animation, which relies on
+   * `:placeholder-shown` (Chrome and Firefox work without it). Do not "clean it up".
+   */
+  get _controlPlaceholder() {
+    return this.placeholder === '' ? ' ' : this.placeholder;
+  }
+
+  /**
+   * Always explicit, never omitted. Without it browsers derive the state from the native
+   * validity and expose the control as invalid before any interaction (a pre-filled value
+   * that fails `type`, `pattern`, `min`/`max`…), which breaks the user-validity rule.
+   * Honoured by Chromium and Safari; seen ignored by Firefox on a required radio.
+   */
+  get _controlAriaInvalid() {
+    return this.invalid ? 'true' : 'false';
   }
 
   get _messageTextEmpty() {
@@ -442,8 +540,12 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
         if (input.value !== this.value) {
           input.value = this.value;
         }
+        // Any value change, typed or set by script: a valid value clears the error, and an
+        // invalid one brings it back only if this field has already shown it.
         if (input.validity.valid) {
           this.invalid = false;
+        } else if (this.__hasReportedError) {
+          this.invalid = true;
         }
       }
     }
@@ -475,6 +577,18 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
       const isReset = this.__fromReset;
       this.__fromReset = false;
       this._syncFormState(input, this.value);
+      // A changed constraint follows the same rule as a changed value (see update()).
+      // Lifted, or the control is now barred from validation: no stale error is left
+      // behind. Now failing: the error comes back only if this field has already shown
+      // it. Other property changes leave `invalid` alone, so an external validator
+      // keeps its verdict.
+      if (this._constraintChanged(props)) {
+        if (input.validity.valid || !this.willValidate) {
+          this.invalid = false;
+        } else if (this.__hasReportedError) {
+          this.invalid = true;
+        }
+      }
       if (!isReset) {
         this.dispatchEvent(new BlkFormValidationEvent(this.validity));
       }
@@ -550,21 +664,26 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
         class="input-textarea textarea"
         aria-label="${this._controlAriaLabel}"
         id="${this._controlId ?? nothing}"
-        aria-invalid="${this.invalid ? 'true' : nothing}"
+        aria-invalid="${this._controlAriaInvalid}"
         aria-describedby="${this._describedBy}"
         aria-errormessage="${this._hasVisibleErrorMessage ? 'error-message-text' : nothing}"
         aria-required="${this.required ? 'true' : nothing}"
+        autocapitalize="${this.autocapitalize || nothing}"
         autocomplete="${this.autocomplete ?? nothing}"
         autocorrect="${this.autocorrect ?? nothing}"
+        ?autofocus="${this.autofocus}"
+        enterkeyhint="${this.enterKeyHint || nothing}"
+        inputmode="${this.inputMode || nothing}"
         name="${this.name || nothing}"
         ?disabled="${this.disabled || this.__fieldsetDisabled}"
         maxlength="${this.maxLength ?? nothing}"
         minlength="${this.minLength ?? nothing}"
-        .placeholder="${this.placeholder === '' ? ' ' : this.placeholder}"
+        .placeholder="${this._controlPlaceholder}"
         ?readonly="${this.readOnly}"
         ?required="${this.required}"
         rows="${this.rows || nothing}"
         cols="${this.cols || nothing}"
+        spellcheck="${this.spellcheck}"
         .value="${live(this.value)}"
         @change="${this._onChange}"
         @compositionstart="${this._redispatchEvent}"
@@ -583,7 +702,7 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
         class="input-textarea input"
         aria-label="${this._controlAriaLabel}"
         id="${this._controlId ?? nothing}"
-        aria-invalid="${this.invalid ? 'true' : nothing}"
+        aria-invalid="${this._controlAriaInvalid}"
         aria-describedby="${this._describedBy}"
         aria-errormessage="${this._hasVisibleErrorMessage ? 'error-message-text' : nothing}"
         aria-required="${this.required ? 'true' : nothing}"
@@ -603,7 +722,7 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
         name="${this.name ?? nothing}"
         list="${this.list || nothing}"
         pattern="${this.pattern || nothing}"
-        .placeholder="${this.placeholder === '' ? ' ' : this.placeholder}"
+        .placeholder="${this._controlPlaceholder}"
         ?readonly="${this.readOnly}"
         ?required="${this.required}"
         spellcheck="${this.spellcheck}"
@@ -682,7 +801,8 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
     this.invalid = false;
     this.__fromReset = resetRequiresValueUpdate;
     this.__hasInteracted = false;
-    this.__userValidity = false;
+    this.__hasUserEdited = false;
+    this.__hasReportedError = false;
   }
 
   formStateRestoreCallback(state: File | string | FormData | null) {
@@ -714,19 +834,13 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
       'value',
       'name',
       'errorMessageText',
-      'pattern',
-      'type',
-      'required',
-      'min',
-      'max',
-      'minLength',
-      'maxLength',
-      'multiple',
-      'step',
-      // readonly / disabled bar the control from constraint validation.
-      'readOnly',
-      'disabled',
     ] as const satisfies readonly (keyof BlkInput)[];
+
+    return keys.some((prop) => props.has(prop)) || this._constraintChanged(props);
+  }
+
+  private _constraintChanged(props: PropertyValues<this>) {
+    const keys = constraintProps satisfies readonly (keyof BlkInput)[];
 
     return (
       keys.some((prop) => props.has(prop)) ||
@@ -752,6 +866,9 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
     const {key, target} = ev;
     if (
       ev.isComposing ||
+      // Safari confirms an IME composition with a keydown that is no longer `isComposing`;
+      // the deprecated `keyCode` (229) is the only thing that still identifies it.
+      ev.keyCode === 229 ||
       ['Tab', 'Shift', 'Meta', 'Alt', 'Control'].includes(key) ||
       (target as HTMLElement).tagName === 'TEXTAREA'
     ) {
@@ -762,15 +879,20 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
 
     switch (key) {
       case 'Enter':
-        this._implicitSubmit();
+        // Only capture-phase listeners can have cancelled it by now (this handler sits
+        // on the control itself); a `preventDefault()` further up runs too late.
+        if (!ev.defaultPrevented) {
+          this._implicitSubmit();
+        }
     }
   }
 
   /**
    * The inner control lives in the shadow tree, so the browser's implicit submission
    * never reaches the owner form. Emulate it per spec: activate the form's default
-   * button (keeping it as the `submitter`, with its `formaction`/`name`/`value`),
-   * do nothing if that button is disabled, and fall back to `requestSubmit()`.
+   * button (keeping it as the `submitter`, with its `formaction`/`name`/`value`) and do
+   * nothing if that button is disabled. Without a submit button, submit only when this
+   * is the form's single field that blocks implicit submission.
    * https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#implicit-submission
    */
   private _implicitSubmit() {
@@ -778,15 +900,37 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
     if (!form) {
       return;
     }
-    const defaultButton = Array.from(form.elements).find(
-      (el): el is HTMLButtonElement | HTMLInputElement =>
-        (el instanceof HTMLButtonElement && el.type === 'submit') ||
-        (el instanceof HTMLInputElement && (el.type === 'submit' || el.type === 'image'))
-    );
-    if (defaultButton) {
+    const elements = Array.from(form.elements);
+    const submitButtons = [
+      ...elements.filter(
+        (el): el is HTMLButtonElement | HTMLInputElement =>
+          (el instanceof HTMLButtonElement || el instanceof HTMLInputElement) &&
+          el.type === 'submit'
+      ),
+      // `form.elements` leaves image buttons out, for historical reasons.
+      ...Array.from(
+        (form.getRootNode() as ParentNode).querySelectorAll<HTMLInputElement>('input[type="image"]')
+      ).filter((el) => el.form === form),
+    ];
+    if (submitButtons.length) {
+      // The default button is the first one in tree order.
+      const defaultButton = submitButtons.reduce((first, el) =>
+        first.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_PRECEDING ? el : first
+      );
       if (!defaultButton.matches(':disabled')) {
         defaultButton.click();
       }
+      return;
+    }
+    // No submit button: Enter submits only if this is the form's single text field.
+    const hasOtherTextFields = elements.some(
+      (el) =>
+        el !== this &&
+        (el instanceof BlkInput
+          ? el.type !== 'textarea'
+          : el instanceof HTMLInputElement && blocksImplicitSubmission.has(el.type))
+    );
+    if (hasOtherTextFields) {
       return;
     }
     this.requestSubmit(null);
@@ -796,27 +940,28 @@ export class BlkInput extends BlkMixinFormAssociated(LitElement) {
     const newValue = (target as HTMLInputElement).value;
     this.value = newValue;
     this._markAsInteracted();
-    this.__userValidity = true;
+    this.__hasUserEdited = true;
   }
 
   // `focus`/`blur` are composed, so the native events already reach the host
   // (retargeted) — re-dispatching them would fire each one twice.
   private _onBlur() {
     const input = this.__defaultInput;
-    if (input && this.__userValidity) {
+    if (input && this.__hasUserEdited) {
       this.invalid = !input.validity.valid;
+      this.__hasReportedError ||= this.invalid;
     }
   }
 
   private _onChange(ev: Event | string) {
     this._markAsInteracted();
-    this.__userValidity = true;
+    this.__hasUserEdited = true;
     redispatchEvent(this, ev);
   }
 
   private _onInvalid() {
     this.__hasInteracted = true;
-    this.__userValidity = true;
+    this.__hasReportedError = true;
     this.invalid = true;
   }
 }

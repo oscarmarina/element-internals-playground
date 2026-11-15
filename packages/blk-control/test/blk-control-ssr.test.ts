@@ -161,7 +161,97 @@ suite('BlkControlSSR', () => {
 
   // ── Touched / invalid ──────────────────────────────────────────────────────
 
-  suite('Invalid (touched)', () => {
+  // Same policy as blk-control / blk-input: nothing until the control has shown its error
+  // (the user's own failing change, or an `invalid` event); from then on it follows validity.
+  suite('When errors are shown', () => {
+    const mount = async () => {
+      const form = await fixture<HTMLFormElement>(html`
+        <form novalidate>
+          <blk-control-ssr>
+            <input slot="embedded" id="p" type="checkbox" name="p" value="y" required />
+            <label slot="embedded" for="p">x</label>
+          </blk-control-ssr>
+        </form>
+      `);
+      const el = form.querySelector<BlkControlSSR>('blk-control-ssr')!;
+      await el.updateComplete;
+      await tick();
+      return {form, el, input: el.nativeControl!};
+    };
+    const invalid = (el: BlkControlSSR) => getState(el, ':state(invalid)');
+
+    test('keeps an explicit aria-invalid on the adopted input', async () => {
+      const {form, el, input} = await mount();
+      assert.equal(input.getAttribute('aria-invalid'), 'false');
+      form.checkValidity();
+      assert.isTrue(invalid(el));
+      assert.equal(input.getAttribute('aria-invalid'), 'true');
+      input.click();
+      assert.equal(input.getAttribute('aria-invalid'), 'false');
+      fixtureCleanup();
+    });
+
+    test('a checked set by script never raises the first error', async () => {
+      const {el} = await mount();
+      el.checked = true;
+      el.checked = false;
+      assert.isFalse(el.validity.valid);
+      assert.isFalse(invalid(el));
+      fixtureCleanup();
+    });
+
+    test('a user who never failed is not flagged by a later script change', async () => {
+      const {el, input} = await mount();
+      input.click();
+      el.checked = false;
+      assert.isFalse(invalid(el));
+      fixtureCleanup();
+    });
+
+    test('the user unchecking a required control shows the error at once', async () => {
+      const {el, input} = await mount();
+      input.click();
+      assert.isFalse(invalid(el));
+      input.click();
+      assert.isTrue(invalid(el));
+      fixtureCleanup();
+    });
+
+    test('once shown, the error follows a checked set by script', async () => {
+      const {form, el} = await mount();
+      form.checkValidity();
+      el.checked = true;
+      assert.isFalse(invalid(el));
+      el.checked = false;
+      assert.isTrue(invalid(el));
+      fixtureCleanup();
+    });
+
+    test('a disabled control never shows the error', async () => {
+      const {form, el, input} = await mount();
+      form.checkValidity();
+      assert.isTrue(invalid(el));
+      input.disabled = true;
+      // Attributes set directly on the input are not observed: the next sync catches up.
+      el.indeterminate = false;
+      assert.isFalse(invalid(el));
+      assert.equal(input.getAttribute('aria-invalid'), 'false');
+      fixtureCleanup();
+    });
+
+    test('a reset starts over', async () => {
+      const {form, el} = await mount();
+      form.checkValidity();
+      form.reset();
+      await tick();
+      el.checked = true;
+      el.checked = false;
+      assert.isFalse(invalid(el));
+      fixtureCleanup();
+    });
+  });
+
+  suite('Invalid (reported)', () => {
     test('not invalid initially, not on tab-through, invalid after submit attempt', async () => {
       const form = await fixture<HTMLFormElement>(html`
         <form novalidate>
@@ -460,6 +550,73 @@ suite('BlkControlSSR', () => {
       await el.updateComplete;
       assert.equal(el.labelPosition, 'start');
       assert.equal(el.getAttribute('label-position'), 'start');
+      fixtureCleanup();
+    });
+  });
+  suite('Regressions', () => {
+    test('keeps reacting to the native input after being moved in the DOM', async () => {
+      const form = await fixture<HTMLFormElement>(html`
+        <form>
+          <div id="target"></div>
+          <blk-control-ssr>
+            <input slot="embedded" id="mv" type="checkbox" name="mv" required />
+            <label slot="embedded" for="mv">Move me</label>
+          </blk-control-ssr>
+        </form>
+      `);
+      const el = form.querySelector<BlkControlSSR>('blk-control-ssr')!;
+      await el.updateComplete;
+
+      form.querySelector('#target')!.append(el);
+      await el.updateComplete;
+      await tick();
+
+      el.nativeControl!.dispatchEvent(new Event('invalid'));
+      assert.isTrue(getState(el, ':state(invalid)'));
+      fixtureCleanup();
+    });
+
+    test('checking a radio from script refreshes its group siblings', async () => {
+      const root = await fixture<HTMLDivElement>(html`
+        <div role="radiogroup" aria-label="Programmatic">
+          <blk-control-ssr>
+            <input slot="embedded" id="pa" type="radio" name="pg" checked />
+            <label slot="embedded" for="pa">A</label>
+          </blk-control-ssr>
+          <blk-control-ssr>
+            <input slot="embedded" id="pb" type="radio" name="pg" />
+            <label slot="embedded" for="pb">B</label>
+          </blk-control-ssr>
+        </div>
+      `);
+      const [a, b] = Array.from(root.querySelectorAll<BlkControlSSR>('blk-control-ssr'));
+      await a.updateComplete;
+      await b.updateComplete;
+      assert.isTrue(getState(a, ':state(checked)'));
+      const onValidation = vi.fn();
+      a.addEventListener('validation', onValidation);
+
+      b.checked = true;
+
+      assert.isTrue(getState(b, ':state(checked)'));
+      assert.isFalse(getState(a, ':state(checked)'));
+      expect(onValidation).toHaveBeenCalledTimes(1);
+      fixtureCleanup();
+    });
+
+    test('drops the reflected type when the input goes away', async () => {
+      const el = await fixture<BlkControlSSR>(html`
+        <blk-control-ssr>
+          <input slot="embedded" type="checkbox" aria-label="x" />
+        </blk-control-ssr>
+      `);
+      await el.updateComplete;
+      assert.equal(el.getAttribute('type'), 'checkbox');
+      el.nativeControl!.remove();
+      await tick();
+      await tick();
+      assert.isNull(el.nativeControl);
+      assert.isFalse(el.hasAttribute('type'));
       fixtureCleanup();
     });
   });

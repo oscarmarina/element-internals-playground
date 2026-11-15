@@ -4,6 +4,12 @@ import {
   BlkMixinFormAssociated,
   BlkFormValidationEvent,
 } from '@blockquote-playground/blk-mixin-element-internals';
+import {
+  isRadioGroupSibling,
+  registerRadioHost,
+  syncRadioGroupSiblings,
+  unregisterRadioHost,
+} from './radioGroup.js';
 
 export type BlkControlSSRVariant = 'checkbox' | 'radio';
 export type BlkControlSSRLabelPosition = 'start' | 'end';
@@ -35,9 +41,33 @@ const safeMatches = (el: Element | null | undefined, selector: string): boolean 
  * `:has()` inside `:host()` is **not honoured as a style selector** in current engines
  * (it matches in `element.matches()` yet the rule is dropped). So this component mirrors
  * the native input's state into `ElementInternals.states` and styles with
- * `:host(:state(...))` + `::slotted()` — both well supported. The invalid state is gated by
- * a "touched" flag (set on input/blur/invalid/change), matching `<blk-control>` and working
- * under the `novalidate` + manual `checkValidity()` flow where `:user-invalid` is unreliable.
+ * `:host(:state(...))` + `::slotted()` — both well supported.
+ *
+ * ### When errors are shown
+ * Same policy as `<blk-control>` and `<blk-input>`; here "the error" is `:state(invalid)`
+ * (there is no `invalid` property: the native input is the only source of truth).
+ *
+ * > A control that has already shown its error re-validates on every change the
+ * > component can see, until it is reset.
+ *
+ * - **Before the first error** nothing is shown on first render, on tab-through, nor for
+ *   a `checked` set by script. The first error comes from the user's own `change` (e.g.
+ *   unchecking a required checkbox) or from an `invalid` event — usually a submission
+ *   attempt, but `checkValidity()` and `reportValidity()` count the same, which is what
+ *   makes the `novalidate` + manual `checkValidity()` flow work.
+ * - **After it**, `:state(invalid)` follows the native validity each time the states are
+ *   synced: a `change`, the host's `checked`/`indeterminate` setters, focus and blur.
+ * - **A form reset starts over.**
+ *
+ * It is the component's own policy, modelled on the native `:user-invalid` without reading
+ * it. One limit comes from not owning the input: attributes changed directly on it
+ * (`required`, `disabled`, `checked`) are not observed, so the state catches up on the
+ * next sync.
+ *
+ * The component also keeps an explicit `aria-invalid` on the adopted input, mirroring
+ * `:state(invalid)`, so a required, unchecked control is not exposed as invalid before any
+ * interaction. That needs JS: to cover the time before the element upgrades, render
+ * `aria-invalid="false"` on the input from the server.
  *
  * The native `<input>` keeps full ownership of submission, validation, reset, state
  * restore, radio-group discovery, disabled-by-`<fieldset>` and a11y semantics. The host is
@@ -50,7 +80,14 @@ const safeMatches = (el: Element | null | undefined, selector: string): boolean 
  *
  * ```html
  * <blk-control-ssr>
- *   <input slot="embedded" id="terms" type="checkbox" name="terms" value="yes" required />
+ *   <input
+ *     slot="embedded"
+ *     aria-invalid="false"
+ *     id="terms"
+ *     type="checkbox"
+ *     name="terms"
+ *     value="yes"
+ *     required />
  *   <label slot="embedded" for="terms">I accept the terms</label>
  * </blk-control-ssr>
  * ```
@@ -62,7 +99,7 @@ const safeMatches = (el: Element | null | undefined, selector: string): boolean 
  *
  * @cssState checked
  * @cssState indeterminate
- * @cssState invalid - invalid AND touched (after interaction / submit attempt)
+ * @cssState invalid - failing validation AND already reported (see "When errors are shown")
  * @cssState disabled - own attribute or an ancestor `<fieldset disabled>`
  * @cssState focus - keyboard focus (`:focus-visible`)
  */
@@ -173,7 +210,7 @@ export class BlkControlSSR extends BlkMixinFormAssociated(LitElement) {
       outline-offset: 2px;
     }
 
-    /* invalid (sourced from native :user-invalid → "touched") */
+    /* invalid (gated by the error policy, see _syncStates) */
     :host(:state(invalid):not(:state(disabled))) i {
       border-color: var(--_control-error-color);
     }
@@ -277,11 +314,15 @@ export class BlkControlSSR extends BlkMixinFormAssociated(LitElement) {
   /** The native control backing this element (acquired from the slot). */
   private __defaultInput: HTMLInputElement | null = null;
   private __root?: Document | ShadowRoot;
-  /** "Touched" gate so errors show only after interaction / a submit attempt. */
-  private __hasInteracted = false;
+  /**
+   * The component has already shown this control's error (an invalid `change` by the
+   * user, or an `invalid` event); cleared on reset. Until then `:state(invalid)` stays
+   * off; from then on it follows the native validity on every sync.
+   */
+  private __hasReportedError = false;
 
   // `change` is handled on the root (to also catch deselected radio siblings). These are
-  // the events that don't surface there: focus/blur for the focus ring, invalid for touched.
+  // the events that don't surface there: focus/blur for the focus ring, invalid for the error.
   private static readonly _inputEvents = ['focus', 'blur', 'invalid'] as const;
 
   /**
@@ -331,6 +372,10 @@ export class BlkControlSSR extends BlkMixinFormAssociated(LitElement) {
     input.checked = value;
     this._syncStates();
     this.dispatchEvent(new BlkFormValidationEvent(this.validity));
+    // The browser unchecks the group siblings without an event: refresh their hosts.
+    if (value) {
+      syncRadioGroupSiblings(input);
+    }
   }
 
   get indeterminate(): boolean {
@@ -376,6 +421,9 @@ export class BlkControlSSR extends BlkMixinFormAssociated(LitElement) {
     // which fires after the browser has already restored all control values.
     this.__root = this.getRootNode() as Document | ShadowRoot;
     this.__root.addEventListener('change', this._onRootChange);
+    // Reconnected (e.g. moved in the DOM): neither `firstUpdated` nor `slotchange` runs
+    // again, so restore what `disconnectedCallback` removed from the adopted input.
+    this._listenToInput();
   }
 
   override disconnectedCallback() {
@@ -431,15 +479,35 @@ export class BlkControlSSR extends BlkMixinFormAssociated(LitElement) {
     this._detachInput();
     this.__defaultInput = input;
     if (input) {
-      // Reflect type for the indicator shape, and listen for state-affecting events
-      // that don't surface as a bubbling `change` on the root.
+      // Reflect type for the indicator shape.
       this.setAttribute('type', input.type);
-      for (const type of BlkControlSSR._inputEvents) {
-        input.addEventListener(type, this._onInputEvent);
-      }
+    } else {
+      this.removeAttribute('type');
     }
+    this._listenToInput();
     this._syncStates();
   }
+
+  /**
+   * Listen for the state-affecting events that don't surface as a bubbling `change` on
+   * the root. Safe to call repeatedly: the same listener is never added twice.
+   */
+  private _listenToInput() {
+    const input = this.__defaultInput;
+    if (!input) {
+      return;
+    }
+    for (const type of BlkControlSSR._inputEvents) {
+      input.addEventListener(type, this._onInputEvent);
+    }
+    registerRadioHost(input, this._onGroupSiblingChecked);
+  }
+
+  /** A group sibling was checked from script, which unchecked this input silently. */
+  private _onGroupSiblingChecked = () => {
+    this._syncStates();
+    this.dispatchEvent(new BlkFormValidationEvent(this.validity));
+  };
 
   private _detachInput() {
     const input = this.__defaultInput;
@@ -449,15 +517,15 @@ export class BlkControlSSR extends BlkMixinFormAssociated(LitElement) {
     for (const type of BlkControlSSR._inputEvents) {
       input.removeEventListener(type, this._onInputEvent);
     }
+    unregisterRadioHost(input);
   }
 
   private _onInputEvent = (ev: Event) => {
-    // `:user-invalid` is unreliable under `novalidate` + manual `checkValidity()`, so we
-    // gate the invalid state with our own "touched" flag. A submit attempt fires `invalid`
-    // → touched. Real value interaction is handled by the root `change` listener. `blur`
-    // only refreshes the `:state(focus)` ring — tabbing through must not flag the field.
+    // An `invalid` event (submit attempt, `checkValidity()`…) shows the error. The user's
+    // own changes are handled by the root `change` listener. `focus`/`blur` only refresh
+    // the states — tabbing through must not flag the control.
     if (ev.type === 'invalid') {
-      this.__hasInteracted = true;
+      this.__hasReportedError = true;
     }
     this._syncStates();
   };
@@ -468,18 +536,9 @@ export class BlkControlSSR extends BlkMixinFormAssociated(LitElement) {
     if (!input || !(target instanceof HTMLInputElement)) {
       return;
     }
-    const isOwnInput = target === input;
-    // Native radio group: same name AND same form owner (both `null` for form-less
-    // radios in the same root).
-    const isGroupSibling =
-      input.type === 'radio' &&
-      !!input.name &&
-      target.type === 'radio' &&
-      target.name === input.name &&
-      target.form === input.form;
-
-    if (isOwnInput || isGroupSibling) {
-      this.__hasInteracted = true;
+    if (target === input || isRadioGroupSibling(input, target)) {
+      // A user's change that leaves the control failing shows the error at once.
+      this.__hasReportedError ||= this._isFailing;
       this._syncStates();
       this.dispatchEvent(new BlkFormValidationEvent(this.validity));
     }
@@ -488,17 +547,24 @@ export class BlkControlSSR extends BlkMixinFormAssociated(LitElement) {
   /**
    * Called by the browser (FACE) after all form controls are restored to their
    * default values. The native input's state is already correct at this point,
-   * so we reset the "touched" flag and sync custom states synchronously.
+   * so we forget any reported error and sync custom states synchronously.
    */
   formResetCallback() {
-    this.__hasInteracted = false;
+    this.__hasReportedError = false;
     this._syncStates();
+  }
+
+  /** Failing constraint validation. A disabled control is barred from it, so never fails. */
+  private get _isFailing() {
+    return this.willValidate && !this.validity.valid;
   }
 
   /**
    * Mirror the native input's live state into custom states for shadow-DOM styling.
-   * `invalid` is sourced from the native `:user-invalid`, so the "touched" behaviour
-   * (only flag after interaction/submit) comes from the platform.
+   * `invalid` is gated by `__hasReportedError`, not by `:user-invalid`, which is unreliable
+   * under `novalidate` + manual `checkValidity()`. The same value goes to an explicit
+   * `aria-invalid` on the input: without it, browsers expose a required, unchecked control
+   * as invalid from the first render (see the same note in `BlkControl`).
    */
   private _syncStates() {
     const input = this.__defaultInput;
@@ -507,7 +573,9 @@ export class BlkControlSSR extends BlkMixinFormAssociated(LitElement) {
     set('checked', !!input?.checked);
     set('indeterminate', !!input?.indeterminate);
     set('disabled', safeMatches(input, ':disabled'));
-    set('invalid', this.__hasInteracted && !this.validity.valid);
+    const invalid = this.__hasReportedError && this._isFailing;
+    set('invalid', invalid);
+    input?.setAttribute('aria-invalid', invalid ? 'true' : 'false');
     set('focus', safeMatches(input, ':focus-visible'));
   }
 }

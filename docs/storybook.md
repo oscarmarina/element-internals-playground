@@ -22,11 +22,14 @@ Requisitos: **Node 22.12 o superior**.
 
 ```sh
 npm install                          # una sola vez, en la raíz del repo
-npm run storybook                    # abre http://localhost:6006
+npm run storybook                    # arranca el servidor en http://localhost:6006
 ```
+
+Storybook 11 ya no abre el navegador por sí solo: abre esa dirección a mano (o añade `-- --open` al comando).
 
 Verás una barra lateral con los elementos. Elige una story y prueba:
 
+- **Docs** (primera entrada de cada elemento): la tabla con toda su API y todas sus stories juntas.
 - **Controls** (panel inferior): cambia `label`, `required`, `disabled`… y el elemento se actualiza.
 - **Actions**: muestra los eventos que dispara el elemento (si la story lo pide con `fn()`, ver sección 6).
 
@@ -170,7 +173,7 @@ Para un **elemento nuevo**, además:
 
 1. Crea `packages/<paquete>/stories/<elemento>.stories.ts`.
 2. Copia el `stories/tsconfig.json` de otro paquete (si el paquete no tiene `customConditions: ["workspaces"]` en su `tsconfig.json`, añádelo en el de stories).
-3. Añade `storybook` como devDependency del paquete (`npm i -D storybook@next -w @blockquote-playground/<paquete>`), porque ESLint exige declarar lo que se importa.
+3. Añade `storybook` como devDependency del paquete, con la **misma versión exacta** que el `package.json` de la raíz (`npm i -D -E storybook@<versión> -w @blockquote-playground/<paquete>`), porque ESLint exige declarar lo que se importa.
 4. En el `eslint.config.js` del paquete, añade `` `**/stories/**/*.${fileTypes}` `` a la lista `devDependencies` de la regla `import-x/no-extraneous-dependencies`.
 5. Asegúrate de que el manifiesto del paquete aparece en `customElementsManifest` de `.storybook/main.ts`.
 
@@ -180,12 +183,22 @@ La barra de herramientas y los paneles de Storybook se amplían con addons. Esto
 
 | Addon          | De dónde viene                      | Para qué sirve                                              |
 | -------------- | ----------------------------------- | ----------------------------------------------------------- |
+| Docs           | `@storybook/addon-docs`             | Página **Docs** por elemento: API del manifiesto y stories  |
+| Direction      | `preview.ts` (no es un addon)       | Cambiar entre LTR y RTL desde la barra de herramientas      |
 | Viewport       | Núcleo de Storybook (no se instala) | Ver el elemento en tamaños de móvil, tablet y escritorio    |
 | Backgrounds    | Núcleo de Storybook                 | Ver el elemento sobre fondo claro u oscuro                  |
 | Accessibility  | `@storybook/addon-a11y`             | Auditar WCAG 2.0, 2.1 y 2.2 AA con axe-core                 |
 | Pseudo-estados | `storybook-addon-pseudo-states`     | Forzar `:hover`, `:focus`, `:active`… para verlos sin ratón |
 
 Se registran en `.storybook/main.ts` (`addons`) y se configuran en `.storybook/preview.ts`.
+
+### Docs
+
+`tags: ['autodocs']` en `preview.ts` crea una página **Docs** para cada archivo de stories. Las tablas salen del manifiesto, así que valen las mismas reglas que para Controls (sección 5). El comentario JSDoc que pongas encima de una story aparece como su descripción. Los snippets de código son estáticos: no cambian al mover los controles.
+
+### Direction (LTR / RTL)
+
+El botón **Direction** de la barra pone `dir="rtl"` en el documento. Los elementos usan propiedades lógicas de CSS (`inset-inline`, `padding-inline`…), y esta es la forma de comprobar que el indicador, la etiqueta y los mensajes cambian de lado.
 
 ### Accessibility
 
@@ -196,6 +209,7 @@ Qué hay que saber, porque lo hemos comprobado en Chromium:
 - **Atraviesa el Shadow DOM.** Detecta, por ejemplo, un `<blk-input>` sin etiqueta como un fallo crítico `label` dentro del `<input>` interno.
 - **No entiende `referenceTarget`.** Si `<blk-input-reference-target>` tiene una `<label for>` externa, axe dice que no tiene etiqueta aunque en el árbol real de accesibilidad de Chromium el nombre sea correcto. Es un falso positivo. La story `ReferenceTargetExternalLabel` desactiva solo la regla `label` y lo explica en un comentario. Para ver el nombre real, usa las herramientas de desarrollo de Chromium: pestaña **Accessibility**, o **Elements** → **Accessibility**.
 - **Un `placeholder` con texto tapa una etiqueta que falta.** axe lo acepta como nombre. Por eso las stories de etiquetas no lo llevan.
+- **Solo audita lo que se pinta.** Por eso hay stories de cada estado (`Invalid`, `Disabled`, `ReadOnly`, `FieldsetDisabled`, `RadioGroup`…). Las de error fuerzan `invalid` con un arg, porque en uso real el error solo aparece tras la interacción del usuario; no se usa `play` para simularla.
 - **Una story sin etiqueta debe fallar.** `MissingLabel` existe a propósito para comprobar que el panel funciona.
 - Para desactivar una regla en una sola story: `parameters: {a11y: {config: {rules: [{id: 'label', enabled: false}]}}}`. No la desactives en `preview.ts`.
 
@@ -224,9 +238,9 @@ Comprobado: funciona con nuestros elementos aunque los estilos estén en el shad
 
 ## 10. Cosas a tener presentes
 
-- **Es una beta** (`11.0.0-beta.x`). Puede haber errores propios de Storybook. Si algo raro no tiene explicación en el código, busca la incidencia en el repositorio de Storybook antes de gastar horas.
+- **Es una beta** (`11.0.0-beta.x`), con la versión **fijada sin `^`** en todos los `package.json`: entre betas puede haber cambios incompatibles, así que se sube a propósito y en todos los paquetes a la vez. Puede haber errores propios de Storybook. Si algo raro no tiene explicación en el código, busca la incidencia en el repositorio de Storybook antes de gastar horas.
 - `setCustomElementsManifest()` está **deprecado** y no se usa en este repo.
-- La guía de migración de Storybook 11 avisa de regresiones temporales en la generación de los snippets de código fuente (los que se muestran en Docs). No las hemos probado con estos elementos.
+- **No hay tests en Storybook**, ni funcionales (`play`, addon de Vitest) ni visuales. `fn()` se importa de `storybook/test`, pero solo es el espía que alimenta el panel Actions.
 - Las reglas de comportamiento de los elementos (error solo con "user validity", nombre accesible, `referenceTarget`…) están en `CLAUDE.md`. Una story no debe saltárselas.
 
 ## 11. Chuleta de comandos

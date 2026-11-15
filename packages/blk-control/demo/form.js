@@ -85,3 +85,52 @@ const formNative = /** @type {HTMLFormElement | null} */ (document.getElementByI
 if (formNative) {
   bindFormOutput(formNative, 'output-native');
 }
+
+// ── Section 4: an error decided outside the browser ──────────────────────────
+// `invalid` only sticks while the native control fails validation, so an external
+// error is declared on the native control with setCustomValidity(). That also blocks
+// the form and gives the browser a message of its own.
+
+const formExternal = /** @type {HTMLFormElement | null} */ (
+  document.getElementById('form-external')
+);
+if (formExternal) {
+  const control = /** @type {import('../src/BlkControl.js').BlkControl} */ (
+    formExternal.querySelector('blk-control')
+  );
+  const error = /** @type {HTMLElement} */ (document.getElementById('external-error'));
+  const output = /** @type {HTMLElement} */ (document.getElementById('output-external'));
+
+  /** @param {string} message */
+  const showExternalError = (message) => {
+    control.nativeControl?.setCustomValidity(message);
+    // Nothing notifies the component that the validity changed, so set `invalid` here.
+    control.invalid = true;
+    error.textContent = message;
+  };
+
+  // Lifting the error is up to the page: neither the user's change nor a form reset
+  // clears a custom validity. Only the native control is touched: the component
+  // re-validates after `change` (and after a reset) and drops `invalid` by itself.
+  // Setting a property of <blk-control> from a `change` listener would undo the click.
+  const liftExternalError = () => {
+    control.nativeControl?.setCustomValidity('');
+    error.textContent = '';
+  };
+
+  // Registered before bindFormOutput(), so it runs first: the browser finds the control
+  // valid, the simulated server does not.
+  formExternal.addEventListener('submit', (ev) => {
+    if (control.checked && control.validity.valid) {
+      ev.preventDefault();
+      ev.stopImmediatePropagation();
+      output.textContent = '';
+      showExternalError('The server says this address is already subscribed.');
+    }
+  });
+
+  formExternal.addEventListener('change', liftExternalError);
+  formExternal.addEventListener('reset', liftExternalError);
+
+  bindFormOutput(formExternal, 'output-external');
+}

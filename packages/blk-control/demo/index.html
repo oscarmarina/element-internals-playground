@@ -118,7 +118,7 @@
       }
 
       /* ── Error messages ──────────────────────────────────────────────────────
-         blk-control: driven by :state(invalid) (JS-gated "touched" flag).
+         blk-control: driven by :state(invalid) (off until the control has shown its error).
          Native: driven by :user-invalid (browser-native "touched" gating).      */
       .error {
         color: #d83020;
@@ -233,8 +233,11 @@
                 value="yes"
                 required
                 label="I accept the terms"
+                error-message-id="terms-error"
               ></blk-control>
-              <div class="error" role="alert">You must accept the terms to continue.</div>
+              <div class="error" role="alert" id="terms-error">
+                You must accept the terms to continue.
+              </div>
             </div>
 
             <!-- required radio group -->
@@ -412,6 +415,42 @@
             <button type="reset">Reset</button>
           </div>
           <pre class="form-output" id="output-native" aria-live="polite"></pre>
+        </form>
+      </section>
+
+      <!-- ── 4. An error the browser cannot know about (server, business rule) ── -->
+      <section id="sec-external">
+        <form id="form-external" novalidate>
+          <fieldset>
+            <legend>
+              External error
+              <span class="badge badge-lit">&lt;blk-control&gt;</span>
+            </legend>
+
+            <!-- Not required: natively this control is always valid. The "server" rejects
+                 it on submit, and the page declares that error on the native control with
+                 setCustomValidity() (see form.js). -->
+            <div class="field">
+              <blk-control
+                name="newsletter"
+                value="yes"
+                label="Subscribe to the newsletter"
+                error-message-id="external-error"
+              ></blk-control>
+              <div class="error" role="alert" id="external-error"></div>
+              <div class="hint">
+                Check it and submit: the simulated server rejects it. Uncheck it to lift the error.
+                The same CSS as above shows the message:
+                <code>:state(invalid) + .error</code>.
+              </div>
+            </div>
+          </fieldset>
+
+          <div class="actions">
+            <button type="submit">Submit</button>
+            <button type="reset">Reset</button>
+          </div>
+          <pre class="form-output" id="output-external" aria-live="polite"></pre>
         </form>
       </section>
     </main>
