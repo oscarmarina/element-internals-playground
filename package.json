@@ -17,6 +17,7 @@
   ],
   "scripts": {
     "analyze": "lerna run analyze --stream --concurrency 1",
+    "build-storybook": "storybook build",
     "clean": "rm package-lock.json && lerna clean",
     "clean:packages": "lerna exec -- rm -rf ./node_modules && npm run clean:packages:dev && npm run clean:packages:coverage",
     "clean:packages:coverage": "lerna exec -- rm -rf ./test/coverage",
@@ -30,13 +31,12 @@
     "push": "git push --follow-tags origin main",
     "release": "npm ci && npm run test:pre-push && lerna version --no-push",
     "standard": "commit-and-tag-version",
+    "storybook": "storybook dev -p 6006",
     "stylelint": "stylelint -f verbose --ignore-path .prettierignore 'packages/**/*.{js,ts,css,scss,html}'",
     "test": "lerna run test --stream --concurrency 1 -- --run",
     "test:pre-push": "lerna run test --stream --concurrency 1 --since origin/main -- --run",
     "test:scope": "func() { lerna run test --stream --concurrency 1 --scope @blockquote-playground/${1}; }; func",
-    "postversion": "npm run standard",
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "postversion": "npm run standard"
   },
   "commitlint": {
     "extends": [
@@ -116,20 +116,20 @@
     ]
   },
   "overrides": {
-    "tar": "^7.5.23",
-    "brace-expansion": "^5.0.13",
-    "js-yaml": "^5.5.0",
-    "pacote": "^22.0.1",
-    "smol-toml": "^1.9.1"
+    "glob": "^14.0.6",
+    "minimatch": "^11.0.8",
+    "nx": {
+      "undici": "^8.12.4"
+    }
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.4",
-    "@commitlint/config-conventional": "^21.2.2",
+    "@commitlint/config-conventional": "^21.2.4",
     "@commitlint/config-workspace-scopes": "^21.2.0",
     "@eslint/js": "^10.0.1",
     "@html-eslint/eslint-plugin": "^0.68.0",
     "@html-eslint/parser": "^0.68.0",
-    "@storybook/addon-a11y": "^11.0.0-beta.1",
+    "@storybook/addon-a11y": "^11.0.0-beta.3",
     "@storybook/addon-docs": "11.0.0-beta.3",
     "@storybook/web-components-vite": "11.0.0-beta.3",
     "@typescript-eslint/parser": "^8.72.2",
